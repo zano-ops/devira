@@ -25,6 +25,7 @@ interface DraftData {
   clientName: string
   clientEmail: string
   clientAddress: string
+  clientPhone: string
   savedAt: number
 }
 
@@ -43,6 +44,7 @@ export default function NouveauDevis() {
   const [clientName, setClientName] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   const [clientAddress, setClientAddress] = useState('')
+  const [clientPhone, setClientPhone] = useState('')
   const [savedClients, setSavedClients] = useState<Client[]>([])
   const [showClientList, setShowClientList] = useState(false)
 
@@ -90,11 +92,11 @@ export default function NouveauDevis() {
     if (!description && !clientName) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      const draft: DraftData = { description, clientName, clientEmail, clientAddress, savedAt: Date.now() }
+      const draft: DraftData = { description, clientName, clientEmail, clientAddress, clientPhone, savedAt: Date.now() }
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     }, 1500)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
-  }, [description, clientName, clientEmail, clientAddress])
+  }, [description, clientName, clientEmail, clientAddress, clientPhone])
 
   // Load clients
   useEffect(() => {
@@ -110,6 +112,7 @@ export default function NouveauDevis() {
     setClientName(draft.clientName || '')
     setClientEmail(draft.clientEmail || '')
     setClientAddress(draft.clientAddress || '')
+    setClientPhone(draft.clientPhone || '')
     setDraftBanner(null)
   }
 
@@ -191,6 +194,7 @@ export default function NouveauDevis() {
     setClientName(c.name)
     setClientEmail(c.email)
     setClientAddress([c.address, c.zip_code, c.city].filter(Boolean).join(', '))
+    setClientPhone(c.phone || '')
     setShowClientList(false)
   }
 
@@ -210,6 +214,7 @@ export default function NouveauDevis() {
 
       const fullDescription = description +
         (clientName ? `\n\nClient : ${clientName}` : '') +
+        (clientPhone ? `, tél : ${clientPhone}` : '') +
         (clientEmail ? `, email : ${clientEmail}` : '') +
         (clientAddress ? `, adresse : ${clientAddress}` : '')
 
@@ -238,6 +243,7 @@ export default function NouveauDevis() {
           name: clientName,
           email: clientEmail,
           address: clientAddress,
+          phone: clientPhone,
         }).then(() => {})
       }
 
@@ -475,6 +481,13 @@ export default function NouveauDevis() {
               value={clientAddress}
               onChange={setClientAddress}
               placeholder="14 rue des Lilas, 69000 Lyon"
+            />
+            <Field
+              label="Téléphone du client"
+              value={clientPhone}
+              onChange={setClientPhone}
+              placeholder="06 12 34 56 78"
+              type="tel"
             />
           </div>
 

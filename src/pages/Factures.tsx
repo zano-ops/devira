@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import type { Invoice } from '../types'
 import { BottomNav } from '../components/BottomNav'
 import { useToast } from '../components/Toast'
+import { downloadInvoicePdf } from '../lib/generatePdf'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string | null) { return s ? new Date(s).toLocaleDateString('fr-FR') : '—' }
@@ -16,12 +17,13 @@ const statusConfig = {
 }
 
 export default function Factures() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
   const { showToast, ToastContainer } = useToast()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'paid'>('all')
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
   useEffect(() => { if (user) fetchInvoices() }, [user])
 
@@ -123,6 +125,18 @@ export default function Factures() {
     await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
     showToast('Facture marquée comme payée ✓')
     fetchInvoices()
+  }
+
+  const handleDownloadPdf = async (inv: Invoice) => {
+    if (!profile) return
+    setDownloadingId(inv.id)
+    try {
+      await downloadInvoicePdf(inv, profile)
+      showToast('PDF téléchargé ✓')
+    } catch {
+      showToast('Erreur PDF — réessaie', 'error')
+    }
+    setDownloadingId(null)
   }
 
   const totalPending = invoices.filter(i => i.status === 'pending').reduce((s, i) => s + i.total_ttc, 0)
@@ -246,21 +260,30 @@ export default function Factures() {
                     </div>
                   </div>
 
-                  {(inv.status === 'pending' || inv.status === 'overdue') && (
+                  <div className="flex gap-2">
+                    {(inv.status === 'pending' || inv.status === 'overdue') && (
+                      <button
+                        onClick={() => markPaid(inv.id)}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-colors ${
+                          isOverdue
+                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                            : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                        }`}
+                      >
+                        ✓ Marquer payée
+                      </button>
+                    )}
+                    {inv.status === 'paid' && (
+                      <p className="flex-1 text-xs text-green-600 text-center font-medium py-2.5">✅ Payée le {fmtDate(inv.paid_at)}</p>
+                    )}
                     <button
-                      onClick={() => markPaid(inv.id)}
-                      className={`w-full py-2.5 rounded-xl text-xs font-semibold border transition-colors ${
-                        isOverdue
-                          ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                          : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
-                      }`}
+                      onClick={() => handleDownloadPdf(inv)}
+                      disabled={downloadingId === inv.id}
+                      className="py-2.5 px-3 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors disabled:opacity-50"
                     >
-                      ✓ Marquer comme payée
+                      {downloadingId === inv.id ? '⏳' : '⬇️ PDF'}
                     </button>
-                  )}
-                  {inv.status === 'paid' && (
-                    <p className="text-xs text-green-600 text-center font-medium">✅ Payée le {fmtDate(inv.paid_at)}</p>
-                  )}
+                  </div>
                 </div>
               )
             })}

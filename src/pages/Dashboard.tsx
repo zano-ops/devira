@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import type { Quote } from '../types'
 import { BottomNav } from '../components/BottomNav'
 import { StatusBadge } from '../components/StatusBadge'
+import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) }
@@ -311,6 +312,7 @@ export default function Dashboard() {
         )}
       </div>
 
+      <IosPwaInstallBanner />
       <BottomNav />
     </div>
   )

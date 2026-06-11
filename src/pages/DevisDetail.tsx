@@ -75,6 +75,7 @@ export default function DevisDetail() {
         client_nom: data.quote_json.client?.nom || '',
         client_email: data.quote_json.client?.email || '',
         client_adresse: data.quote_json.client?.adresse || '',
+        client_phone: (data.quote_json.client as any)?.phone || '',
         lignes: [...data.quote_json.lignes],
         taux_tva: data.quote_json.taux_tva,
         notes: data.quote_json.notes || '',
@@ -101,7 +102,7 @@ export default function DevisDetail() {
     const newJson = {
       ...quote.quote_json,
       titre: editData.titre, duree_estimee: editData.duree_estimee,
-      client: { nom: editData.client_nom || null, email: editData.client_email || null, adresse: editData.client_adresse || null },
+      client: { nom: editData.client_nom || null, email: editData.client_email || null, adresse: editData.client_adresse || null, phone: editData.client_phone || null },
       lignes, sous_total_ht, montant_tva, total_ttc,
       taux_tva: editData.taux_tva,
       notes: editData.notes || null,
@@ -484,6 +485,7 @@ export default function DevisDetail() {
 
           <EditSection title="Client">
             <EditField label="Nom du client" value={editData.client_nom} onChange={v => setEditData((d: any) => ({ ...d, client_nom: v }))} placeholder="M. Dupont" />
+            <EditField label="Téléphone" value={editData.client_phone} onChange={v => setEditData((d: any) => ({ ...d, client_phone: v }))} placeholder="06 12 34 56 78" />
             <EditField label="Email" value={editData.client_email} onChange={v => setEditData((d: any) => ({ ...d, client_email: v }))} placeholder="client@exemple.com" />
             <EditField label="Adresse" value={editData.client_adresse} onChange={v => setEditData((d: any) => ({ ...d, client_adresse: v }))} placeholder="14 rue des Lilas, Lyon" />
           </EditSection>
@@ -530,7 +532,7 @@ export default function DevisDetail() {
                       </div>
                     </div>
                     <input value={l.designation} onChange={e => updateLine(i, 'designation', e.target.value)} className="input-field mb-2 text-sm" placeholder="Désignation" />
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs text-gray-400 font-medium">Qté</label>
                         <input type="number" value={l.quantite} onChange={e => updateLine(i, 'quantite', parseFloat(e.target.value) || 0)} className="input-field mt-0.5 text-sm" />
@@ -541,8 +543,10 @@ export default function DevisDetail() {
                           {['m²', 'ml', 'h', 'u', 'forfait', 'lot', 'pcs'].map(u => <option key={u}>{u}</option>)}
                         </select>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
                       <div>
-                        <label className="text-xs text-gray-400 font-medium">P.U. HT</label>
+                        <label className="text-xs text-gray-400 font-medium">P.U. HT (€)</label>
                         <input type="number" value={l.prix_unitaire_ht} onChange={e => updateLine(i, 'prix_unitaire_ht', parseFloat(e.target.value) || 0)} className="input-field mt-0.5 text-sm" />
                       </div>
                       <div>
@@ -674,6 +678,20 @@ export default function DevisDetail() {
 
             <button onClick={() => setShowEmailModal(true)} className="btn-accent">
               <span className="flex items-center justify-center gap-2"><span>📧</span>Envoyer par email</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const signUrl = `${window.location.origin}/sign/${quote.id}`
+                const clientFirst = quote.client_name?.split(' ')[0] || ''
+                const msg = encodeURIComponent(
+                  `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
+                )
+                window.open(`https://wa.me/?text=${msg}`, '_blank')
+              }}
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50 active:scale-95 transition-transform"
+            >
+              <span>💬</span> Envoyer sur WhatsApp
             </button>
 
             {quote.status === 'sent' && (

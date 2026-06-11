@@ -15,13 +15,24 @@ interface Props { quote: Quote; profile: Profile }
 export function QuotePreview({ quote, profile }: Props) {
   const q = quote.quote_json
   const discount = quote.discount_percent || 0
-  const sousTotal = q.lignes.reduce((s, l) => s + l.quantite * l.prix_unitaire_ht, 0)
+
+  // Skip section headers for all calculations
+  const realLines = q.lignes.filter(l => !l.isSection)
+  const sousTotal = realLines.reduce((s, l) => s + l.quantite * l.prix_unitaire_ht, 0)
   const remise = discount > 0 ? sousTotal * discount / 100 : 0
-  const base = sousTotal - remise
-  const tva = base * q.taux_tva / 100
-  const ttc = base + tva
+
+  // Per-line TVA calculation
+  const tvaByRate: Record<number, number> = {}
+  realLines.forEach(l => {
+    const rate = l.tva_rate ?? q.taux_tva
+    const lineBase = (l.quantite * l.prix_unitaire_ht) * (1 - discount / 100)
+    tvaByRate[rate] = parseFloat(((tvaByRate[rate] || 0) + lineBase * rate / 100).toFixed(2))
+  })
+  const totalTva = Object.values(tvaByRate).reduce((s, v) => s + v, 0)
+  const ttc = sousTotal - remise + totalTva
   const validite = q.validite_jours || 30
   const acompte = ttc * 0.3
+  const tvaRates = Object.keys(tvaByRate).map(Number).sort((a, b) => a - b)
 
   return (
     <div id="quote-preview" style={{
@@ -31,7 +42,6 @@ export function QuotePreview({ quote, profile }: Props) {
 
       {/* ===== EN-TÊTE ===== */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        {/* Logo + Infos entreprise */}
         <div style={{ flex: 1 }}>
           {profile.logo_url ? (
             <img src={profile.logo_url} alt="Logo" style={{ maxHeight: '64px', maxWidth: '180px', objectFit: 'contain', marginBottom: '10px', display: 'block' }} />
@@ -46,20 +56,16 @@ export function QuotePreview({ quote, profile }: Props) {
           {profile.city && <div style={{ color: '#666', fontSize: '11px' }}>{profile.zip_code} {profile.city}</div>}
           {profile.phone && <div style={{ color: '#666', fontSize: '11px' }}>Tél : {profile.phone}</div>}
         </div>
-
-        {/* Titre DEVIS + numéro */}
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '30px', fontWeight: '900', color: '#1E3A5F', letterSpacing: '-1px', lineHeight: '1' }}>DEVIS</div>
           <div style={{ fontSize: '18px', fontWeight: '700', color: '#F59E0B', marginTop: '2px' }}>N° {quote.quote_number}</div>
         </div>
       </div>
 
-      {/* Barre colorée */}
       <div style={{ height: '3px', background: 'linear-gradient(90deg, #1E3A5F 0%, #2D5282 60%, #F59E0B 100%)', borderRadius: '2px', marginBottom: '18px' }} />
 
       {/* ===== INFOS + CLIENT ===== */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-        {/* Tableau infos devis */}
         <div style={{ flex: 1.2, fontSize: '11px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
@@ -88,6 +94,9 @@ export function QuotePreview({ quote, profile }: Props) {
           )}
           {q.client?.email && (
             <div style={{ color: '#666', fontSize: '11px', marginTop: '3px' }}>✉ {q.client.email}</div>
+          )}
+          {q.client?.phone && (
+            <div style={{ color: '#666', fontSize: '11px', marginTop: '3px' }}>📞 {q.client.phone}</div>
           )}
         </div>
       </div>
@@ -121,8 +130,18 @@ export function QuotePreview({ quote, profile }: Props) {
         </thead>
         <tbody>
           {q.lignes.map((l, i) => {
+            if (l.isSection) {
+              return (
+                <tr key={i} style={{ background: '#EFF6FF' }}>
+                  <td colSpan={7} style={{ padding: '7px 9px', color: '#1E3A5F', fontWeight: '700', fontSize: '10px', borderBottom: '1px solid #DBEAFE', letterSpacing: '0.3px' }}>
+                    ◆ {l.designation.toUpperCase()}
+                  </td>
+                </tr>
+              )
+            }
             const totalHT = l.quantite * l.prix_unitaire_ht
-            const tvaLigne = totalHT * q.taux_tva / 100
+            const lineTva = l.tva_rate ?? q.taux_tva
+            const tvaLigne = totalHT * lineTva / 100
             const ttcLigne = totalHT + tvaLigne
             return (
               <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb' }}>
@@ -130,7 +149,7 @@ export function QuotePreview({ quote, profile }: Props) {
                 <td style={{ padding: '8px 7px', textAlign: 'center', borderBottom: '1px solid #f0f0f0', color: '#444' }}>{l.quantite}</td>
                 <td style={{ padding: '8px 7px', textAlign: 'center', borderBottom: '1px solid #f0f0f0', color: '#444' }}>{l.unite}</td>
                 <td style={{ padding: '8px 7px', textAlign: 'right', borderBottom: '1px solid #f0f0f0', color: '#444' }}>{fmt(l.prix_unitaire_ht)}</td>
-                <td style={{ padding: '8px 7px', textAlign: 'center', borderBottom: '1px solid #f0f0f0', color: '#555' }}>{q.taux_tva}%</td>
+                <td style={{ padding: '8px 7px', textAlign: 'center', borderBottom: '1px solid #f0f0f0', color: '#555' }}>{lineTva}%</td>
                 <td style={{ padding: '8px 7px', textAlign: 'right', borderBottom: '1px solid #f0f0f0', color: '#555' }}>{fmt(tvaLigne)}</td>
                 <td style={{ padding: '8px 7px', textAlign: 'right', borderBottom: '1px solid #f0f0f0', fontWeight: '700', color: '#1E3A5F' }}>{fmt(ttcLigne)}</td>
               </tr>
@@ -141,7 +160,6 @@ export function QuotePreview({ quote, profile }: Props) {
 
       {/* ===== TOTAUX ===== */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', gap: '16px' }}>
-        {/* Notes */}
         <div style={{ flex: 1 }}>
           {q.notes && (
             <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', padding: '10px 12px', fontSize: '10.5px', color: '#92400e' }}>
@@ -149,8 +167,6 @@ export function QuotePreview({ quote, profile }: Props) {
             </div>
           )}
         </div>
-
-        {/* Bloc totaux */}
         <div style={{ minWidth: '240px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
             <tbody>
@@ -164,10 +180,19 @@ export function QuotePreview({ quote, profile }: Props) {
                   <td style={{ padding: '5px 10px', textAlign: 'right', color: '#10B981', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>- {fmt(remise)}</td>
                 </tr>
               )}
-              <tr>
-                <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>Total TVA ({q.taux_tva}%)</td>
-                <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>{fmt(tva)}</td>
-              </tr>
+              {tvaRates.length > 1 ? (
+                tvaRates.map(rate => (
+                  <tr key={rate}>
+                    <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>TVA {rate}%</td>
+                    <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>{fmt(tvaByRate[rate])}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>Total TVA ({q.taux_tva}%)</td>
+                  <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>{fmt(totalTva)}</td>
+                </tr>
+              )}
               <tr style={{ background: '#1E3A5F' }}>
                 <td style={{ padding: '10px 10px', color: '#fff', fontWeight: '800', fontSize: '13px', borderRadius: '4px 0 0 4px' }}>TOTAL TTC</td>
                 <td style={{ padding: '10px 10px', textAlign: 'right', color: '#F59E0B', fontWeight: '900', fontSize: '15px', borderRadius: '0 4px 4px 0' }}>{fmt(ttc)}</td>
@@ -186,6 +211,9 @@ export function QuotePreview({ quote, profile }: Props) {
       <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '14px', marginBottom: '18px' }}>
         <div style={{ fontWeight: '700', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#1E3A5F', marginBottom: '5px' }}>Conditions de paiement</div>
         <div style={{ fontSize: '10.5px', color: '#555', lineHeight: '1.5' }}>{q.conditions || profile.payment_conditions || 'Acompte 30% à la commande, solde à réception des travaux.'}</div>
+        <div style={{ fontSize: '9px', color: '#999', marginTop: '6px', fontStyle: 'italic', lineHeight: '1.4' }}>
+          Conformément à l'article L. 221-18 du Code de la consommation, le client bénéficie d'un délai de rétractation de 14 jours à compter de la date de signature du présent devis.
+        </div>
       </div>
 
       {/* Signature */}
@@ -222,7 +250,7 @@ export function QuotePreview({ quote, profile }: Props) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: '700', color: '#1E3A5F', marginBottom: '3px', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px' }}>Mentions légales</div>
-          <div>TVA : {q.taux_tva}%</div>
+          {tvaRates.length > 1 ? tvaRates.map(r => <div key={r}>TVA {r}%</div>) : <div>TVA : {q.taux_tva}%</div>}
           <div>Devis valable {validite} jours</div>
           <div>Généré avec DevisPro BTP</div>
         </div>

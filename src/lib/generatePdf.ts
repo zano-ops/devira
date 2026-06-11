@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import type { Quote, Profile } from '../types'
+import type { Quote, Profile, Invoice } from '../types'
 
 function fmt(n: number) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
@@ -101,7 +101,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
     doc.setFontSize(8.5)
     doc.setTextColor('#555555')
     if (q.client.adresse) { doc.text(q.client.adresse, clientX, cy, { align: 'right' }); cy += 4 }
-    if (q.client.email) { doc.text(q.client.email, clientX, cy, { align: 'right' }) }
+    if (q.client.email) { doc.text(q.client.email, clientX, cy, { align: 'right' }); cy += 4 }
+    if ((q.client as any).phone) { doc.text(`Tél : ${(q.client as any).phone}`, clientX, cy, { align: 'right' }) }
   }
 
   // ── SÉPARATEUR ──
@@ -302,7 +303,13 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(8)
   doc.text(`Durée de validité : ${validite} jours à compter de la date d'émission.`, ML, y)
-  y += 9
+  y += 5
+  doc.setFontSize(7)
+  doc.setTextColor('#BBBBBB')
+  const hamonText = `Conformément à l'art. L.221-18 du Code de la consommation, le client bénéficie d'un délai de rétractation de 14 jours à compter de la signature.`
+  const hamonLines = doc.splitTextToSize(hamonText, CW)
+  doc.text(hamonLines, ML, y)
+  y += hamonLines.length * 3.5 + 5
 
   // ── ZONES DE SIGNATURE ──
   const sigW = (CW - 6) / 2
@@ -443,4 +450,190 @@ export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<
 export async function getQuotePdfBase64(quote: Quote, profile: Profile): Promise<string> {
   const doc = await buildDoc(quote, profile)
   return doc.output('datauristring').split(',')[1]
+}
+
+export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Promise<void> {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const q = invoice.invoice_json
+  const W = 210
+  const realLines = q.lignes.filter(l => !l.isSection)
+  const sousTotal = realLines.reduce((s, l) => s + l.total_ht, 0)
+
+  const tvaByRate: Record<number, number> = {}
+  realLines.forEach(l => {
+    const rate = l.tva_rate ?? q.taux_tva
+    tvaByRate[rate] = parseFloat(((tvaByRate[rate] || 0) + l.total_ht * rate / 100).toFixed(2))
+  })
+  const totalTva = Object.values(tvaByRate).reduce((s, v) => s + v, 0)
+  const ttc = parseFloat((sousTotal + totalTva).toFixed(2))
+  const tvaRates = Object.keys(tvaByRate).map(Number).sort((a, b) => a - b)
+
+  // Logo
+  let logoLoaded = false
+  if (profile.logo_url) {
+    const logoBase64 = await loadImageBase64(profile.logo_url)
+    if (logoBase64) {
+      try { doc.addImage(logoBase64, W - MR - 40, 8, 40, 25, undefined, 'FAST'); logoLoaded = true } catch {}
+    }
+  }
+
+  let y = 14
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(17)
+  doc.setTextColor(BLUE)
+  doc.text(profile.company_name || '', ML, y)
+  y += 6
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor('#555555')
+  const infoLines = [
+    profile.owner_name,
+    profile.address,
+    [profile.zip_code, profile.city].filter(Boolean).join(' '),
+    profile.phone ? `Tél : ${profile.phone}` : '',
+    profile.siret ? `SIRET : ${profile.siret}` : '',
+  ].filter(Boolean) as string[]
+  infoLines.slice(0, logoLoaded ? 5 : 7).forEach(line => { doc.text(line, ML, y); y += 4 })
+
+  // Client
+  if (invoice.client_name) {
+    const cx = logoLoaded ? W - MR - 45 : W - MR
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.setTextColor('#1a1a1a')
+    doc.text(invoice.client_name, cx, 14, { align: 'right' })
+    if (invoice.client_email) {
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor('#555555')
+      doc.text(invoice.client_email, cx, 20, { align: 'right' })
+    }
+  }
+
+  y = Math.max(y + 3, logoLoaded ? 48 : 44)
+  doc.setFillColor(BLUE)
+  doc.rect(ML, y, W - ML - MR, 2.5, 'F')
+  y += 8
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(20)
+  doc.setTextColor(BLUE)
+  doc.text(`FACTURE N° ${invoice.invoice_number}`, ML, y)
+  y += 8
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor('#666666')
+  const metaParts = [
+    `Date : ${fmtDate(invoice.created_at)}`,
+    invoice.due_date ? `Échéance : ${fmtDate(invoice.due_date)}` : '',
+  ].filter(Boolean)
+  doc.text(metaParts.join('   •   '), ML, y)
+  y += 7
+
+  // Status badge
+  if (invoice.status === 'paid' && invoice.paid_at) {
+    doc.setFillColor(236, 253, 245)
+    doc.roundedRect(ML, y - 4, 80, 8, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor('#059669')
+    doc.text(`✓ Payée le ${fmtDate(invoice.paid_at)}`, ML + 3, y + 0.5)
+    y += 11
+  } else if (invoice.status === 'overdue') {
+    doc.setFillColor(254, 242, 242)
+    doc.roundedRect(ML, y - 4, 80, 8, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor('#DC2626')
+    doc.text(`⚠ Échéance dépassée`, ML + 3, y + 0.5)
+    y += 11
+  }
+
+  // Lines table
+  const tableBody = realLines.map(l => [
+    l.designation,
+    String(l.quantite),
+    l.unite,
+    fmt(l.prix_unitaire_ht),
+    fmt(l.total_ht),
+    `${l.tva_rate ?? q.taux_tva}%`,
+  ])
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Désignation / Description', 'Qté', 'Unité', 'P.U. HT', 'Total HT', 'TVA']],
+    body: tableBody,
+    styles: { fontSize: 9, cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 }, lineColor: [235, 235, 235], lineWidth: 0.3 },
+    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+    alternateRowStyles: { fillColor: [249, 249, 249] },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { cellWidth: 14, halign: 'center' },
+      2: { cellWidth: 16, halign: 'center' },
+      3: { cellWidth: 28, halign: 'right' },
+      4: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+      5: { cellWidth: 16, halign: 'center', textColor: [100, 100, 100] },
+    },
+    margin: { left: ML, right: MR },
+    theme: 'grid',
+  })
+
+  y = (doc as any).lastAutoTable.finalY + 5
+
+  const totauxBody: string[][] = [['Sous-total HT', fmt(sousTotal)]]
+  if (tvaRates.length > 1) {
+    tvaRates.forEach(rate => totauxBody.push([`TVA ${rate}%`, fmt(tvaByRate[rate])]))
+  } else {
+    totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
+  }
+
+  autoTable(doc, {
+    startY: y,
+    body: totauxBody,
+    styles: { fontSize: 9, cellPadding: { top: 3, bottom: 3, left: 8, right: 8 } },
+    columnStyles: { 0: { cellWidth: 55, textColor: [85, 85, 85] }, 1: { cellWidth: 42, halign: 'right', fontStyle: 'bold' } },
+    margin: { left: W - MR - 97, right: MR },
+    theme: 'plain',
+    tableLineColor: [240, 240, 240],
+    tableLineWidth: 0.3,
+  })
+
+  const ttcY = (doc as any).lastAutoTable.finalY
+  doc.setFillColor(30, 58, 95)
+  doc.rect(W - MR - 97, ttcY, 97, 12, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(255, 255, 255)
+  doc.text('Total TTC', W - MR - 97 + 8, ttcY + 8)
+  doc.setTextColor(245, 158, 11)
+  doc.setFontSize(13)
+  doc.text(fmt(ttc), W - MR - 2, ttcY + 8, { align: 'right' })
+
+  y = ttcY + 22
+
+  // Conditions
+  if (q.conditions) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8.5)
+    doc.setTextColor('#555555')
+    const condLines = doc.splitTextToSize(q.conditions, W - ML - MR)
+    doc.text(condLines, ML, y)
+    y += condLines.length * 4 + 4
+  }
+
+  // Footer
+  const footerY = 286
+  doc.setFillColor(30, 58, 95)
+  doc.rect(0, footerY, W, 1, 'F')
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7)
+  doc.setTextColor('#777777')
+  const f1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' • ')
+  const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
+  doc.text(f1.slice(0, 70), ML, footerY + 5)
+  if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
+  doc.text('Généré avec DevisPro BTP', W - MR, footerY + 5, { align: 'right' })
+
+  doc.save(`Facture-${invoice.invoice_number}.pdf`)
 }
