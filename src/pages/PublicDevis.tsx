@@ -8,10 +8,12 @@ interface PublicQuoteData {
   client_nom: string | null
   company_name: string
   owner_name: string
+  logo_url?: string | null
+  phone?: string | null
   total_ttc: number
   total_ht: number
   duree_estimee: string
-  lignes: Array<{ designation: string; quantite: number; unite: string; prix_unitaire_ht: number; tva_rate?: number; total_ht: number }>
+  lignes: Array<{ designation: string; quantite: number; unite: string; prix_unitaire_ht: number; tva_rate?: number; total_ht: number; isSection?: boolean }>
   taux_tva: number
   validite_jours: number
   conditions: string
@@ -162,9 +164,21 @@ export default function PublicDevis() {
     <div className="min-h-screen bg-gray-50 pb-10">
       {/* Header artisan */}
       <div className="bg-primary px-5 pt-10 pb-6">
-        <p className="text-blue-300 text-xs mb-1">Devis de</p>
-        <h1 className="text-white font-bold text-xl">{quoteData.company_name}</h1>
-        {quoteData.owner_name && <p className="text-blue-200 text-sm">{quoteData.owner_name}</p>}
+        <div className="flex items-center gap-4">
+          {quoteData.logo_url && (
+            <img
+              src={quoteData.logo_url}
+              alt="Logo"
+              className="w-14 h-14 rounded-xl object-contain bg-white/10 p-1 shrink-0"
+            />
+          )}
+          <div>
+            <p className="text-blue-300 text-xs mb-0.5">Devis de</p>
+            <h1 className="text-white font-bold text-xl leading-tight">{quoteData.company_name}</h1>
+            {quoteData.owner_name && <p className="text-blue-200 text-sm">{quoteData.owner_name}</p>}
+            {quoteData.phone && <p className="text-blue-300 text-xs mt-0.5">📞 {quoteData.phone}</p>}
+          </div>
+        </div>
       </div>
 
       <div className="px-4 mt-4">
@@ -194,7 +208,11 @@ export default function PublicDevis() {
           <div className="px-4 py-3 bg-primary">
             <p className="text-white text-xs font-bold uppercase tracking-wide">Détail des prestations</p>
           </div>
-          {quoteData.lignes.map((l, i) => (
+          {quoteData.lignes.map((l, i) => l.isSection ? (
+            <div key={i} className="px-4 py-2.5 bg-primary/5 border-t border-gray-100">
+              <p className="text-primary font-bold text-xs uppercase tracking-wide">◆ {l.designation}</p>
+            </div>
+          ) : (
             <div key={i} className={`px-4 py-3 flex items-start justify-between gap-3 ${i > 0 ? 'border-t border-gray-50' : ''}`}>
               <div className="flex-1 min-w-0">
                 <p className="text-gray-900 text-sm font-medium">{l.designation}</p>

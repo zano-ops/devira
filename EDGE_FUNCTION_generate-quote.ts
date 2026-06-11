@@ -28,13 +28,42 @@ Deno.serve(async (req) => {
     const validityDays = profile?.quote_validity_days || 30
     const paymentConditions = profile?.payment_conditions || 'Acompte 30% à la commande, solde à réception des travaux.'
 
-    // Générer le numéro de devis
-    const year = new Date().getFullYear()
-    const { count } = await supabase
-      .from('quotes')
-      .select('*', { count: 'exact', head: true })
+    // Récupérer le catalogue de prix de l'artisan
+    const { data: catalogueItems } = await supabase
+      .from('catalogue_items')
+      .select('designation, unite, prix_unitaire_ht, categorie')
       .eq('user_id', user_id)
-    const quoteNumber = `${year}-${String((count || 0) + 1).padStart(4, '0')}`
+      .order('categorie')
+      .limit(60)
+
+    const hasCatalogue = catalogueItems && catalogueItems.length > 0
+    const catalogueBlock = hasCatalogue
+      ? '\n\n━━━ TARIFS PERSONNALISÉS DE L\'ARTISAN (PRIORITÉ ABSOLUE) ━━━\n' +
+        catalogueItems!
+          .map(item => `• ${item.designation} [${item.categorie}] → ${item.prix_unitaire_ht}€ HT/${item.unite}`)
+          .join('\n') +
+        '\n━━━ FIN CATALOGUE ━━━\n\n' +
+        'RÈGLE FONDAMENTALE : Pour chaque prestation correspondant au catalogue ci-dessus, utilise EXACTEMENT la désignation et le prix indiqués. Ne les modifie pas. Pour les prestations non listées dans ce catalogue, utilise des prix cohérents avec le marché BTP français 2024-2025.'
+      : ''
+
+    // Générer le numéro de devis (en utilisant max pour éviter les doublons en cas de concurrence)
+    const year = new Date().getFullYear()
+    const { data: lastQuote } = await supabase
+      .from('quotes')
+      .select('quote_number')
+      .eq('user_id', user_id)
+      .like('quote_number', `${year}-%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    let nextNum = 1
+    if (lastQuote?.quote_number) {
+      const parts = lastQuote.quote_number.split('-')
+      const lastNum = parseInt(parts[parts.length - 1])
+      if (!isNaN(lastNum)) nextNum = lastNum + 1
+    }
+    const quoteNumber = `${year}-${String(nextNum).padStart(4, '0')}`
 
     // Appel Claude
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -46,15 +75,16 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-opus-4-5',
-        max_tokens: 2000,
+        max_tokens: 2500,
         messages: [{
           role: 'user',
           content: `Tu es un expert en devis BTP français. Génère un devis professionnel basé sur cette description :
 
 "${description}"
 
-TVA applicable : ${vatRate}%
+TVA par défaut : ${vatRate}%
 Validité : ${validityDays} jours
+${catalogueBlock}
 
 Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans backticks, sans texte avant ou après. Juste le JSON brut :
 
@@ -63,33 +93,45 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans backticks, sa
   "client": {
     "nom": "nom du client ou null",
     "adresse": "adresse ou null",
-    "email": "email ou null"
+    "email": "email ou null",
+    "phone": "téléphone ou null"
   },
   "duree_estimee": "ex: 3 jours",
   "lignes": [
+    {
+      "designation": "NOM DU LOT / SECTION (ex: Lot 1 — Démolition)",
+      "unite": "",
+      "quantite": 0,
+      "prix_unitaire_ht": 0,
+      "total_ht": 0,
+      "isSection": true
+    },
     {
       "designation": "description détaillée de la prestation",
       "unite": "m² ou ml ou h ou u ou forfait",
       "quantite": 10,
       "prix_unitaire_ht": 45.00,
-      "total_ht": 450.00
+      "total_ht": 450.00,
+      "tva_rate": ${vatRate}
     }
   ],
   "sous_total_ht": 1000.00,
   "taux_tva": ${vatRate},
-  "montant_tva": ${vatRate * 10},
-  "total_ttc": ${100 + vatRate * 10},
+  "montant_tva": 100.00,
+  "total_ttc": 1100.00,
   "validite_jours": ${validityDays},
   "notes": "précisions techniques ou null",
   "conditions": "${paymentConditions}"
 }
 
 Règles importantes :
-- Sépare toujours main d'œuvre et fournitures en lignes distinctes
-- Prix cohérents avec le marché BTP français en 2024-2025
-- Minimum 3 lignes, maximum 12 lignes
-- total_ht de chaque ligne = quantite × prix_unitaire_ht
-- sous_total_ht = somme des total_ht
+- ${hasCatalogue ? 'UTILISE EN PRIORITÉ les prix du catalogue de l\'artisan ci-dessus' : 'Prix cohérents avec le marché BTP français en 2024-2025'}
+- Pour les devis de plus de 3 corps de métier, CRÉE des lignes "isSection" comme en-têtes de lots (Lot 1 — ..., Lot 2 — ...) avant les lignes correspondantes. Pour les petits devis simples (1-2 corps), pas de sections nécessaires.
+- Sépare TOUJOURS main d'œuvre et fournitures en lignes distinctes
+- Minimum 3 lignes de prestation, maximum 15 lignes (hors sections)
+- Les lignes isSection n'ont PAS de prix : quantite=0, prix_unitaire_ht=0, total_ht=0, unite=""
+- total_ht de chaque ligne normale = quantite × prix_unitaire_ht
+- sous_total_ht = somme des total_ht des lignes NON-section
 - montant_tva = sous_total_ht × ${vatRate} / 100
 - total_ttc = sous_total_ht + montant_tva
 - Désignations professionnelles et précises`
@@ -104,13 +146,8 @@ Règles importantes :
       throw new Error(`Anthropic API error: ${anthropicData.error?.message || 'Unknown error'}`)
     }
 
-    // Nettoyer la réponse de Claude (enlever les backticks si présents)
     let rawText = anthropicData.content[0].text.trim()
-
-    // Supprimer les blocs markdown ```json ... ``` ou ``` ... ```
     rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-
-    // Si ça commence par autre chose qu'un {, chercher le JSON
     const jsonStart = rawText.indexOf('{')
     const jsonEnd = rawText.lastIndexOf('}')
     if (jsonStart > 0 || jsonEnd < rawText.length - 1) {
@@ -125,12 +162,15 @@ Règles importantes :
       throw new Error('Réponse IA invalide — réessaie')
     }
 
-    // Recalculer les totaux pour être sûr
+    // Recalculer les totaux (ignorer les lignes de section)
     const lignes = quoteJson.lignes.map((l: any) => ({
       ...l,
-      total_ht: parseFloat((l.quantite * l.prix_unitaire_ht).toFixed(2))
+      total_ht: l.isSection ? 0 : parseFloat((l.quantite * l.prix_unitaire_ht).toFixed(2))
     }))
-    const sous_total_ht = parseFloat(lignes.reduce((s: number, l: any) => s + l.total_ht, 0).toFixed(2))
+    const sous_total_ht = parseFloat(
+      lignes.filter((l: any) => !l.isSection)
+        .reduce((s: number, l: any) => s + l.total_ht, 0).toFixed(2)
+    )
     const montant_tva = parseFloat((sous_total_ht * vatRate / 100).toFixed(2))
     const total_ttc = parseFloat((sous_total_ht + montant_tva).toFixed(2))
 

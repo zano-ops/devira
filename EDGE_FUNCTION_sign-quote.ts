@@ -1,7 +1,6 @@
 // ============================================================
 // EDGE FUNCTION : sign-quote
 // Déployer : supabase functions deploy sign-quote
-// Gère GET (lecture publique du devis) et POST (signature)
 // ============================================================
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
@@ -12,12 +11,71 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function sendArtisanNotification(
+  artisanEmail: string,
+  artisanName: string,
+  quoteNumber: string,
+  totalTtc: number,
+  signerName: string,
+  resendApiKey: string
+) {
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'DevisPro BTP <notifications@devispro-btp.fr>',
+        to: artisanEmail,
+        subject: `✅ Devis ${quoteNumber} signé par ${signerName}`,
+        html: `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+  <div style="background:#1E3A5F;padding:28px 24px;border-radius:12px 12px 0 0">
+    <h2 style="color:white;margin:0;font-size:20px">DevisPro BTP</h2>
+  </div>
+  <div style="background:#f9fafb;padding:32px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
+    <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center">
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <h3 style="color:#065F46;margin:0 0 4px;font-size:18px">Devis accepté et signé !</h3>
+      <p style="color:#047857;margin:0;font-size:14px">Signé par <strong>${signerName}</strong></p>
+    </div>
+    <table style="width:100%;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;border-spacing:0">
+      <tr>
+        <td style="padding:8px 12px;color:#6b7280;font-size:13px">Devis</td>
+        <td style="padding:8px 12px;color:#111827;font-weight:600;font-size:13px;text-align:right">${quoteNumber}</td>
+      </tr>
+      <tr style="background:#f9fafb">
+        <td style="padding:8px 12px;color:#6b7280;font-size:13px">Signé par</td>
+        <td style="padding:8px 12px;color:#111827;font-weight:600;font-size:13px;text-align:right">${signerName}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;color:#6b7280;font-size:13px">Montant TTC</td>
+        <td style="padding:8px 12px;color:#1E3A5F;font-weight:700;font-size:16px;text-align:right">${totalTtc.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</td>
+      </tr>
+    </table>
+    <p style="color:#6b7280;font-size:13px;margin-top:20px">
+      Tu peux maintenant convertir ce devis en facture depuis ton application DevisPro BTP.
+    </p>
+    <p style="color:#9ca3af;font-size:12px;margin-top:16px">
+      DevisPro BTP — ${artisanName}
+    </p>
+  </div>
+</div>`,
+      })
+    })
+  } catch (e) {
+    console.error('Email notification error (non-fatal):', e)
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')! // Bypass RLS
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
   // ── GET : lire le devis public ──
@@ -43,10 +101,9 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Récupérer le profil artisan
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_name, owner_name')
+        .select('company_name, owner_name, logo_url, phone, address, city')
         .eq('id', quote.user_id)
         .single()
 
@@ -61,6 +118,8 @@ Deno.serve(async (req) => {
           client_nom: q.client?.nom || null,
           company_name: profile?.company_name || 'Entreprise',
           owner_name: profile?.owner_name || '',
+          logo_url: profile?.logo_url || null,
+          phone: profile?.phone || null,
           total_ttc: quote.total_ttc,
           total_ht: quote.total_ht,
           duree_estimee: q.duree_estimee,
@@ -93,10 +152,9 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Récupérer le devis
       const { data: quote, error: fetchError } = await supabase
         .from('quotes')
-        .select('id, status, quote_json, quote_number, total_ttc')
+        .select('id, user_id, status, quote_json, quote_number, total_ttc')
         .eq('id', quote_id)
         .single()
 
@@ -106,14 +164,12 @@ Deno.serve(async (req) => {
         })
       }
 
-      // Vérifier si déjà signé
       if (quote.quote_json?.signature) {
         return new Response(JSON.stringify({ success: false, error: 'Ce devis est déjà signé' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      // Ajouter la signature dans quote_json
       const updatedJson = {
         ...quote.quote_json,
         signature: {
@@ -122,17 +178,34 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Mettre à jour le devis
       const { error: updateError } = await supabase
         .from('quotes')
-        .update({
-          quote_json: updatedJson,
-          status: 'accepted',
-        })
+        .update({ quote_json: updatedJson, status: 'accepted' })
         .eq('id', quote_id)
 
       if (updateError) {
         throw new Error('Erreur lors de la sauvegarde : ' + updateError.message)
+      }
+
+      // Notifier l'artisan par email (non-bloquant)
+      const resendApiKey = Deno.env.get('RESEND_API_KEY')
+      if (resendApiKey) {
+        const { data: artisanProfile } = await supabase
+          .from('profiles')
+          .select('email, company_name, owner_name')
+          .eq('id', quote.user_id)
+          .single()
+
+        if (artisanProfile?.email) {
+          await sendArtisanNotification(
+            artisanProfile.email,
+            artisanProfile.company_name || artisanProfile.owner_name || 'Artisan',
+            quote.quote_number,
+            quote.total_ttc,
+            signer_name.trim(),
+            resendApiKey
+          )
+        }
       }
 
       return new Response(JSON.stringify({

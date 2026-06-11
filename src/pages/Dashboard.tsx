@@ -69,6 +69,26 @@ export default function Dashboard() {
     return matchSearch && matchFilter
   })
 
+  // ── GRAPHIQUE CA 6 MOIS ──
+  const last6Months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    const ca = accepted.filter(q => {
+      const qd = new Date(q.created_at)
+      return qd.getMonth() === d.getMonth() && qd.getFullYear() === d.getFullYear()
+    }).reduce((s, q) => s + q.total_ttc, 0)
+    return { label: d.toLocaleDateString('fr-FR', { month: 'short' }), ca }
+  })
+  const maxCa = Math.max(...last6Months.map(m => m.ca), 1)
+
+  // Durée moyenne de conversion (sent → accepted)
+  const conversionDays = accepted
+    .filter(q => q.sent_at)
+    .map(q => Math.floor((new Date(q.created_at).getTime() - new Date(q.sent_at!).getTime()) / 86400000))
+    .filter(d => d >= 0 && d <= 90)
+  const avgConvDays = conversionDays.length > 0
+    ? Math.round(conversionDays.reduce((s, d) => s + d, 0) / conversionDays.length)
+    : null
+
   const firstName = profile?.owner_name?.split(' ')[0] || 'Artisan'
   const filterLabels: Record<Filter, string> = { all: 'Tous', draft: 'Brouillons', sent: 'Envoyés', accepted: 'Acceptés', refused: 'Refusés', pending_approval: '⏳ À valider' }
 
@@ -110,6 +130,44 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {/* ── GRAPHIQUE CA 6 MOIS ── */}
+      {accepted.length > 0 && (
+        <div className="mx-4 mt-4 bg-white rounded-2xl border border-gray-100 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">CA accepté — 6 mois</p>
+            {avgConvDays !== null && (
+              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">⚡ Conversion : {avgConvDays}j moy.</span>
+            )}
+          </div>
+          <div className="flex items-end justify-between gap-1 h-20">
+            {last6Months.map((m, i) => {
+              const pct = maxCa > 0 ? (m.ca / maxCa) * 100 : 0
+              const isCurrentMonth = i === 5
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full flex items-end justify-center" style={{ height: 60 }}>
+                    <div
+                      className="w-full rounded-t-lg transition-all"
+                      style={{
+                        height: `${Math.max(pct, m.ca > 0 ? 8 : 2)}%`,
+                        background: isCurrentMonth ? '#1E3A5F' : m.ca > 0 ? '#93C5FD' : '#F3F4F6',
+                        minHeight: 3,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-medium">{m.label}</span>
+                  {m.ca > 0 && (
+                    <span className={`text-[9px] font-bold ${isCurrentMonth ? 'text-primary' : 'text-gray-500'}`}>
+                      {m.ca >= 1000 ? `${(m.ca / 1000).toFixed(0)}k` : Math.round(m.ca)}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Banners */}
       <div className="px-4 pt-3 flex flex-col gap-2">

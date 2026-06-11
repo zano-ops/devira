@@ -48,10 +48,13 @@ export default function NouveauDevis() {
 
   // Draft restore
   const [draftBanner, setDraftBanner] = useState<DraftData | null>(null)
+  const [interimText, setInterimText] = useState('')
 
   const recognitionRef = useRef<any>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isRecordingRef = useRef(false)
+  const baseTextRef = useRef('')
 
   const canGenerate = description.length >= 20
 
@@ -121,29 +124,65 @@ export default function NouveauDevis() {
 
   const toggleMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SR) { showToast('Dictée non supportée. Utilise Chrome.', 'info'); return }
+    if (!SR) { showToast('Dictée non supportée sur ce navigateur. Utilise Chrome.', 'info'); return }
 
-    if (micState === 'recording') {
+    if (isRecordingRef.current) {
+      // ── ARRÊT ──
+      isRecordingRef.current = false
       recognitionRef.current?.stop()
       setMicState('idle')
+      setInterimText('')
       return
     }
 
+    // ── DÉMARRAGE ──
+    isRecordingRef.current = true
+    baseTextRef.current = description  // sauvegarder le texte existant
+
     const r = new SR()
-    r.lang = 'fr-FR'; r.continuous = true; r.interimResults = false
+    r.lang = 'fr-FR'
+    r.continuous = true
+    r.interimResults = true  // affichage en temps réel
+
     r.onstart = () => setMicState('recording')
+
     r.onresult = (e: any) => {
+      let interim = ''
       let final = ''
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript + ' '
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript + ' '
+        } else {
+          interim += e.results[i][0].transcript
+        }
       }
-      if (final) setDescription(prev => (prev + (prev ? ' ' : '') + final).trim())
+      if (final) {
+        baseTextRef.current = (baseTextRef.current + (baseTextRef.current ? ' ' : '') + final).trim()
+        setDescription(baseTextRef.current)
+        setInterimText('')
+      } else {
+        setInterimText(interim)
+      }
     }
+
     r.onerror = (e: any) => {
-      if (e.error !== 'no-speech') showToast('Erreur micro : ' + e.error, 'error')
+      if (e.error === 'no-speech') return  // silence normal, on continue
+      showToast('Erreur micro : ' + e.error, 'error')
+      isRecordingRef.current = false
       setMicState('idle')
+      setInterimText('')
     }
-    r.onend = () => setMicState('idle')
+
+    r.onend = () => {
+      // Si toujours en mode enregistrement → redémarrage automatique (contourne la limite iOS/Chrome)
+      if (isRecordingRef.current) {
+        try { recognitionRef.current?.start() } catch {}
+      } else {
+        setMicState('idle')
+        setInterimText('')
+      }
+    }
+
     recognitionRef.current = r
     r.start()
   }
@@ -300,6 +339,14 @@ export default function NouveauDevis() {
             )}
           </div>
 
+          {/* Texte en cours de dictée (temps réel) */}
+          {interimText && (
+            <div className="mb-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-2">
+              <span className="text-red-400 animate-pulse mt-0.5">🎙️</span>
+              <p className="text-red-600 text-sm italic leading-relaxed">{interimText}<span className="animate-pulse">▌</span></p>
+            </div>
+          )}
+
           {/* Barre de qualité */}
           {charCount > 0 && (
             <div className="mb-4">
@@ -447,9 +494,19 @@ export default function NouveauDevis() {
       {/* CTA sticky */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 px-5 py-4 z-20">
         {step === 'describe' ? (
-          <button onClick={() => setStep('client')} disabled={!canGenerate} className="btn-primary">
-            {canGenerate ? 'Suivant — Infos client →' : `Encore ${20 - charCount} caractères min`}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button onClick={() => setStep('client')} disabled={!canGenerate} className="btn-primary">
+              {canGenerate ? 'Suivant — Infos client →' : `Encore ${20 - charCount} caractères min`}
+            </button>
+            {charCount >= 50 && (
+              <button
+                onClick={handleGenerate}
+                className="w-full py-3 rounded-2xl border-2 border-primary/20 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+              >
+                ⚡ Générer directement (sans infos client)
+              </button>
+            )}
+          </div>
         ) : (
           <button onClick={handleGenerate} className="btn-accent">
             <span className="flex items-center justify-center gap-2">

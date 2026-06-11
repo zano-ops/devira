@@ -130,3 +130,7 @@ CREATE POLICY "Public read quote photos" ON storage.objects
 CREATE INDEX IF NOT EXISTS idx_quotes_parent ON quotes(parent_quote_id);
 
 SELECT 'Migration DevisPro BTP V4 réussie ! (Avenants + Photos + Relances + Validation)' as message;
+
+-- ============================================================
+-- V5 : Mentions legales PDF + Email entreprise
+-- ============================================================

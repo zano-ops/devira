@@ -19,12 +19,13 @@ const TVA_OPTIONS = [
 
 function recalc(lignes: QuoteLine[], globalTva: number, discount: number) {
   const lignesCalc = lignes.map(l => ({
-    ...l, total_ht: parseFloat((l.quantite * l.prix_unitaire_ht).toFixed(2))
+    ...l, total_ht: l.isSection ? 0 : parseFloat((l.quantite * l.prix_unitaire_ht).toFixed(2))
   }))
-  const sous_total = parseFloat(lignesCalc.reduce((s, l) => s + l.total_ht, 0).toFixed(2))
+  const realLines = lignesCalc.filter(l => !l.isSection)
+  const sous_total = parseFloat(realLines.reduce((s, l) => s + l.total_ht, 0).toFixed(2))
   const discountAmt = parseFloat((sous_total * discount / 100).toFixed(2))
   const tvaByRate: Record<number, number> = {}
-  lignesCalc.forEach(l => {
+  realLines.forEach(l => {
     const rate = l.tva_rate ?? globalTva
     const lineBase = l.total_ht * (1 - discount / 100)
     tvaByRate[rate] = parseFloat(((tvaByRate[rate] || 0) + lineBase * rate / 100).toFixed(2))
@@ -125,6 +126,18 @@ export default function DevisDetail() {
     }]
   }))
 
+  const addSection = () => setEditData((d: any) => ({
+    ...d, lignes: [...d.lignes, {
+      designation: 'Nouveau lot', unite: '', quantite: 0, prix_unitaire_ht: 0, total_ht: 0, isSection: true
+    }]
+  }))
+
+  const duplicateLine = (i: number) => setEditData((d: any) => {
+    const lignes = [...d.lignes]
+    lignes.splice(i + 1, 0, { ...lignes[i] })
+    return { ...d, lignes }
+  })
+
   const removeLine = (i: number) => {
     if (deleteConfirm === i) {
       setEditData((d: any) => ({ ...d, lignes: d.lignes.filter((_: any, idx: number) => idx !== i) }))
@@ -140,6 +153,39 @@ export default function DevisDetail() {
       const lignes = [...d.lignes]; lignes[i] = { ...lignes[i], [field]: value }
       return { ...d, lignes }
     })
+  }
+
+  // ── RELANCE MANUELLE ──
+  const handleRelanceMaintenant = async () => {
+    if (!quote || !profile) return
+    if (!quote.client_email) { showToast('Pas d\'email client — ajoute-le d\'abord', 'error'); return }
+    setSending(true)
+    try {
+      const daysSince = Math.floor((Date.now() - new Date(quote.sent_at || quote.created_at).getTime()) / 86400000)
+      const subject = `Relance devis ${quote.quote_number} — ${profile.company_name}`
+      const html = `<div style="font-family:Arial,sans-serif;max-width:600px">
+        <div style="background:#1E3A5F;padding:24px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">${profile.company_name}</h2></div>
+        <div style="background:#f9f9f9;padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
+          <p>Bonjour,</p>
+          <p>Je me permets de revenir vers vous concernant le devis <strong>${quote.quote_number}</strong> de <strong>${quote.total_ttc.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € TTC</strong>${daysSince > 0 ? ` transmis il y a ${daysSince} jour${daysSince > 1 ? 's' : ''}` : ''}.</p>
+          <p>Avez-vous pu en prendre connaissance ? Je reste disponible pour toute question ou ajustement.</p>
+          <p>Cordialement,<br><strong>${profile.owner_name || profile.company_name}</strong></p>
+        </div></div>`
+
+      const { data: { session: freshSession } } = await supabase.auth.getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-quote-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' },
+        body: JSON.stringify({ quote_id: quote.id, client_email: quote.client_email, html_body: html, subject, user_id: user!.id }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        await supabase.from('quotes').update({ relance_count: (quote.relance_count || 0) + 1, last_relance_at: new Date().toISOString() }).eq('id', id)
+        showToast(`Relance envoyée à ${quote.client_email} ✓`)
+        fetchQuote()
+      } else { showToast('Erreur envoi relance', 'error') }
+    } catch { showToast('Erreur envoi relance', 'error') }
+    setSending(false)
   }
 
   // ── AVENANT ──
@@ -268,19 +314,44 @@ export default function DevisDetail() {
     setSending(false)
   }
 
-  const handleDuplicate = async () => {
+  const handleDuplicate = async (asTemplate = false) => {
     if (!quote) return
     const year = new Date().getFullYear()
-    const { count } = await supabase.from('quotes').select('*', { count: 'exact', head: true }).eq('user_id', user!.id)
-    const newNumber = `${year}-${String((count || 0) + 1).padStart(4, '0')}`
+    const { data: lastQuote } = await supabase
+      .from('quotes').select('quote_number')
+      .eq('user_id', user!.id)
+      .like('quote_number', `${year}-%`)
+      .order('created_at', { ascending: false })
+      .limit(1).single()
+    let nextNum = 1
+    if (lastQuote?.quote_number) {
+      const parts = lastQuote.quote_number.split('-')
+      const n = parseInt(parts[parts.length - 1])
+      if (!isNaN(n)) nextNum = n + 1
+    }
+    const newNumber = `${year}-${String(nextNum).padStart(4, '0')}`
+
+    const newJson = asTemplate
+      ? {
+          ...quote.quote_json,
+          client: { nom: null, adresse: null, email: null, phone: null },
+          signature: undefined, photos: undefined, history: undefined,
+        }
+      : { ...quote.quote_json }
+
     const { data } = await supabase.from('quotes').insert({
       user_id: user!.id, quote_number: newNumber,
-      description_raw: quote.description_raw + ' (copie)',
-      client_name: quote.client_name, client_email: quote.client_email,
-      client_address: quote.client_address, quote_json: quote.quote_json,
+      description_raw: quote.description_raw + (asTemplate ? ' (modèle)' : ' (copie)'),
+      client_name: asTemplate ? '' : quote.client_name,
+      client_email: asTemplate ? '' : quote.client_email,
+      client_address: asTemplate ? '' : quote.client_address,
+      quote_json: newJson,
       total_ht: quote.total_ht, total_ttc: quote.total_ttc, status: 'draft',
     }).select().single()
-    if (data) { showToast('Devis dupliqué ✓'); navigate(`/devis/${data.id}`) }
+    if (data) {
+      showToast(asTemplate ? 'Modèle créé ✓ — à toi de remplir le client' : 'Devis dupliqué ✓')
+      navigate(`/devis/${data.id}`, { state: { autoEdit: true } })
+    }
   }
 
   const handleConvertToInvoice = async () => {
@@ -369,10 +440,14 @@ export default function DevisDetail() {
           ].map(({ s, label }) => (
             <button key={s} onClick={() => updateStatus(s)} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0 font-medium text-gray-700">{label}</button>
           ))}
+          {quote.status !== 'cancelled' && (
+            <button onClick={() => updateStatus('cancelled')} className="w-full text-left px-4 py-3 text-sm hover:bg-red-50 border-b border-gray-50 font-medium text-red-500">🚫 Annuler ce devis</button>
+          )}
           {canCreateAvenant && (
             <button onClick={() => { setShowStatusMenu(false); setShowAvenantModal(true) }} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-purple-600">📋 Créer un avenant</button>
           )}
-          <button onClick={handleDuplicate} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-blue-600">📑 Dupliquer</button>
+          <button onClick={() => handleDuplicate(false)} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-blue-600">📑 Dupliquer (copie)</button>
+          <button onClick={() => handleDuplicate(true)} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-blue-600">🗂️ Utiliser comme modèle</button>
           <button onClick={handleExportCSV} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-gray-600">📊 Exporter CSV</button>
           <button onClick={handleCopyLink} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-gray-600">🔗 Copier le lien</button>
           {quote.status === 'accepted' && (
@@ -417,18 +492,42 @@ export default function DevisDetail() {
           <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Lignes du devis</p>
-              <button onClick={addLine} className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg">+ Ajouter</button>
+              <div className="flex gap-2">
+                <button onClick={addSection} className="bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-lg">+ Lot</button>
+                <button onClick={addLine} className="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg">+ Ligne</button>
+              </div>
             </div>
             <div className="flex flex-col gap-3">
               {editData.lignes.map((l: QuoteLine, i: number) => {
+                if (l.isSection) {
+                  return (
+                    <div key={i} className="border-2 border-primary/20 rounded-xl p-3 bg-primary/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">LOT</span>
+                        <button onClick={() => removeLine(i)} className={`ml-auto text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${deleteConfirm === i ? 'bg-red-500 text-white' : 'text-red-400 hover:bg-red-50'}`}>
+                          {deleteConfirm === i ? '⚠️ Supprimer' : '✕'}
+                        </button>
+                      </div>
+                      <input
+                        value={l.designation}
+                        onChange={e => updateLine(i, 'designation', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border-2 border-primary/20 bg-white text-primary font-bold text-sm focus:outline-none"
+                        placeholder="Ex: Lot 1 — Démolition"
+                      />
+                    </div>
+                  )
+                }
                 const lineTva = l.tva_rate ?? editData.taux_tva
                 return (
                   <div key={i} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">#{i + 1}</span>
-                      <button onClick={() => removeLine(i)} className={`text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${deleteConfirm === i ? 'bg-red-500 text-white' : 'text-red-400 hover:bg-red-50'}`}>
-                        {deleteConfirm === i ? '⚠️ Confirmer' : '✕ Supprimer'}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => duplicateLine(i)} className="text-xs font-semibold px-2 py-1 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors" title="Dupliquer cette ligne">⎘</button>
+                        <button onClick={() => removeLine(i)} className={`text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${deleteConfirm === i ? 'bg-red-500 text-white' : 'text-red-400 hover:bg-red-50'}`}>
+                          {deleteConfirm === i ? '⚠️ Confirmer' : '✕'}
+                        </button>
+                      </div>
                     </div>
                     <input value={l.designation} onChange={e => updateLine(i, 'designation', e.target.value)} className="input-field mb-2 text-sm" placeholder="Désignation" />
                     <div className="grid grid-cols-4 gap-2">
@@ -461,9 +560,14 @@ export default function DevisDetail() {
                 )
               })}
             </div>
-            <button onClick={addLine} className="w-full mt-3 border-2 border-dashed border-gray-200 rounded-xl py-3 text-gray-400 text-sm font-semibold hover:border-primary hover:text-primary transition-colors">
-              + Ajouter une ligne
-            </button>
+            <div className="flex gap-2 mt-3">
+              <button onClick={addLine} className="flex-1 border-2 border-dashed border-gray-200 rounded-xl py-3 text-gray-400 text-sm font-semibold hover:border-primary hover:text-primary transition-colors">
+                + Ligne
+              </button>
+              <button onClick={addSection} className="flex-1 border-2 border-dashed border-primary/20 rounded-xl py-3 text-primary/50 text-sm font-semibold hover:border-primary hover:text-primary transition-colors">
+                + Lot
+              </button>
+            </div>
           </div>
 
           {/* Totaux */}
@@ -571,6 +675,13 @@ export default function DevisDetail() {
             <button onClick={() => setShowEmailModal(true)} className="btn-accent">
               <span className="flex items-center justify-center gap-2"><span>📧</span>Envoyer par email</span>
             </button>
+
+            {quote.status === 'sent' && (
+              <button onClick={handleRelanceMaintenant} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
+                <span>⏰</span> {sending ? 'Envoi...' : 'Relancer maintenant'}
+                {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}x</span> : null}
+              </button>
+            )}
             <button onClick={handleDownload} disabled={downloading} className="btn-primary">
               <span className="flex items-center justify-center gap-2"><span>⬇️</span>{downloading ? 'Génération PDF...' : 'Télécharger PDF'}</span>
             </button>

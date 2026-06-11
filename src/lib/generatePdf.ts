@@ -14,7 +14,21 @@ const BLUE = '#1E3A5F'
 const ML = 14
 const MR = 14
 
-function buildDoc(quote: Quote, profile: Profile): jsPDF {
+async function loadImageBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { mode: 'cors', cache: 'force-cache' })
+    if (!res.ok) return null
+    const blob = await res.blob()
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch { return null }
+}
+
+async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const q = quote.quote_json
   const W = 210
@@ -23,7 +37,6 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   const sousTotal = q.lignes.reduce((s, l) => s + l.quantite * l.prix_unitaire_ht, 0)
   const remise = discount > 0 ? sousTotal * discount / 100 : 0
 
-  // Calculer TVA par taux
   const tvaByRate: Record<number, number> = {}
   q.lignes.forEach(l => {
     const rate = l.tva_rate ?? q.taux_tva
@@ -34,9 +47,23 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   const ttc = parseFloat((sousTotal - remise + totalTva).toFixed(2))
   const validite = q.validite_jours || 30
 
+  // ── LOGO ──
+  let logoLoaded = false
+  if (profile.logo_url) {
+    const logoBase64 = await loadImageBase64(profile.logo_url)
+    if (logoBase64) {
+      try {
+        // Logo en haut à droite, max 40x25 mm
+        const imgW = 40, imgH = 25
+        doc.addImage(logoBase64, W - MR - imgW, 8, imgW, imgH, undefined, 'FAST')
+        logoLoaded = true
+      } catch {}
+    }
+  }
+
   let y = 14
 
-  // ── COMPANY NAME ──
+  // ── EN-TÊTE ENTREPRISE ──
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(17)
   doc.setTextColor(BLUE)
@@ -46,37 +73,44 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor('#555555')
+
   const companyLines: string[] = [
     profile.owner_name,
     profile.address,
     [profile.zip_code, profile.city].filter(Boolean).join(' '),
     profile.phone ? `Tél : ${profile.phone}` : '',
+    profile.email ? `Email : ${profile.email}` : '',
     profile.siret ? `SIRET : ${profile.siret}` : '',
+    profile.tva_intra ? `N° TVA : ${profile.tva_intra}` : '',
+    profile.is_micro_entrepreneur ? `TVA non applicable — art. 293B CGI` : '',
   ].filter(Boolean) as string[]
-  companyLines.forEach(line => { doc.text(line, ML, y); y += 4 })
 
-  // ── CLIENT (right column) ──
+  const maxLines = logoLoaded ? 7 : 10
+  companyLines.slice(0, maxLines).forEach(line => { doc.text(line, ML, y); y += 4 })
+
+  // ── CLIENT ──
   if (q.client?.nom) {
     let cy = 14
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
     doc.setTextColor('#1a1a1a')
-    doc.text(q.client.nom, W - MR, cy, { align: 'right' })
+    const clientX = logoLoaded ? W - MR - 45 : W - MR
+    doc.text(q.client.nom, clientX, cy, { align: 'right' })
     cy += 5
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8.5)
     doc.setTextColor('#555555')
-    if (q.client.adresse) { doc.text(q.client.adresse, W - MR, cy, { align: 'right' }); cy += 4 }
-    if (q.client.email) { doc.text(q.client.email, W - MR, cy, { align: 'right' }) }
+    if (q.client.adresse) { doc.text(q.client.adresse, clientX, cy, { align: 'right' }); cy += 4 }
+    if (q.client.email) { doc.text(q.client.email, clientX, cy, { align: 'right' }) }
   }
 
-  // ── BLUE DIVIDER ──
-  y = Math.max(y + 3, 44)
+  // ── SÉPARATEUR ──
+  y = Math.max(y + 3, logoLoaded ? 48 : 44)
   doc.setFillColor(BLUE)
   doc.rect(ML, y, CW, 2.5, 'F')
   y += 8
 
-  // ── QUOTE / AVENANT TITLE ──
+  // ── TITRE DEVIS / AVENANT ──
   const isAvenant = !!quote.avenant_number
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(isAvenant ? 16 : 20)
@@ -102,7 +136,7 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   )
   y += 7
 
-  // Titre chantier badge
+  // Badge titre chantier
   doc.setFillColor('#EFF6FF')
   const badgeText = q.titre
   const textW = doc.getStringUnitWidth(badgeText) * 10 / doc.internal.scaleFactor
@@ -113,10 +147,10 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   doc.text(badgeText, ML + 5, y + 0.5)
   y += 11
 
-  // Signature badge if signed
+  // Badge signé
   if (q.signature) {
     doc.setFillColor('#ECFDF5')
-    doc.roundedRect(ML, y - 4, 90, 8, 2, 2, 'F')
+    doc.roundedRect(ML, y - 4, 95, 8, 2, 2, 'F')
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor('#059669')
@@ -124,30 +158,42 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
     y += 11
   }
 
-  // ── ITEMS TABLE ──
-  autoTable(doc, {
-    startY: y,
-    head: [['Désignation / Description', 'Qté', 'Unité', 'P.U. HT', 'Total HT', 'TVA']],
-    body: q.lignes.map(l => [
+  // ── TABLEAU DES LIGNES (avec sections) ──
+  const tableBody = q.lignes.map(l => {
+    if (l.isSection) {
+      return [{
+        content: '◆  ' + l.designation.toUpperCase(),
+        colSpan: 6,
+        styles: {
+          fillColor: [239, 246, 255] as [number, number, number],
+          textColor: [30, 58, 95] as [number, number, number],
+          fontStyle: 'bold' as const,
+          fontSize: 8.5,
+          cellPadding: { top: 4, bottom: 4, left: 6, right: 4 },
+        }
+      }]
+    }
+    return [
       l.designation,
       String(l.quantite),
       l.unite,
       fmt(l.prix_unitaire_ht),
       fmt(l.quantite * l.prix_unitaire_ht),
       `${l.tva_rate ?? q.taux_tva}%`,
-    ]),
+    ]
+  })
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Désignation / Description', 'Qté', 'Unité', 'P.U. HT', 'Total HT', 'TVA']],
+    body: tableBody,
     styles: {
       fontSize: 9,
       cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
       lineColor: [235, 235, 235],
       lineWidth: 0.3,
     },
-    headStyles: {
-      fillColor: [30, 58, 95],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 8.5,
-    },
+    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
     alternateRowStyles: { fillColor: [249, 249, 249] },
     columnStyles: {
       0: { cellWidth: 'auto' },
@@ -164,19 +210,13 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   y = (doc as any).lastAutoTable.finalY + 5
 
   // ── TOTAUX ──
-  const totauxBody: string[][] = [
-    ['Sous-total HT', fmt(sousTotal)],
-  ]
+  const totauxBody: string[][] = [['Sous-total HT', fmt(sousTotal)]]
   if (discount > 0) {
-    totauxBody.push([`Remise (${discount}%)`, `- ${fmt(remise)}`])
+    totauxBody.push([`Remise commerciale (${discount}%)`, `- ${fmt(remise)}`])
   }
-
-  // TVA par taux (si plusieurs taux, afficher le détail)
   const tvaRates = Object.keys(tvaByRate).map(Number).sort((a, b) => a - b)
   if (tvaRates.length > 1) {
-    tvaRates.forEach(rate => {
-      totauxBody.push([`TVA ${rate}%`, fmt(tvaByRate[rate])])
-    })
+    tvaRates.forEach(rate => { totauxBody.push([`TVA ${rate}%`, fmt(tvaByRate[rate])]) })
   } else {
     totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
   }
@@ -184,36 +224,31 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   autoTable(doc, {
     startY: y,
     body: totauxBody,
-    styles: {
-      fontSize: 9,
-      cellPadding: { top: 3, bottom: 3, left: 8, right: 8 },
-    },
+    styles: { fontSize: 9, cellPadding: { top: 3, bottom: 3, left: 8, right: 8 } },
     columnStyles: {
-      0: { cellWidth: 45, textColor: [85, 85, 85] },
+      0: { cellWidth: 55, textColor: [85, 85, 85] },
       1: { cellWidth: 42, halign: 'right', fontStyle: 'bold', textColor: [26, 26, 26] },
     },
-    margin: { left: W - MR - 87, right: MR },
+    margin: { left: W - MR - 97, right: MR },
     theme: 'plain',
     tableLineColor: [240, 240, 240],
     tableLineWidth: 0.3,
   })
 
-  // TTC big row
   const ttcY = (doc as any).lastAutoTable.finalY
   doc.setFillColor(30, 58, 95)
-  doc.rect(W - MR - 87, ttcY, 87, 12, 'F')
+  doc.rect(W - MR - 97, ttcY, 97, 12, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
-  doc.text('Total TTC', W - MR - 87 + 8, ttcY + 8)
+  doc.text('Total TTC', W - MR - 97 + 8, ttcY + 8)
   doc.setTextColor(245, 158, 11)
   doc.setFontSize(13)
   doc.text(fmt(ttc), W - MR - 2, ttcY + 8, { align: 'right' })
-
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(150, 150, 150)
-  doc.text(`Acompte 30 % : ${fmt(ttc * 0.3)}`, W - MR - 2, ttcY + 17, { align: 'right' })
+  doc.text(`Acompte 30% : ${fmt(ttc * 0.3)}`, W - MR - 2, ttcY + 17, { align: 'right' })
 
   y = ttcY + 22
 
@@ -229,6 +264,20 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
     const noteLines = doc.splitTextToSize(q.notes, CW - 18)
     doc.text(noteLines[0] || '', ML + 14, y + 6)
     y += 14
+  }
+
+  // Attestation TVA réduite
+  const hasTvaReduite = tvaRates.some(r => r < 20)
+  if (hasTvaReduite && !profile.is_micro_entrepreneur) {
+    doc.setFillColor(239, 246, 255)
+    doc.roundedRect(ML, y, CW, 9, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7.5)
+    doc.setTextColor(30, 58, 95)
+    doc.text('⚠ TVA réduite applicable : ', ML + 3, y + 5.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('une attestation simplifiée (Cerfa) doit être signée par le client.', ML + 46, y + 5.5)
+    y += 13
   }
 
   // ── CONDITIONS ──
@@ -255,11 +304,11 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
   doc.text(`Durée de validité : ${validite} jours à compter de la date d'émission.`, ML, y)
   y += 9
 
-  // ── SIGNATURES ──
+  // ── ZONES DE SIGNATURE ──
   const sigW = (CW - 6) / 2
   const sigH = q.signature ? 18 : 26
 
-  // Entreprise box
+  // Artisan
   doc.setDrawColor(220, 220, 220)
   doc.setLineWidth(0.3)
   doc.roundedRect(ML, y, sigW, sigH, 2, 2)
@@ -280,13 +329,12 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
     doc.text('Cachet / Signature artisan', ML + sigW / 2, y + 25, { align: 'center' })
   }
 
-  // Client box
+  // Client
   const sigRX = ML + sigW + 6
   doc.setDrawColor(220, 220, 220)
   doc.roundedRect(sigRX, y, sigW, sigH, 2, 2)
 
   if (q.signature) {
-    // Signed electronically
     doc.setFillColor(236, 253, 245)
     doc.roundedRect(sigRX, y, sigW, sigH, 2, 2, 'F')
     doc.setDrawColor(16, 185, 129)
@@ -316,34 +364,83 @@ function buildDoc(quote: Quote, profile: Profile): jsPDF {
     doc.text('Date et signature client', sigRX + sigW / 2, y + 25, { align: 'center' })
   }
 
-  // ── FOOTER LINE ──
+  // ── PHOTOS DE CHANTIER (si présentes, max 4) ──
+  const photos = q.photos?.slice(0, 4) || []
+  if (photos.length > 0) {
+    // Vérifier l'espace restant ou ajouter une nouvelle page
+    if (y > 210) {
+      doc.addPage()
+      y = 14
+    } else {
+      y += 6
+    }
+
+    doc.setDrawColor(229, 229, 229)
+    doc.setLineWidth(0.3)
+    doc.line(ML, y, W - MR, y)
+    y += 6
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor(BLUE)
+    doc.text('PHOTOS DU CHANTIER', ML, y)
+    y += 5
+
+    const photoW = (CW - 6) / 2
+    const photoH = 42
+    let col = 0
+
+    for (const photoUrl of photos) {
+      try {
+        const photoB64 = await loadImageBase64(photoUrl)
+        if (photoB64) {
+          const x = ML + col * (photoW + 6)
+          doc.addImage(photoB64, x, y, photoW, photoH, undefined, 'FAST')
+          col++
+          if (col >= 2) { col = 0; y += photoH + 4 }
+        }
+      } catch {}
+    }
+    if (col > 0) y += photoH + 4
+  }
+
+  // ── PIED DE PAGE ──
   const footerY = 286
   doc.setFillColor(30, 58, 95)
   doc.rect(0, footerY, W, 1, 'F')
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7.5)
+  doc.setFontSize(7)
   doc.setTextColor('#777777')
-  const f1 = `${profile.company_name || ''}${profile.address ? ' • ' + profile.address : ''}${profile.city ? ', ' + profile.city : ''}`
-  const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
-  const tvaLabel = Object.keys(tvaByRate).length > 1
-    ? `TVA mixte • DevisPro BTP`
-    : `TVA ${q.taux_tva}% • DevisPro BTP`
-  doc.text(f1.trim(), ML, footerY + 5)
-  if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
+
+  const f1Parts = [
+    profile.company_name,
+    profile.address ? profile.address + (profile.city ? ', ' + profile.city : '') : '',
+  ].filter(Boolean)
+  const f1 = f1Parts.join(' • ')
+
+  const f2Parts = [
+    profile.siret ? `SIRET : ${profile.siret}` : '',
+    profile.assurance_decennale ? `Déc. : ${profile.assurance_decennale}` : '',
+  ].filter(Boolean)
+  const f2 = f2Parts.join(' • ')
+
+  const tvaLabel = profile.is_micro_entrepreneur
+    ? 'TVA non applicable art. 293B CGI'
+    : (Object.keys(tvaByRate).length > 1 ? 'TVA mixte' : `TVA ${q.taux_tva}%`)
+
+  doc.text(f1.trim().slice(0, 70), ML, footerY + 5)
+  if (f2) doc.text(f2.slice(0, 60), W / 2, footerY + 5, { align: 'center' })
   doc.text(tvaLabel, W - MR, footerY + 5, { align: 'right' })
 
   return doc
 }
 
-export function downloadQuotePdf(quote: Quote, profile: Profile): Promise<void> {
-  return new Promise((resolve) => {
-    const doc = buildDoc(quote, profile)
-    doc.save(`Devis-${quote.quote_number}.pdf`)
-    resolve()
-  })
+export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<void> {
+  const doc = await buildDoc(quote, profile)
+  doc.save(`Devis-${quote.quote_number}.pdf`)
 }
 
 export async function getQuotePdfBase64(quote: Quote, profile: Profile): Promise<string> {
-  const doc = buildDoc(quote, profile)
+  const doc = await buildDoc(quote, profile)
   return doc.output('datauristring').split(',')[1]
 }

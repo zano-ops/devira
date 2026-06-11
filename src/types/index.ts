@@ -2,6 +2,7 @@ export interface Profile {
   id: string
   company_name: string
   owner_name: string
+  email: string
   address: string
   city: string
   zip_code: string
@@ -11,6 +12,10 @@ export interface Profile {
   vat_rate: number
   quote_validity_days: number
   payment_conditions: string
+  // Mentions légales BTP
+  assurance_decennale?: string
+  tva_intra?: string
+  is_micro_entrepreneur?: boolean
   // Relances auto
   relance_enabled?: boolean
   relance_days?: number[]
@@ -26,11 +31,12 @@ export interface QuoteLine {
   prix_unitaire_ht: number
   total_ht: number
   tva_rate?: number  // TVA par ligne (hérite de taux_tva si absent)
+  isSection?: boolean  // en-tête de lot/section (pas de prix)
 }
 
 export interface QuoteJson {
   titre: string
-  client: { nom: string | null; adresse: string | null; email: string | null }
+  client: { nom: string | null; adresse: string | null; email: string | null; phone?: string | null }
   duree_estimee: string
   lignes: QuoteLine[]
   sous_total_ht: number
@@ -56,7 +62,7 @@ export interface Quote {
   id: string
   user_id: string
   quote_number: string
-  status: 'draft' | 'sent' | 'accepted' | 'refused' | 'pending_approval'
+  status: 'draft' | 'sent' | 'accepted' | 'refused' | 'pending_approval' | 'cancelled'
   description_raw: string
   client_name: string
   client_email: string

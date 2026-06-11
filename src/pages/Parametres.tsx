@@ -36,15 +36,20 @@ export default function Parametres() {
   const [form, setForm] = useState({
     company_name: '',
     owner_name: '',
+    email: '',
     address: '',
     city: '',
     zip_code: '',
     phone: '',
     siret: '',
+    logo_url: '',
     vat_rate: 10,
     quote_validity_days: 30,
     payment_conditions: 'Acompte 30% à la commande, solde à la réception des travaux.',
-    logo_url: '',
+    // Mentions légales BTP
+    assurance_decennale: '',
+    tva_intra: '',
+    is_micro_entrepreneur: false,
     // Relances auto
     relance_enabled: false,
     relance_days: [7, 14, 21] as number[],
@@ -57,15 +62,19 @@ export default function Parametres() {
       setForm({
         company_name: profile.company_name || '',
         owner_name: profile.owner_name || '',
+        email: profile.email || '',
         address: profile.address || '',
         city: profile.city || '',
         zip_code: profile.zip_code || '',
         phone: profile.phone || '',
         siret: profile.siret || '',
+        logo_url: profile.logo_url || '',
         vat_rate: profile.vat_rate || 10,
         quote_validity_days: profile.quote_validity_days || 30,
         payment_conditions: profile.payment_conditions || 'Acompte 30% à la commande, solde à la réception des travaux.',
-        logo_url: profile.logo_url || '',
+        assurance_decennale: profile.assurance_decennale || '',
+        tva_intra: profile.tva_intra || '',
+        is_micro_entrepreneur: profile.is_micro_entrepreneur || false,
         relance_enabled: profile.relance_enabled || false,
         relance_days: (profile.relance_days as number[]) || [7, 14, 21],
         validation_threshold: profile.validation_threshold || 0,
@@ -186,7 +195,28 @@ export default function Parametres() {
         <Section title="Entreprise">
           <Field label="Nom de l'entreprise *" value={form.company_name} onChange={v => set('company_name', v)} placeholder="Plomberie Dupont" highlight={!form.company_name} />
           <Field label="Votre nom" value={form.owner_name} onChange={v => set('owner_name', v)} placeholder="Jean Dupont" />
+          <Field label="Email professionnel" value={form.email} onChange={v => set('email', v)} placeholder="contact@plomberie-dupont.fr" type="email" />
           <Field label="Téléphone *" value={form.phone} onChange={v => set('phone', v)} placeholder="06 00 00 00 00" type="tel" highlight={!form.phone} />
+        </Section>
+
+        <Section title="⚖️ Mentions légales BTP">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Micro-entrepreneur</p>
+              <p className="text-xs text-gray-400 mt-0.5">Ajoute "TVA non applicable art. 293B CGI" sur vos devis</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set('is_micro_entrepreneur', !form.is_micro_entrepreneur)}
+              className={`relative w-12 h-7 rounded-full transition-colors ${form.is_micro_entrepreneur ? 'bg-primary' : 'bg-gray-200'}`}
+            >
+              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_micro_entrepreneur ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+          <Field label="Assurance décennale" value={form.assurance_decennale} onChange={v => set('assurance_decennale', v)} placeholder="AXA — Police n° 123456789" />
+          {!form.is_micro_entrepreneur && (
+            <Field label="N° TVA intracommunautaire" value={form.tva_intra} onChange={v => set('tva_intra', v)} placeholder="FR12 123456789" />
+          )}
         </Section>
 
         <Section title="Adresse">

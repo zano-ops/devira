@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { useToast } from '../components/Toast'
-import { supabase } from '../lib/supabase'
+import { supabase, SUPABASE_URL } from '../lib/supabase'
 import type { CatalogueItem } from '../lib/catalogue'
 
 export type { CatalogueItem }
@@ -10,6 +10,14 @@ export type { CatalogueItem }
 const STORAGE_KEY = 'devispro_catalogue'
 const CATEGORIES = ['Maçonnerie', 'Plomberie', 'Électricité', 'Carrelage', 'Peinture', 'Menuiserie', 'Isolation', 'Autre']
 const UNITES = ['m²', 'ml', 'h', 'u', 'forfait', 'lot', 'pcs', 'kg']
+
+interface ExtractedItem {
+  designation: string
+  unite: string
+  prix_unitaire_ht: number
+  categorie: string
+  selected: boolean
+}
 
 function fmt(n: number) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
@@ -27,6 +35,13 @@ export default function Catalogue() {
   const [form, setForm] = useState({ designation: '', unite: 'm²', prix_unitaire_ht: '', categorie: 'Autre' })
   const [showMigrationBanner, setShowMigrationBanner] = useState(false)
   const [migrating, setMigrating] = useState(false)
+
+  // Import PDF/photo
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState(false)
+  const [extractedItems, setExtractedItems] = useState<ExtractedItem[]>([])
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [importingSelected, setImportingSelected] = useState(false)
 
   useEffect(() => { loadItems() }, [])
 
@@ -158,6 +173,89 @@ export default function Catalogue() {
     showToast('Prestation supprimée')
   }
 
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (importInputRef.current) importInputRef.current.value = ''
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Format non supporté — utilise JPG, PNG ou PDF', 'error')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Fichier trop lourd (max 10 Mo)', 'error')
+      return
+    }
+
+    setImporting(true)
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = (reader.result as string).split(',')[1]
+          resolve(result)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/analyse-catalogue`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+          'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW',
+        },
+        body: JSON.stringify({ file_base64: base64, media_type: file.type }),
+      })
+
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || 'Erreur IA')
+      if (!data.items || data.items.length === 0) {
+        showToast('Aucun prix détecté dans ce document', 'error')
+        return
+      }
+
+      setExtractedItems(data.items.map((item: any) => ({ ...item, selected: true })))
+      setShowImportModal(true)
+    } catch (err: any) {
+      showToast('Erreur analyse : ' + (err.message || 'Réessaie'), 'error')
+    }
+    setImporting(false)
+  }
+
+  async function handleConfirmImport() {
+    const toImport = extractedItems.filter(i => i.selected)
+    if (toImport.length === 0) { showToast('Sélectionne au moins un article', 'error'); return }
+
+    setImportingSelected(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Non connecté')
+
+      const rows = toImport.map(item => ({
+        user_id: user.id,
+        designation: item.designation,
+        unite: item.unite,
+        prix_unitaire_ht: item.prix_unitaire_ht,
+        categorie: item.categorie,
+      }))
+
+      const { data, error } = await supabase.from('catalogue_items').insert(rows).select('id, designation, unite, prix_unitaire_ht, categorie')
+      if (error) throw error
+
+      setItems(prev => [...prev, ...(data ?? [])])
+      showToast(`${toImport.length} prestation${toImport.length > 1 ? 's' : ''} importée${toImport.length > 1 ? 's' : ''} ✓`)
+      setShowImportModal(false)
+      setExtractedItems([])
+    } catch {
+      showToast('Erreur lors de l\'import', 'error')
+    }
+    setImportingSelected(false)
+  }
+
   async function addExamples() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { showToast('Non connecté', 'error'); return }
@@ -192,17 +290,31 @@ export default function Catalogue() {
   return (
     <div className="min-h-screen pb-24">
       <ToastContainer />
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={handleImportFile}
+      />
 
       {/* Header */}
       <div className="bg-primary px-5 pt-12 pb-5">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-2 mb-4">
           <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 text-white text-lg">←</button>
           <div className="flex-1">
             <h1 className="text-white text-xl font-bold">Catalogue de prix</h1>
             <p className="text-blue-200 text-sm">{items.length} prestation{items.length > 1 ? 's' : ''}</p>
           </div>
-          <button onClick={openNew} className="bg-accent text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5">
-            + Ajouter
+          <button
+            onClick={() => importInputRef.current?.click()}
+            disabled={importing}
+            className="bg-white/20 text-white text-xs font-semibold px-3 py-2.5 rounded-xl flex items-center gap-1.5 disabled:opacity-60"
+          >
+            {importing ? '⏳' : '📄'} {importing ? 'Analyse...' : 'Importer'}
+          </button>
+          <button onClick={openNew} className="bg-accent text-white text-sm font-semibold px-3 py-2.5 rounded-xl flex items-center gap-1.5">
+            +
           </button>
         </div>
         <div className="relative">
@@ -349,6 +461,72 @@ export default function Catalogue() {
               {editItem ? '✓ Modifier' : '+ Ajouter au catalogue'}
             </button>
             <button onClick={() => setShowForm(false)} className="w-full text-gray-400 text-sm py-3">Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal import PDF/photo */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="mt-auto bg-white rounded-t-3xl max-h-[90vh] flex flex-col">
+            <div className="px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-gray-900 font-bold text-lg">Prix détectés</h3>
+                  <p className="text-gray-400 text-sm">{extractedItems.filter(i => i.selected).length} sélectionné(s) / {extractedItems.length}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setExtractedItems(prev => prev.map(i => ({ ...i, selected: true })))}
+                    className="text-xs text-primary font-semibold px-3 py-1.5 bg-primary/10 rounded-lg"
+                  >
+                    Tout
+                  </button>
+                  <button
+                    onClick={() => setExtractedItems(prev => prev.map(i => ({ ...i, selected: false })))}
+                    className="text-xs text-gray-500 font-semibold px-3 py-1.5 bg-gray-100 rounded-lg"
+                  >
+                    Aucun
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <div className="flex flex-col gap-2">
+                {extractedItems.map((item, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setExtractedItems(prev => prev.map((it, j) => j === i ? { ...it, selected: !it.selected } : it))}
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors ${item.selected ? 'border-primary bg-blue-50/40' : 'border-gray-100 bg-white'}`}
+                  >
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${item.selected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                      {item.selected && <span className="text-white text-xs">✓</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 text-sm font-medium truncate">{item.designation}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{item.categorie}</span>
+                        <span className="text-xs text-gray-400">/{item.unite}</span>
+                      </div>
+                    </div>
+                    <p className="text-primary font-bold text-sm shrink-0">{item.prix_unitaire_ht.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-4 py-4 border-t border-gray-100 shrink-0">
+              <button
+                onClick={handleConfirmImport}
+                disabled={importingSelected || extractedItems.filter(i => i.selected).length === 0}
+                className="btn-primary"
+              >
+                {importingSelected ? '⏳ Import en cours...' : `✓ Importer ${extractedItems.filter(i => i.selected).length} prestation${extractedItems.filter(i => i.selected).length > 1 ? 's' : ''}`}
+              </button>
+              <button onClick={() => { setShowImportModal(false); setExtractedItems([]) }} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
+            </div>
           </div>
         </div>
       )}
