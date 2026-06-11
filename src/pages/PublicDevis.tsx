@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { SUPABASE_URL } from '../lib/supabase'
 
@@ -29,31 +29,113 @@ function fmt(n: number) {
 
 type PageState = 'loading' | 'ready' | 'signing' | 'success' | 'error' | 'already_signed'
 
+// ── Signature canvas ──
+function SignaturePad({ onChange }: { onChange: (data: string | null) => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isDrawingRef = useRef(false)
+  const [isEmpty, setIsEmpty] = useState(true)
+
+  const getPos = (e: React.TouchEvent<HTMLCanvasElement> | React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current!
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    if ('touches' in e) {
+      const t = e.touches[0] || e.changedTouches[0]
+      return { x: (t.clientX - rect.left) * scaleX, y: (t.clientY - rect.top) * scaleY }
+    }
+    return { x: ((e as React.MouseEvent).clientX - rect.left) * scaleX, y: ((e as React.MouseEvent).clientY - rect.top) * scaleY }
+  }
+
+  const startDraw = (e: React.TouchEvent<HTMLCanvasElement> | React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
+    isDrawingRef.current = true
+    const ctx = canvasRef.current!.getContext('2d')!
+    const pos = getPos(e)
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y)
+    setIsEmpty(false)
+  }
+
+  const draw = (e: React.TouchEvent<HTMLCanvasElement> | React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return
+    e.preventDefault()
+    const ctx = canvasRef.current!.getContext('2d')!
+    const pos = getPos(e)
+    ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1E3A5F'
+    ctx.lineTo(pos.x, pos.y); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y)
+  }
+
+  const endDraw = () => {
+    if (!isDrawingRef.current) return
+    isDrawingRef.current = false
+    onChange(canvasRef.current!.toDataURL())
+  }
+
+  const clear = () => {
+    const canvas = canvasRef.current!
+    canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height)
+    setIsEmpty(true); onChange(null)
+  }
+
+  return (
+    <div className="mb-4">
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+        Votre signature *
+      </label>
+      <div className="relative rounded-xl border-2 border-gray-200 bg-gray-50 overflow-hidden" style={{ height: 110 }}>
+        <canvas
+          ref={canvasRef}
+          width={600} height={220}
+          className="w-full h-full touch-none cursor-crosshair"
+          onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+          onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}
+        />
+        {isEmpty && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <p className="text-gray-300 text-sm select-none">✍️ Signez ici avec votre doigt</p>
+          </div>
+        )}
+      </div>
+      {!isEmpty && (
+        <button onClick={clear} type="button" className="mt-1 text-xs text-gray-400 hover:text-gray-600 font-medium">
+          ↺ Effacer
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function PublicDevis() {
-  const { id } = useParams()
+  const { id, quoteNumber } = useParams()
   const [state, setState] = useState<PageState>('loading')
   const [quoteData, setQuoteData] = useState<PublicQuoteData | null>(null)
+  const [resolvedId, setResolvedId] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
 
   // Signing form
   const [signerName, setSignerName] = useState('')
+  const [signerEmail, setSignerEmail] = useState('')
+  const [signatureData, setSignatureData] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [signingLoading, setSigningLoading] = useState(false)
 
   useEffect(() => {
-    if (!id) { setState('error'); setErrorMsg('Lien invalide'); return }
+    if (!id && !quoteNumber) { setState('error'); setErrorMsg('Lien invalide'); return }
     loadQuote()
-  }, [id])
+  }, [id, quoteNumber])
 
   const loadQuote = async () => {
     setState('loading')
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-quote?quote_id=${id}`, {
+      const param = id ? `quote_id=${id}` : `quote_number=${encodeURIComponent(quoteNumber!)}`
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-quote?${param}`, {
         headers: { 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' }
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error || 'Devis introuvable')
       setQuoteData(data.quote)
+      if (data.quote_id) setResolvedId(data.quote_id)
       if (data.quote.already_signed) {
         setState('already_signed')
       } else {
@@ -66,16 +148,19 @@ export default function PublicDevis() {
   }
 
   const handleSign = async () => {
-    if (!signerName.trim() || !agreed || !id) return
+    if (!signerName.trim() || !agreed || !signatureData) return
     setSigningLoading(true)
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-quote`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW',
-        },
-        body: JSON.stringify({ quote_id: id, signer_name: signerName.trim() }),
+        headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' },
+        body: JSON.stringify({
+          quote_id: resolvedId || id,
+          quote_number: quoteNumber,
+          signer_name: signerName.trim(),
+          signer_email: signerEmail.trim() || undefined,
+          signature_data: signatureData,
+        }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
@@ -85,6 +170,8 @@ export default function PublicDevis() {
     }
     setSigningLoading(false)
   }
+
+  const canSign = signerName.trim() && agreed && !!signatureData
 
   // ── LOADING ──
   if (state === 'loading') {
@@ -263,6 +350,21 @@ export default function PublicDevis() {
             />
           </div>
 
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+              Votre email (optionnel — pour recevoir une copie)
+            </label>
+            <input
+              type="email"
+              value={signerEmail}
+              onChange={e => setSignerEmail(e.target.value)}
+              placeholder="votre@email.fr"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-gray-900 text-sm focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+
+          <SignaturePad onChange={setSignatureData} />
+
           <label className="flex items-start gap-3 cursor-pointer mb-5">
             <div
               onClick={() => setAgreed(!agreed)}
@@ -279,15 +381,17 @@ export default function PublicDevis() {
             </p>
           </label>
 
+          {!signatureData && signerName.trim() && agreed && (
+            <p className="text-amber-600 text-xs text-center mb-3 bg-amber-50 rounded-lg py-2">✍️ Veuillez signer dans le cadre ci-dessus</p>
+          )}
+
           <button
             onClick={handleSign}
-            disabled={!signerName.trim() || !agreed || signingLoading}
+            disabled={!canSign || signingLoading}
             className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-              signerName.trim() && agreed
-                ? 'text-white'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              canSign ? 'text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
-            style={signerName.trim() && agreed ? {
+            style={canSign ? {
               background: 'linear-gradient(135deg, #10B981, #059669)',
               boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
             } : {}}

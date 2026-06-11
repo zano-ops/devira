@@ -33,6 +33,7 @@ function AppRoutes() {
     <Routes>
       {/* Routes publiques (sans auth) */}
       <Route path="/sign/:id" element={<PublicDevis />} />
+      <Route path="/signer/:quoteNumber" element={<PublicDevis />} />
 
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />

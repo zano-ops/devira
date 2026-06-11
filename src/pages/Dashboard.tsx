@@ -6,6 +6,7 @@ import type { Quote } from '../types'
 import { BottomNav } from '../components/BottomNav'
 import { StatusBadge } from '../components/StatusBadge'
 import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
+import { usePushNotifications } from '../hooks/usePushNotifications'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) }
@@ -23,6 +24,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+
+  usePushNotifications(user?.id || null)
 
   useEffect(() => { if (user) fetchQuotes() }, [user])
 
@@ -54,6 +57,18 @@ export default function Dashboard() {
 
   // Devis envoyés sans réponse depuis > 15j
   const overdue = quotes.filter(q => q.status === 'sent' && daysSince(q.created_at) > 15)
+
+  // Pipeline = valeur totale des devis envoyés en attente de réponse
+  const sentQuotes = quotes.filter(q => q.status === 'sent')
+  const pipelineValue = sentQuotes.reduce((s, q) => s + q.total_ttc, 0)
+
+  // Devis envoyés qui expirent dans les 7 prochains jours
+  const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+  const expiringQuotes = sentQuotes.filter(q => {
+    const validite = (q.quote_json as any)?.validite_jours || 30
+    const expiry = addDays(new Date(q.created_at), validite)
+    return expiry >= now && expiry <= addDays(now, 7)
+  })
 
   // Devis en attente de validation interne
   const pendingApproval = quotes.filter(q => q.status === 'pending_approval')
@@ -170,6 +185,24 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Pipeline */}
+      {pipelineValue > 0 && (
+        <div className="mx-4 mt-3 bg-white rounded-2xl border border-gray-100 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Pipeline en cours</p>
+              <p className="text-gray-900 font-bold text-xl mt-0.5">
+                {pipelineValue >= 1000 ? `${(pipelineValue / 1000).toFixed(1)}k €` : fmt(pipelineValue)}
+              </p>
+              <p className="text-gray-400 text-xs">{sentQuotes.length} devis envoyé{sentQuotes.length !== 1 ? 's' : ''} en attente de signature</p>
+            </div>
+            <button onClick={() => setFilter('sent')} className="bg-primary/10 text-primary text-xs font-semibold px-3 py-2 rounded-xl active:scale-95 transition-transform">
+              Voir →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Banners */}
       <div className="px-4 pt-3 flex flex-col gap-2">
         {/* Onboarding */}
@@ -214,6 +247,25 @@ export default function Dashboard() {
               <p className="text-blue-600 text-xs mt-0.5">Envoyés il y a plus de 15 jours — pense à relancer</p>
             </div>
             <span className="text-blue-400 text-sm">→</span>
+          </button>
+        )}
+
+        {/* Devis qui expirent */}
+        {expiringQuotes.length > 0 && (
+          <button
+            onClick={() => setFilter('sent')}
+            className="w-full bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+          >
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="text-orange-800 font-semibold text-sm">
+                {expiringQuotes.length === 1 ? '1 devis expire dans 7 jours' : `${expiringQuotes.length} devis expirent bientôt`}
+              </p>
+              <p className="text-orange-600 text-xs mt-0.5">
+                {expiringQuotes.map(q => q.client_name || q.quote_number).slice(0, 3).join(', ')} — relance maintenant !
+              </p>
+            </div>
+            <span className="text-orange-400 text-sm">→</span>
           </button>
         )}
 

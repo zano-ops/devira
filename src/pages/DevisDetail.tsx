@@ -60,6 +60,11 @@ export default function DevisDetail() {
 
   const [editData, setEditData] = useState<any>(null)
   const [discount, setDiscount] = useState(0)
+  const [pdfStep, setPdfStep] = useState<string | null>(null)
+  const [showAcompteModal, setShowAcompteModal] = useState(false)
+  const [acomptePercent, setAcomptePercent] = useState(100)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   useEffect(() => { fetchQuote() }, [id])
 
@@ -261,8 +266,14 @@ export default function DevisDetail() {
   const handleDownload = async () => {
     if (!quote || !profile) return
     setDownloading(true)
+    const steps = ['Préparation du document...', 'Chargement des éléments...', 'Génération du PDF...']
+    let si = 0
+    setPdfStep(steps[0])
+    const t = setInterval(() => { si = Math.min(si + 1, steps.length - 1); setPdfStep(steps[si]) }, 2500)
     try { await downloadQuotePdf(quote, profile); showToast('PDF téléchargé ✓') }
     catch { showToast('Erreur PDF — réessaie', 'error') }
+    clearInterval(t)
+    setPdfStep(null)
     setDownloading(false)
   }
 
@@ -287,7 +298,7 @@ export default function DevisDetail() {
       await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', id)
       fetchQuote()
     }
-    const signUrl = `${window.location.origin}/sign/${quote.id}`
+    const signUrl = `${window.location.origin}/signer/${quote.quote_number}`
     navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien de signature copié !'))
     setShowSignModal(false)
   }
@@ -355,19 +366,31 @@ export default function DevisDetail() {
     }
   }
 
-  const handleConvertToInvoice = async () => {
+  const handleConvertToInvoice = async (pct = 100) => {
     if (!quote) return
     const year = new Date().getFullYear()
     const { count } = await supabase.from('invoices').select('*', { count: 'exact', head: true }).eq('user_id', user!.id)
     const invNumber = `FAC-${year}-${String((count || 0) + 1).padStart(4, '0')}`
     const due = new Date(); due.setDate(due.getDate() + 30)
+    const isAcompte = pct < 100
+    const totalHt = parseFloat((quote.total_ht * pct / 100).toFixed(2))
+    const totalTtc = parseFloat((quote.total_ttc * pct / 100).toFixed(2))
+    const invJson = {
+      ...quote.quote_json,
+      titre: isAcompte ? `ACOMPTE ${pct}% — ${quote.quote_json.titre}` : quote.quote_json.titre,
+      ...(isAcompte ? { acompte_percent: pct } : {}),
+    }
     const { data } = await supabase.from('invoices').insert({
       user_id: user!.id, quote_id: quote.id, invoice_number: invNumber,
       client_name: quote.client_name, client_email: quote.client_email,
-      invoice_json: quote.quote_json, total_ht: quote.total_ht, total_ttc: quote.total_ttc,
+      invoice_json: invJson, total_ht: totalHt, total_ttc: totalTtc,
       due_date: due.toISOString().split('T')[0], status: 'pending',
     }).select().single()
-    if (data) { showToast('Facture créée ✓'); navigate('/factures') }
+    if (data) {
+      showToast(isAcompte ? `Acompte ${pct}% créé ✓` : 'Facture créée ✓')
+      setShowAcompteModal(false)
+      navigate('/factures')
+    }
   }
 
   const updateStatus = async (status: Quote['status']) => {
@@ -452,7 +475,7 @@ export default function DevisDetail() {
           <button onClick={handleExportCSV} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-gray-600">📊 Exporter CSV</button>
           <button onClick={handleCopyLink} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 font-medium text-gray-600">🔗 Copier le lien</button>
           {quote.status === 'accepted' && (
-            <button onClick={handleConvertToInvoice} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 font-medium text-green-600">🧾 Créer facture</button>
+            <button onClick={() => { setShowStatusMenu(false); setShowAcompteModal(true) }} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 font-medium text-green-600">🧾 Créer facture</button>
           )}
         </div>
       )}
@@ -501,10 +524,27 @@ export default function DevisDetail() {
             </div>
             <div className="flex flex-col gap-3">
               {editData.lignes.map((l: QuoteLine, i: number) => {
+                const isDragging = dragIndex === i
+                const isDragOver = dragOverIndex === i && dragIndex !== i
+                const dragHandlers = {
+                  draggable: true as const,
+                  onDragStart: () => setDragIndex(i),
+                  onDragEnd: () => { setDragIndex(null); setDragOverIndex(null) },
+                  onDragOver: (e: React.DragEvent) => { e.preventDefault(); setDragOverIndex(i) },
+                  onDrop: () => {
+                    if (dragIndex === null || dragIndex === i) return
+                    const newLignes = [...editData.lignes]
+                    const [moved] = newLignes.splice(dragIndex, 1)
+                    newLignes.splice(i, 0, moved)
+                    setEditData((d: any) => ({ ...d, lignes: newLignes }))
+                    setDragIndex(null); setDragOverIndex(null)
+                  },
+                }
                 if (l.isSection) {
                   return (
-                    <div key={i} className="border-2 border-primary/20 rounded-xl p-3 bg-primary/5">
+                    <div key={i} {...dragHandlers} className="border-2 border-primary/20 rounded-xl p-3 bg-primary/5 transition-all" style={{ opacity: isDragging ? 0.4 : 1, outline: isDragOver ? '2px solid #1E3A5F' : 'none' }}>
                       <div className="flex items-center gap-2 mb-2">
+                        <span className="cursor-grab text-primary/30 text-lg select-none">⠿</span>
                         <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">LOT</span>
                         <button onClick={() => removeLine(i)} className={`ml-auto text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${deleteConfirm === i ? 'bg-red-500 text-white' : 'text-red-400 hover:bg-red-50'}`}>
                           {deleteConfirm === i ? '⚠️ Supprimer' : '✕'}
@@ -521,9 +561,12 @@ export default function DevisDetail() {
                 }
                 const lineTva = l.tva_rate ?? editData.taux_tva
                 return (
-                  <div key={i} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                  <div key={i} {...dragHandlers} className="border border-gray-100 rounded-xl p-3 bg-gray-50 transition-all" style={{ opacity: isDragging ? 0.4 : 1, outline: isDragOver ? '2px solid #1E3A5F' : 'none' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">#{i + 1}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="cursor-grab text-gray-300 text-lg select-none">⠿</span>
+                        <span className="text-xs text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">#{i + 1}</span>
+                      </div>
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => duplicateLine(i)} className="text-xs font-semibold px-2 py-1 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors" title="Dupliquer cette ligne">⎘</button>
                         <button onClick={() => removeLine(i)} className={`text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${deleteConfirm === i ? 'bg-red-500 text-white' : 'text-red-400 hover:bg-red-50'}`}>
@@ -682,7 +725,7 @@ export default function DevisDetail() {
 
             <button
               onClick={() => {
-                const signUrl = `${window.location.origin}/sign/${quote.id}`
+                const signUrl = `${window.location.origin}/signer/${quote.quote_number}`
                 const clientFirst = quote.client_name?.split(' ')[0] || ''
                 const msg = encodeURIComponent(
                   `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
@@ -708,8 +751,8 @@ export default function DevisDetail() {
               <button onClick={handleCopyLink} className="flex-1 btn-outline py-2.5 text-sm">🔗 Lien</button>
             </div>
             {quote.status === 'accepted' && (
-              <button onClick={handleConvertToInvoice} className="btn-primary">
-                <span className="flex items-center justify-center gap-2"><span>🧾</span>Convertir en facture</span>
+              <button onClick={() => setShowAcompteModal(true)} className="btn-primary">
+                <span className="flex items-center justify-center gap-2"><span>🧾</span>Créer une facture</span>
               </button>
             )}
           </div>
@@ -733,6 +776,53 @@ export default function DevisDetail() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── OVERLAY PDF PROGRESS ── */}
+      {pdfStep && (
+        <div className="fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center" style={{ backdropFilter: 'blur(4px)' }}>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-5" />
+          <p className="text-primary font-bold text-base">{pdfStep}</p>
+          <p className="text-gray-400 text-xs mt-1.5">Quelques secondes…</p>
+        </div>
+      )}
+
+      {/* ── MODAL ACOMPTE ── */}
+      {showAcompteModal && quote && (
+        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAcompteModal(false)}>
+          <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="text-gray-900 font-bold text-lg mb-1">Créer une facture</h3>
+            <p className="text-gray-400 text-sm mb-4">Facture complète ou acompte ?</p>
+            <div className="flex flex-col gap-2 mb-4">
+              {[
+                { pct: 100, label: 'Facture complète' },
+                { pct: 30, label: 'Acompte 30%' },
+                { pct: 50, label: 'Acompte 50%' },
+                { pct: 70, label: 'Acompte 70%' },
+              ].map(opt => (
+                <button
+                  key={opt.pct}
+                  onClick={() => setAcomptePercent(opt.pct)}
+                  className={`w-full py-3 px-4 rounded-xl border-2 flex items-center justify-between transition-colors ${acomptePercent === opt.pct ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white'}`}
+                >
+                  <span className="text-gray-900 font-semibold text-sm">{opt.label}</span>
+                  <span className={`font-bold text-sm ${acomptePercent === opt.pct ? 'text-primary' : 'text-gray-400'}`}>{fmt(quote.total_ttc * opt.pct / 100)}</span>
+                </button>
+              ))}
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Autre %</label>
+                <input type="number" placeholder="ex: 40" min="1" max="99"
+                  onChange={e => { const v = parseInt(e.target.value); if (v >= 1 && v <= 99) setAcomptePercent(v) }}
+                  className="input-field flex-1" />
+              </div>
+            </div>
+            <button onClick={() => handleConvertToInvoice(acomptePercent)} className="btn-accent mb-2">
+              🧾 Créer {acomptePercent === 100 ? 'la facture' : `l'acompte ${acomptePercent}%`} — {fmt(quote.total_ttc * acomptePercent / 100)}
+            </button>
+            <button onClick={() => setShowAcompteModal(false)} className="w-full text-gray-400 text-sm py-3">Annuler</button>
+          </div>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'devispro-v1'
+const CACHE_NAME = 'devispro-v2'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -19,6 +19,35 @@ self.addEventListener('activate', (event) => {
     )
   )
   self.clients.claim()
+})
+
+// ── PUSH NOTIFICATIONS ──
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() || {}
+  const title = data.title || 'DevisPro BTP'
+  const body = data.body || 'Nouvelle notification'
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/favicon.svg',
+      badge: '/favicon.svg',
+      data: { url: data.url || '/' },
+      vibrate: [200, 100, 200],
+    })
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url || '/'
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const client of list) {
+        if ('focus' in client) return client.focus()
+      }
+      return clients.openWindow(url)
+    })
+  )
 })
 
 self.addEventListener('fetch', (event) => {

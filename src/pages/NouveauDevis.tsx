@@ -204,10 +204,13 @@ export default function NouveauDevis() {
     clearDraftOnSuccess()
 
     try {
+      // Refresh first to avoid 401 mid-generation on long sessions
+      await supabase.auth.refreshSession().catch(() => {})
       const { data: { session: freshSession } } = await supabase.auth.getSession()
       const token = freshSession?.access_token
       if (!token) {
         showToast('Session expirée — reconnecte-toi', 'error')
+        setGenerating(false)
         navigate('/login')
         return
       }
