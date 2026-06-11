@@ -57,6 +57,7 @@ export default function DevisDetail() {
   const [showAvenantModal, setShowAvenantModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [showRelanceModal, setShowRelanceModal] = useState(false)
 
   const [editData, setEditData] = useState<any>(null)
   const [discount, setDiscount] = useState(0)
@@ -98,9 +99,20 @@ export default function DevisDetail() {
     setSaving(true)
     const { lignes, sous_total_ht, montant_tva, total_ttc } = recalc(editData.lignes, editData.taux_tva, discount)
 
+    const changes: string[] = []
+    if (editData.titre !== quote.quote_json.titre) changes.push('titre modifié')
+    if (editData.taux_tva !== quote.quote_json.taux_tva) changes.push(`TVA → ${editData.taux_tva}%`)
+    if (discount !== (quote.discount_percent || 0)) changes.push(`remise → ${discount}%`)
+    const oldLineCount = (quote.quote_json.lignes || []).filter((l: any) => !l.isSection).length
+    const newLineCount = lignes.filter(l => !l.isSection).length
+    if (newLineCount !== oldLineCount) changes.push(`${newLineCount > oldLineCount ? '+' : ''}${newLineCount - oldLineCount} ligne(s)`)
+    const diff = total_ttc - quote.total_ttc
+    if (Math.abs(diff) > 0.01) changes.push(`${diff > 0 ? '+' : ''}${fmt(diff)}`)
     const historyEntry = {
       at: new Date().toISOString(),
-      summary: `Modifié le ${new Date().toLocaleDateString('fr-FR')} — ${fmt(total_ttc)}`
+      summary: changes.length > 0
+        ? `${new Date().toLocaleDateString('fr-FR')} — ${changes.join(' · ')} → ${fmt(total_ttc)}`
+        : `${new Date().toLocaleDateString('fr-FR')} — ${fmt(total_ttc)}`
     }
     const newHistory = [...(quote.quote_json.history || []), historyEntry].slice(-10)
 
@@ -493,7 +505,17 @@ export default function DevisDetail() {
             <div className="flex gap-2">
               <div className="flex-1">
                 <label className="text-xs text-gray-500 font-medium">TVA globale</label>
-                <select value={editData.taux_tva} onChange={e => setEditData((d: any) => ({ ...d, taux_tva: parseFloat(e.target.value) }))} className="input-field mt-1">
+                <select value={editData.taux_tva} onChange={e => {
+                  const newTva = parseFloat(e.target.value)
+                  const oldTva = editData.taux_tva
+                  setEditData((d: any) => ({
+                    ...d,
+                    taux_tva: newTva,
+                    lignes: d.lignes.map((l: any) =>
+                      l.isSection ? l : (l.tva_rate === undefined || l.tva_rate === oldTva) ? { ...l, tva_rate: newTva } : l
+                    )
+                  }))
+                }} className="input-field mt-1">
                   <option value={5.5}>5,5% — Énergétique</option>
                   <option value={10}>10% — Rénovation</option>
                   <option value={20}>20% — Neuf</option>
@@ -561,11 +583,12 @@ export default function DevisDetail() {
                 }
                 const lineTva = l.tva_rate ?? editData.taux_tva
                 return (
-                  <div key={i} {...dragHandlers} className="border border-gray-100 rounded-xl p-3 bg-gray-50 transition-all" style={{ opacity: isDragging ? 0.4 : 1, outline: isDragOver ? '2px solid #1E3A5F' : 'none' }}>
+                  <div key={i} {...dragHandlers} className={`rounded-xl p-3 transition-all border ${l.prix_unitaire_ht === 0 ? 'border-amber-300 bg-amber-50' : 'border-gray-100 bg-gray-50'}`} style={{ opacity: isDragging ? 0.4 : 1, outline: isDragOver ? '2px solid #1E3A5F' : 'none' }}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         <span className="cursor-grab text-gray-300 text-lg select-none">⠿</span>
                         <span className="text-xs text-gray-400 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">#{i + 1}</span>
+                        {l.prix_unitaire_ht === 0 && <span className="text-xs bg-amber-400 text-white font-bold px-2 py-0.5 rounded-full">⚠️ Prix 0 €</span>}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => duplicateLine(i)} className="text-xs font-semibold px-2 py-1 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors" title="Dupliquer cette ligne">⎘</button>
@@ -643,14 +666,37 @@ export default function DevisDetail() {
             </div>
           </EditSection>
 
-          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 px-4 py-3 z-20 flex gap-3">
-            <button onClick={() => setEditMode(false)} className="flex-1 btn-outline py-3">Annuler</button>
-            <button onClick={handleSaveEdit} disabled={saving} className="flex-1 btn-primary py-3">{saving ? 'Sauvegarde...' : '✓ Sauvegarder'}</button>
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 px-4 pt-2 pb-3 z-20">
+            {calc && (
+              <div className="flex justify-between items-center mb-2 px-1">
+                <span className="text-xs text-gray-500">Total TTC en cours</span>
+                <span className="text-primary font-bold">{fmt(calc.total_ttc)}</span>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button onClick={() => setEditMode(false)} className="flex-1 btn-outline py-3">Annuler</button>
+              <button onClick={handleSaveEdit} disabled={saving} className="flex-1 btn-primary py-3">{saving ? 'Sauvegarde...' : '✓ Sauvegarder'}</button>
+            </div>
           </div>
         </div>
       ) : (
         /* ===== MODE VUE ===== */
         <div>
+          {/* ── QUICK ACTIONS STRIP ── */}
+          <div className="flex gap-2 mx-4 mt-3 mb-1">
+            {!isSigned && (
+              <button onClick={() => setShowSignModal(true)} className="flex-1 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-transform">
+                🔏 Signature
+              </button>
+            )}
+            <button onClick={() => setShowEmailModal(true)} className="flex-1 py-2.5 rounded-xl bg-primary/5 border border-primary/20 text-primary text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-transform">
+              📧 Email
+            </button>
+            <button onClick={handleDownload} disabled={downloading} className="flex-1 py-2.5 rounded-xl bg-primary/5 border border-primary/20 text-primary text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-transform disabled:opacity-50">
+              ⬇️ PDF
+            </button>
+          </div>
+
           <div className="mx-4 my-4 bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <QuotePreview quote={quote} profile={profile} />
           </div>
@@ -691,7 +737,7 @@ export default function DevisDetail() {
                     <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                     <button
                       onClick={() => handlePhotoDelete(url)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
                     >✕</button>
                   </div>
                 ))}
@@ -727,10 +773,12 @@ export default function DevisDetail() {
               onClick={() => {
                 const signUrl = `${window.location.origin}/signer/${quote.quote_number}`
                 const clientFirst = quote.client_name?.split(' ')[0] || ''
+                const clientRawPhone = (quote.quote_json.client as any)?.phone || ''
+                const waPhone = clientRawPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
                 const msg = encodeURIComponent(
                   `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
                 )
-                window.open(`https://wa.me/?text=${msg}`, '_blank')
+                window.open(`https://wa.me/${waPhone}?text=${msg}`, '_blank')
               }}
               className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50 active:scale-95 transition-transform"
             >
@@ -738,9 +786,10 @@ export default function DevisDetail() {
             </button>
 
             {quote.status === 'sent' && (
-              <button onClick={handleRelanceMaintenant} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
+              <button onClick={() => setShowRelanceModal(true)} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
                 <span>⏰</span> {sending ? 'Envoi...' : 'Relancer maintenant'}
-                {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}x</span> : null}
+                {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}×</span> : null}
+                {quote.last_relance_at && <span className="text-xs text-orange-400">· il y a {Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000)}j</span>}
               </button>
             )}
             <button onClick={handleDownload} disabled={downloading} className="btn-primary">
@@ -839,6 +888,37 @@ export default function DevisDetail() {
               {sending ? '⏳ Envoi en cours...' : '📧 Envoyer le devis'}
             </button>
             <button onClick={() => setShowEmailModal(false)} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL RELANCE PREVIEW ── */}
+      {showRelanceModal && quote && profile && (
+        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowRelanceModal(false)}>
+          <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="text-gray-900 font-bold text-lg mb-1">Preview de la relance</h3>
+            <p className="text-gray-400 text-sm mb-4">Voici ce qui sera envoyé à ton client</p>
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 text-sm">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Objet</p>
+              <p className="text-gray-700 font-medium mb-3">Relance devis {quote.quote_number} — {profile.company_name}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Corps du message</p>
+              <div className="text-gray-600 space-y-2 text-xs leading-relaxed">
+                <p>Bonjour,</p>
+                <p>Je me permets de revenir vers vous concernant le devis <strong>{quote.quote_number}</strong> de <strong>{fmt(quote.total_ttc)} TTC</strong>
+                  {quote.sent_at ? ` transmis il y a ${Math.floor((Date.now() - new Date(quote.sent_at).getTime()) / 86400000)} jour(s)` : ''}.</p>
+                <p>Avez-vous pu en prendre connaissance ? Je reste disponible pour toute question ou ajustement.</p>
+                <p>Cordialement,<br /><strong>{profile.owner_name || profile.company_name}</strong></p>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Destinataire</label>
+              <input type="email" value={sendEmail} onChange={e => setSendEmail(e.target.value)} placeholder="client@exemple.com" className="input-field mt-2" />
+            </div>
+            <button onClick={() => { setShowRelanceModal(false); handleRelanceMaintenant() }} disabled={!sendEmail || sending} className="btn-accent mb-2">
+              {sending ? '⏳ Envoi...' : '⏰ Envoyer la relance'}
+            </button>
+            <button onClick={() => setShowRelanceModal(false)} className="w-full text-gray-400 text-sm py-3">Annuler</button>
           </div>
         </div>
       )}

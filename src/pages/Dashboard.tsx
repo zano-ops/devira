@@ -9,9 +9,14 @@ import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
-function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) }
+function fmtDate(s: string) {
+  const d = new Date(s)
+  const sameYear = d.getFullYear() === new Date().getFullYear()
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', ...(!sameYear ? { year: '2-digit' } : {}) })
+}
 
 type Filter = 'all' | 'draft' | 'sent' | 'accepted' | 'refused' | 'pending_approval'
+type SortKey = 'date' | 'amount' | 'client'
 
 function daysSince(d: string) {
   return Math.floor((Date.now() - new Date(d).getTime()) / 86400000)
@@ -24,6 +29,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [sort, setSort] = useState<SortKey>('date')
 
   usePushNotifications(user?.id || null)
 
@@ -85,6 +91,12 @@ export default function Dashboard() {
     return matchSearch && matchFilter
   })
 
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'amount') return b.total_ttc - a.total_ttc
+    if (sort === 'client') return (a.client_name || '').localeCompare(b.client_name || '', 'fr')
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+
   // ── GRAPHIQUE CA 6 MOIS ──
   const last6Months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
@@ -98,15 +110,15 @@ export default function Dashboard() {
 
   // Durée moyenne de conversion (sent → accepted)
   const conversionDays = accepted
-    .filter(q => q.sent_at)
-    .map(q => Math.floor((new Date(q.created_at).getTime() - new Date(q.sent_at!).getTime()) / 86400000))
+    .filter(q => q.sent_at && (q.quote_json as any)?.signature?.signed_at)
+    .map(q => Math.floor((new Date((q.quote_json as any).signature.signed_at).getTime() - new Date(q.sent_at!).getTime()) / 86400000))
     .filter(d => d >= 0 && d <= 90)
   const avgConvDays = conversionDays.length > 0
     ? Math.round(conversionDays.reduce((s, d) => s + d, 0) / conversionDays.length)
     : null
 
   const firstName = profile?.owner_name?.split(' ')[0] || 'Artisan'
-  const filterLabels: Record<Filter, string> = { all: 'Tous', draft: 'Brouillons', sent: 'Envoyés', accepted: 'Acceptés', refused: 'Refusés', pending_approval: '⏳ À valider' }
+  const filterLabels: Record<Filter, string> = { all: 'Tous', draft: 'Brouillons', sent: 'Envoyés', accepted: 'Acceptés', refused: 'Refusés', pending_approval: 'À valider' }
 
   return (
     <div className="min-h-screen pb-24">
@@ -116,11 +128,15 @@ export default function Dashboard() {
           <div>
             <p className="text-blue-200 text-sm">Bonjour 👷</p>
             <h1 className="text-white text-2xl font-bold">{firstName}</h1>
+            <p className="text-blue-300 text-xs mt-0.5">CA {now.getFullYear()} : {caAnnuel >= 1000 ? `${(caAnnuel / 1000).toFixed(1)}k €` : fmt(caAnnuel)}</p>
           </div>
-          <div className="text-right">
-            <p className="text-blue-200 text-xs">CA annuel (acceptés)</p>
-            <p className="text-white font-bold text-base">{caAnnuel >= 1000 ? `${(caAnnuel / 1000).toFixed(1)}k €` : fmt(caAnnuel)}</p>
-          </div>
+          <button
+            onClick={() => navigate('/nouveau-devis')}
+            className="bg-accent text-white font-bold text-sm px-4 py-2.5 rounded-2xl flex items-center gap-2 active:scale-95 transition-transform shrink-0"
+            style={{ boxShadow: '0 4px 16px rgba(245,158,11,0.4)' }}
+          >
+            ⚡ Nouveau
+          </button>
         </div>
 
         {/* Stats */}
@@ -282,7 +298,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Filters */}
+      {/* Filters + Sort */}
       <div className="flex gap-2 px-4 py-3 overflow-x-auto hide-scrollbar">
         {(Object.keys(filterLabels) as Filter[]).map(f => (
           <button
@@ -294,6 +310,17 @@ export default function Dashboard() {
             {f !== 'all' && (
               <span className="ml-1 opacity-70">({quotes.filter(q => q.status === f).length})</span>
             )}
+          </button>
+        ))}
+      </div>
+
+      {/* Sort */}
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <span className="text-xs text-gray-400 shrink-0">Trier :</span>
+        {(['date', 'amount', 'client'] as SortKey[]).map(s => (
+          <button key={s} onClick={() => setSort(s)}
+            className={`text-xs px-2.5 py-1 rounded-full transition-all ${sort === s ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-400'}`}>
+            {s === 'date' ? '📅 Date' : s === 'amount' ? '💰 Montant' : '👤 Client'}
           </button>
         ))}
       </div>
@@ -313,8 +340,10 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filtered.map(q => {
+            {sorted.map(q => {
               const isOverdue = q.status === 'sent' && daysSince(q.created_at) > 15
+              const clientPhone = (q.quote_json as any)?.client?.phone || ''
+              const waPhone = clientPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
               return (
                 <button
                   key={q.id}
@@ -323,8 +352,19 @@ export default function Dashboard() {
                   style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                 >
                   {isOverdue && (
-                    <div className="flex items-center gap-1 mb-1.5 text-orange-500 text-xs font-semibold">
-                      <span>⏰</span> Sans réponse depuis {daysSince(q.created_at)}j — relancer ?
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-orange-500 text-xs font-semibold flex items-center gap-1">
+                        <span>⏰</span> Sans réponse depuis {daysSince(q.created_at)}j
+                      </p>
+                      {waPhone && (
+                        <a
+                          href={`https://wa.me/${waPhone}`}
+                          onClick={e => e.stopPropagation()}
+                          className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shrink-0"
+                        >
+                          💬 WA
+                        </a>
+                      )}
                     </div>
                   )}
                   {q.status === 'pending_approval' && (
@@ -343,12 +383,11 @@ export default function Dashboard() {
                         <span className="text-xs text-gray-400 font-mono">{q.quote_number}</span>
                         <StatusBadge status={q.status} />
                       </div>
-                      {/* Client + titre */}
                       <p className="text-gray-900 font-semibold text-sm truncate">
-                        {q.client_name || q.quote_json?.titre || 'Sans titre'}
+                        {q.quote_json?.titre || q.client_name || 'Nouveau chantier'}
                       </p>
-                      {q.client_name && q.quote_json?.titre && (
-                        <p className="text-gray-400 text-xs truncate mt-0.5">{q.quote_json.titre}</p>
+                      {q.client_name && (
+                        <p className="text-gray-400 text-xs truncate mt-0.5">👤 {q.client_name}</p>
                       )}
                       <p className="text-gray-400 text-xs mt-0.5">{fmtDate(q.created_at)}</p>
                     </div>

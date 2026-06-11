@@ -272,9 +272,9 @@ export default function NouveauDevis() {
     }
   }
 
-  const qualityScore = Math.min(100, Math.floor((charCount / 150) * 100))
-  const qualityColor = qualityScore < 40 ? '#EF4444' : qualityScore < 70 ? '#F59E0B' : '#10B981'
-  const qualityLabel = qualityScore < 40 ? 'Trop court' : qualityScore < 70 ? 'Correct' : 'Excellent ✓'
+  const qualityScore = Math.min(100, Math.floor((charCount / 80) * 100))
+  const qualityColor = qualityScore < 25 ? '#EF4444' : qualityScore < 65 ? '#F59E0B' : '#10B981'
+  const qualityLabel = qualityScore < 25 ? 'Trop court' : qualityScore < 65 ? 'Correct ✓' : 'Excellent ✓'
 
   if (generating) return <LoadingOverlay />
 
