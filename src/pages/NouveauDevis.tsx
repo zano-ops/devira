@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { LoadingOverlay } from '../components/LoadingOverlay'
 import { useToast } from '../components/Toast'
+import { AddressAutocomplete } from '../components/AddressAutocomplete'
 import type { Client } from '../types'
 
 type MicState = 'idle' | 'recording'
@@ -479,12 +480,16 @@ export default function NouveauDevis() {
               placeholder="dupont@gmail.com"
               type="email"
             />
-            <Field
-              label="Adresse du chantier"
-              value={clientAddress}
-              onChange={setClientAddress}
-              placeholder="14 rue des Lilas, 69000 Lyon"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Adresse du chantier <span className="text-gray-300 font-normal normal-case">— autocomplétion</span>
+              </label>
+              <AddressAutocomplete
+                value={clientAddress}
+                onChange={(street, city, zip) => setClientAddress([street, zip, city].filter(Boolean).join(', '))}
+                placeholder="Commence à taper l'adresse..."
+              />
+            </div>
             <Field
               label="Téléphone du client"
               value={clientPhone}

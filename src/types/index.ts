@@ -93,6 +93,8 @@ export interface Client {
   zip_code: string
   phone: string
   notes: string
+  client_type?: 'particulier' | 'professionnel'
+  siret?: string | null
   created_at: string
 }
 
