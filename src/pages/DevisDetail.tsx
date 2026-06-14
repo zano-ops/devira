@@ -883,7 +883,7 @@ export default function DevisDetail() {
             <h3 className="text-gray-900 font-bold text-lg mb-1">Envoyer par email</h3>
             <p className="text-gray-400 text-sm mb-4">Le devis PDF sera joint en pièce jointe</p>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email du client</label>
-            <input type="email" value={sendEmail} onChange={e => setSendEmail(e.target.value)} placeholder="client@exemple.com" className="input-field mt-2 mb-4" autoFocus />
+            <input type="email" value={sendEmail} onChange={e => setSendEmail(e.target.value)} placeholder="client@exemple.com" className="input-field mt-2 mb-4" autoFocus disabled={sending} />
             <button onClick={handleSendEmail} disabled={!sendEmail || sending} className="btn-accent">
               {sending ? '⏳ Envoi en cours...' : '📧 Envoyer le devis'}
             </button>

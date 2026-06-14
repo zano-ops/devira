@@ -21,6 +21,12 @@ export interface Profile {
   relance_days?: number[]
   // Validation interne
   validation_threshold?: number
+  // Abonnement
+  subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled'
+  trial_ends_at?: string
+  subscription_plan?: 'essentiel' | 'pro' | 'equipe' | null
+  quotes_this_month?: number
+  quotes_reset_at?: string
   created_at: string
 }
 

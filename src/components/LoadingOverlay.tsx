@@ -108,12 +108,14 @@ export function LoadingOverlay() {
       </div>
 
       {/* Timer */}
-      <p className="text-blue-500 text-xs mt-6">
+      <p className="text-blue-500 text-xs mt-6 text-center" style={{ maxWidth: 300 }}>
         {elapsed < 5
           ? '⚡ Démarrage de l\'IA…'
           : elapsed < 15
           ? `⏱ ${elapsed}s — L'IA rédige ton devis`
-          : `⏱ ${elapsed}s — Patience, ça arrive !`}
+          : elapsed < 30
+          ? `⏱ ${elapsed}s — L'IA prend un peu plus de temps que prévu…`
+          : `⏱ ${elapsed}s — Les devis complexes peuvent prendre jusqu'à 30 secondes`}
       </p>
     </div>
   )

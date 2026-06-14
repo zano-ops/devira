@@ -633,7 +633,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
   doc.text(f1.slice(0, 70), ML, footerY + 5)
   if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
-  doc.text('Généré avec DevisPro BTP', W - MR, footerY + 5, { align: 'right' })
+  doc.text('Généré avec Devisly', W - MR, footerY + 5, { align: 'right' })
 
   doc.save(`Facture-${invoice.invoice_number}.pdf`)
 }

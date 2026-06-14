@@ -6,6 +6,8 @@ import type { Invoice } from '../types'
 import { BottomNav } from '../components/BottomNav'
 import { useToast } from '../components/Toast'
 import { downloadInvoicePdf } from '../lib/generatePdf'
+import TrialBanner from '../components/TrialBanner'
+import { FileDown, Receipt, Download, Check } from 'lucide-react'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string | null) { return s ? new Date(s).toLocaleDateString('fr-FR') : '—' }
@@ -115,7 +117,7 @@ export default function Factures() {
     const a = document.createElement('a')
     const year = new Date().getFullYear()
     a.href = url
-    a.download = `FEC_${year}_DevisPro.txt`
+    a.download = `FEC_${year}_Devisly.txt`
     a.click()
     URL.revokeObjectURL(url)
     showToast(`FEC exporté — ${paid.length} facture(s) ✓`)
@@ -150,35 +152,41 @@ export default function Factures() {
   })
 
   return (
-    <div className="min-h-screen pb-24">
+    <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
       <ToastContainer />
 
       {/* Header */}
-      <div className="bg-primary px-5 pt-12 pb-5">
-        <div className="flex items-start justify-between mb-1">
-          <h1 className="text-white text-2xl font-bold">Factures</h1>
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+        <TrialBanner />
+        <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Factures</h1>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '2px 0 0', fontWeight: 400 }}>
+              {invoices.length} facture{invoices.length !== 1 ? 's' : ''}
+            </p>
+          </div>
           <button
             onClick={handleExportFEC}
-            className="bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F8FAFC', color: '#1E3A5F', border: '1.5px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', padding: '8px 12px', fontSize: 12, fontWeight: 600 }}
             title="Export comptabilité — DGFiP FEC"
           >
-            <span>📊</span> Export FEC
+            <FileDown size={14} strokeWidth={2} />
+            Export FEC
           </button>
         </div>
-        <p className="text-blue-200 text-sm mb-4">{invoices.length} facture{invoices.length !== 1 ? 's' : ''}</p>
 
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-blue-200 text-xs">En attente</p>
-            <p className="text-white font-bold text-base">{totalPending >= 1000 ? `${(totalPending / 1000).toFixed(1)}k €` : fmt(totalPending)}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '14px 20px 16px' }}>
+          <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '10px 8px', textAlign: 'center', border: '1px solid #F1F5F9' }}>
+            <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 3px' }}>En attente</p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: '#F59E0B', margin: 0, letterSpacing: '-0.02em' }}>{totalPending >= 1000 ? `${(totalPending / 1000).toFixed(1)}k €` : fmt(totalPending)}</p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-green-300 text-xs">Encaissé</p>
-            <p className="text-green-300 font-bold text-base">{totalPaid >= 1000 ? `${(totalPaid / 1000).toFixed(1)}k €` : fmt(totalPaid)}</p>
+          <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '10px 8px', textAlign: 'center', border: '1px solid #F1F5F9' }}>
+            <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 3px' }}>Encaissé</p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: '#059669', margin: 0, letterSpacing: '-0.02em' }}>{totalPaid >= 1000 ? `${(totalPaid / 1000).toFixed(1)}k €` : fmt(totalPaid)}</p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3 text-center">
-            <p className="text-red-300 text-xs">En retard</p>
-            <p className="text-red-300 font-bold text-base">{totalOverdue >= 1000 ? `${(totalOverdue / 1000).toFixed(1)}k €` : fmt(totalOverdue)}</p>
+          <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '10px 8px', textAlign: 'center', border: '1px solid #F1F5F9' }}>
+            <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 3px' }}>En retard</p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: '#DC2626', margin: 0, letterSpacing: '-0.02em' }}>{totalOverdue >= 1000 ? `${(totalOverdue / 1000).toFixed(1)}k €` : fmt(totalOverdue)}</p>
           </div>
         </div>
       </div>
@@ -196,32 +204,33 @@ export default function Factures() {
         ))}
       </div>
 
-      <div className="px-4">
+      <div style={{ padding: '0 16px' }}>
         {loading ? (
-          <div className="flex flex-col gap-3">{[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl h-24 animate-pulse" />)}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 96 }} />)}
+          </div>
         ) : invoices.length === 0 ? (
-          /* État vide soigné */
-          <div className="flex flex-col items-center py-14 text-center">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <span className="text-4xl">🧾</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 0', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, background: 'rgba(30,58,95,0.08)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Receipt size={28} color="rgba(30,58,95,0.4)" strokeWidth={1.8} />
             </div>
-            <p className="text-gray-800 font-bold text-lg mb-1">Aucune facture encore</p>
-            <p className="text-gray-400 text-sm mb-2 max-w-xs">
-              Les factures sont créées automatiquement depuis tes devis acceptés.
+            <p style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Aucune facture encore</p>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 12px', maxWidth: 280 }}>
+              Les factures sont créées depuis tes devis acceptés.
             </p>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-6 max-w-xs">
-              <p className="text-blue-700 text-xs font-medium">
-                📋 Sur un devis accepté → menu "⋮" → "Créer facture"
+            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 14px', marginBottom: 24, maxWidth: 280 }}>
+              <p style={{ fontSize: 12, color: '#1E40AF', fontWeight: 500, margin: 0 }}>
+                Sur un devis accepté → menu "···" → "Créer facture"
               </p>
             </div>
-            <button onClick={() => navigate('/dashboard')} className="bg-primary text-white px-6 py-3 rounded-xl font-semibold text-sm">
+            <button onClick={() => navigate('/dashboard')} style={{ background: '#1E3A5F', color: 'white', border: 'none', borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
               Voir mes devis →
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-10 text-center">
-            <span className="text-3xl mb-3">✅</span>
-            <p className="text-gray-500 font-medium">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', textAlign: 'center' }}>
+            <Check size={32} color="#CBD5E1" strokeWidth={1.5} style={{ marginBottom: 12 }} />
+            <p style={{ color: '#64748B', fontWeight: 500, fontSize: 14, margin: 0 }}>
               {activeTab === 'pending' ? 'Aucune facture en attente' : 'Aucune facture payée'}
             </p>
           </div>
@@ -248,7 +257,7 @@ export default function Factures() {
                       <p className="text-gray-900 font-semibold text-sm">{inv.client_name || 'Client inconnu'}</p>
                       <p className="text-gray-400 text-xs mt-0.5">
                         {isOverdue ? (
-                          <span className="text-red-500 font-medium">⚠️ Échéance dépassée : {fmtDate(inv.due_date)}</span>
+                          <span className="text-red-500 font-medium">Échéance dépassée : {fmtDate(inv.due_date)}</span>
                         ) : (
                           `Échéance : ${fmtDate(inv.due_date)}`
                         )}
@@ -274,14 +283,16 @@ export default function Factures() {
                       </button>
                     )}
                     {inv.status === 'paid' && (
-                      <p className="flex-1 text-xs text-green-600 text-center font-medium py-2.5">✅ Payée le {fmtDate(inv.paid_at)}</p>
+                      <p className="flex-1 text-xs text-green-600 text-center font-medium py-2.5">Payée le {fmtDate(inv.paid_at)}</p>
                     )}
                     <button
                       onClick={() => handleDownloadPdf(inv)}
                       disabled={downloadingId === inv.id}
-                      className="py-2.5 px-3 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      className="py-2.5 px-3 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 bg-gray-50 transition-colors disabled:opacity-50"
+                      style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                     >
-                      {downloadingId === inv.id ? '⏳' : '⬇️ PDF'}
+                      <Download size={13} strokeWidth={2} />
+                      {downloadingId === inv.id ? '...' : 'PDF'}
                     </button>
                   </div>
                 </div>

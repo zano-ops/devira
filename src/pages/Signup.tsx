@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
+import { DevislyIcon } from '../components/DevislyLogo'
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -12,16 +13,42 @@ export default function Signup() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const [emailSent, setEmailSent] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return
+    setResending(true)
+    await supabase.auth.resend({ type: 'signup', email })
+    setResending(false)
+    showToast('Email renvoyé !', 'success')
+    setResendCooldown(60)
+    const t = setInterval(() => {
+      setResendCooldown(c => {
+        if (c <= 1) { clearInterval(t); return 0 }
+        return c - 1
+      })
+    }, 1000)
+  }
+
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault()
     if (password !== confirm) { showToast('Les mots de passe ne correspondent pas', 'error'); return }
     if (password.length < 6) { showToast('Mot de passe trop court (6 caractères min)', 'error'); return }
     setLoading(true)
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) {
       showToast(error.message, 'error')
-    } else {
+    } else if (data.user && data.user.identities?.length === 0) {
+      // Email déjà utilisé (Supabase retourne un faux succès pour éviter l'énumération)
+      showToast('Un compte existe déjà avec cet email', 'error')
+    } else if (data.session) {
+      // Pas de confirmation email requise (Supabase config) → direct
       navigate('/onboarding')
+    } else {
+      // Confirmation email envoyée
+      setEmailSent(true)
     }
     setLoading(false)
   }
@@ -31,14 +58,38 @@ export default function Signup() {
       <ToastContainer />
 
       <div className="flex flex-col items-center mb-10 animate-fade-in">
-        <div className="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-4 border border-white/20">
-          <span className="text-3xl">📋</span>
+        <div className="mb-3" style={{ filter: 'drop-shadow(0 8px 24px rgba(244,164,53,0.35))' }}>
+          <DevislyIcon size={80} />
         </div>
-        <h1 className="text-white text-2xl font-bold">DevisPro BTP</h1>
-        <p className="text-blue-200 text-sm mt-1">Créez vos devis en 2 minutes chrono</p>
+        <h1 className="text-white text-2xl font-bold">devisly</h1>
+        <p className="text-blue-200 text-sm mt-1">Créez vos devis en 30 secondes chrono</p>
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-3xl p-7 animate-slide-up" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+        {emailSent ? (
+          <div className="text-center py-2">
+            <div className="text-5xl mb-4">📬</div>
+            <h2 className="text-gray-900 text-xl font-bold mb-2">Un email vous attend</h2>
+            <p className="text-gray-500 text-sm mb-2">
+              Cliquez sur le lien dans l'email envoyé à <strong>{email}</strong> pour activer votre compte.
+            </p>
+            <p className="text-gray-400 text-xs mb-6">
+              Vérifiez vos spams si vous ne voyez rien dans 2 minutes.
+            </p>
+            <button
+              onClick={handleResend}
+              disabled={resending || resendCooldown > 0}
+              className="w-full py-3 rounded-xl border-2 border-primary text-primary font-semibold text-sm disabled:opacity-50"
+            >
+              {resending
+                ? 'Envoi...'
+                : resendCooldown > 0
+                ? `Renvoyer dans ${resendCooldown}s`
+                : 'Renvoyer l\'email'}
+            </button>
+          </div>
+        ) : (
+        <>
         <h2 className="text-gray-900 text-xl font-bold mb-6">Créer un compte</h2>
 
         <form onSubmit={handleSignup} className="flex flex-col gap-4">
@@ -72,6 +123,8 @@ export default function Signup() {
           Déjà un compte ?{' '}
           <Link to="/login" className="text-primary font-semibold">Se connecter</Link>
         </p>
+        </>
+        )}
       </div>
     </div>
   )

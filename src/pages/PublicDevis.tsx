@@ -545,7 +545,7 @@ export default function PublicDevis() {
 
         {/* Footer confiance */}
         <div className="text-center pb-4">
-          <p className="text-gray-300 text-xs">🔒 Signature horodatée · Sécurisée par DevisPro BTP</p>
+          <p className="text-gray-300 text-xs">🔒 Signature horodatée · Sécurisée par Devisly</p>
         </div>
       </div>
     </div>

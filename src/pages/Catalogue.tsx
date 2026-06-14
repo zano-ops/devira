@@ -4,6 +4,8 @@ import { BottomNav } from '../components/BottomNav'
 import { useToast } from '../components/Toast'
 import { supabase, SUPABASE_URL } from '../lib/supabase'
 import type { CatalogueItem } from '../lib/catalogue'
+import TrialBanner from '../components/TrialBanner'
+import { Search, Upload, Trash2, Plus, BookOpen, Zap, ArrowLeft, Package } from 'lucide-react'
 
 export type { CatalogueItem }
 
@@ -288,7 +290,7 @@ export default function Catalogue() {
   })
 
   return (
-    <div className="min-h-screen pb-24">
+    <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
       <ToastContainer />
       <input
         ref={importInputRef}
@@ -299,47 +301,57 @@ export default function Catalogue() {
       />
 
       {/* Header */}
-      <div className="bg-primary px-5 pt-12 pb-5">
-        <div className="flex items-center gap-2 mb-4">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/20 text-white text-lg">←</button>
-          <div className="flex-1">
-            <h1 className="text-white text-xl font-bold">Catalogue de prix</h1>
-            <p className="text-blue-200 text-sm">{items.length} prestation{items.length > 1 ? 's' : ''}</p>
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+        <TrialBanner />
+        <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{ width: 36, height: 36, borderRadius: 10, background: '#F8FAFC', border: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <ArrowLeft size={16} color="#64748B" strokeWidth={2} />
+          </button>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Catalogue de prix</h1>
+            <p style={{ fontSize: 12, color: '#94A3B8', margin: '1px 0 0' }}>{items.length} prestation{items.length > 1 ? 's' : ''}</p>
           </div>
           <button
             onClick={() => importInputRef.current?.click()}
             disabled={importing}
-            className="bg-white/20 text-white text-xs font-semibold px-3 py-2.5 rounded-xl flex items-center gap-1.5 disabled:opacity-60"
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F8FAFC', color: '#64748B', border: '1.5px solid #E2E8F0', borderRadius: 10, cursor: 'pointer', padding: '8px 12px', fontSize: 12, fontWeight: 600, opacity: importing ? 0.6 : 1 }}
           >
-            {importing ? '⏳' : '📄'} {importing ? 'Analyse...' : 'Importer'}
+            <Upload size={13} strokeWidth={2} />
+            {importing ? 'Analyse...' : 'Importer'}
           </button>
-          <button onClick={openNew} className="bg-accent text-white text-sm font-semibold px-3 py-2.5 rounded-xl flex items-center gap-1.5">
-            +
+          <button
+            onClick={openNew}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, background: '#E87722', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', flexShrink: 0, boxShadow: '0 3px 10px rgba(232,119,34,0.3)' }}
+          >
+            <Plus size={18} strokeWidth={2.5} />
           </button>
         </div>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300">🔍</span>
+        <div style={{ padding: '12px 20px 16px', position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: 32, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher une prestation..."
-            className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/15 text-white placeholder-blue-300 text-sm focus:outline-none"
+            style={{ width: '100%', height: 40, paddingLeft: 38, paddingRight: 14, background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
       </div>
 
       {/* Migration banner */}
       {showMigrationBanner && (
-        <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
-          <span className="text-2xl">📦</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-amber-900 font-semibold text-sm">Ancien catalogue détecté</p>
-            <p className="text-amber-700 text-xs mt-0.5">Tes prestations locales ne sont pas encore dans le cloud.</p>
+        <div style={{ margin: '8px 16px 0', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Package size={16} color="#D97706" strokeWidth={2} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#92400E', margin: '0 0 1px' }}>Ancien catalogue détecté</p>
+            <p style={{ fontSize: 11, color: '#B45309', margin: 0 }}>Tes prestations locales ne sont pas encore dans le cloud.</p>
           </div>
           <button
             onClick={handleMigrate}
             disabled={migrating}
-            className="shrink-0 bg-amber-500 text-white text-xs font-semibold px-3 py-2 rounded-xl disabled:opacity-60"
+            style={{ background: '#D97706', color: 'white', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', opacity: migrating ? 0.6 : 1, flexShrink: 0 }}
           >
             {migrating ? '...' : 'Migrer'}
           </button>
@@ -361,29 +373,32 @@ export default function Catalogue() {
         </div>
       )}
 
-      <div className="px-4 pt-2">
+      <div style={{ padding: '8px 16px 0' }}>
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 68 }} />)}
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="text-5xl mb-4">📚</span>
-            <p className="text-gray-700 font-bold text-base mb-1">Catalogue vide</p>
-            <p className="text-gray-400 text-sm mb-6 max-w-xs">
-              Sauvegarde tes prestations habituelles avec leurs prix pour les retrouver rapidement dans chaque devis.
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, background: 'rgba(30,58,95,0.08)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <BookOpen size={28} color="rgba(30,58,95,0.4)" strokeWidth={1.8} />
+            </div>
+            <p style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Catalogue vide</p>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 24px', maxWidth: 280 }}>
+              Sauvegarde tes prestations habituelles avec leurs prix pour les retrouver dans chaque devis.
             </p>
-            <button onClick={addExamples} className="btn-primary text-sm px-6 py-2.5 mb-3">
-              ⚡ Ajouter des exemples BTP
+            <button onClick={addExamples} className="btn-accent" style={{ width: 'auto', padding: '12px 24px', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+              <Zap size={14} strokeWidth={2.5} />
+              Ajouter des exemples BTP
             </button>
-            <button onClick={openNew} className="text-primary text-sm font-semibold">
+            <button onClick={openNew} style={{ background: 'none', border: 'none', color: '#1E3A5F', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Créer ma première prestation
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="text-3xl mb-3">🔍</span>
-            <p className="text-gray-500">Aucun résultat</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', textAlign: 'center' }}>
+            <Search size={32} color="#CBD5E1" strokeWidth={1.5} style={{ marginBottom: 12 }} />
+            <p style={{ color: '#64748B', fontWeight: 500, fontSize: 14, margin: 0 }}>Aucun résultat</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -404,8 +419,8 @@ export default function Catalogue() {
                   <p className="text-primary font-bold text-sm">{fmt(item.prix_unitaire_ht)}</p>
                   <p className="text-gray-400 text-xs">HT/{item.unite}</p>
                 </div>
-                <button onClick={() => handleDelete(item.id)} className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-400 transition-colors shrink-0">
-                  🗑️
+                <button onClick={() => handleDelete(item.id)} style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: '#CBD5E1', cursor: 'pointer', flexShrink: 0 }}>
+                  <Trash2 size={16} strokeWidth={1.8} />
                 </button>
               </div>
             ))}

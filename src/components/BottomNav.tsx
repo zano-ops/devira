@@ -14,20 +14,45 @@ export function BottomNav() {
   const navigate = useNavigate()
 
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 bg-white border-t border-gray-100"
-      style={{ transform: 'translateX(-50%)', width: '100%', maxWidth: '430px' }}>
-      <div className="flex items-center justify-around px-1 pt-2 pb-3">
+    <nav style={{
+      position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 430, zIndex: 40,
+      background: 'rgba(255,255,255,0.94)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderTop: '1px solid rgba(0,0,0,0.07)',
+      paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around', padding: '6px 0 2px' }}>
         {tabs.map(({ path, label, Icon }) => {
           const active = location.pathname === path || (path === '/dashboard' && location.pathname === '/')
           return (
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-150 min-w-[52px] ${active ? 'text-primary' : 'text-gray-400'}`}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 2, padding: '4px 12px', border: 'none', background: 'none',
+                cursor: 'pointer',
+                color: active ? '#1E3A5F' : '#9CA3AF',
+                transition: 'color 0.15s ease',
+                minWidth: 52,
+              }}
             >
-              <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
-              <span className={`text-[10px] font-medium ${active ? 'text-primary' : 'text-gray-400'}`}>{label}</span>
-              {active && <div className="w-1 h-1 rounded-full bg-primary" />}
+              <div style={{
+                padding: '5px 14px', borderRadius: 10,
+                background: active ? 'rgba(30,58,95,0.08)' : 'transparent',
+                transition: 'background 0.2s ease',
+              }}>
+                <Icon size={21} strokeWidth={active ? 2.3 : 1.7} />
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: active ? 600 : 400,
+                letterSpacing: '0.01em',
+                transition: 'font-weight 0.1s ease',
+              }}>
+                {label}
+              </span>
             </button>
           )
         })}

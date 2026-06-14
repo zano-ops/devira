@@ -6,6 +6,8 @@ import { LoadingOverlay } from '../components/LoadingOverlay'
 import { useToast } from '../components/Toast'
 import { AddressAutocomplete } from '../components/AddressAutocomplete'
 import type { Client } from '../types'
+import TrialBanner from '../components/TrialBanner'
+import UpgradeModal from '../components/UpgradeModal'
 
 type MicState = 'idle' | 'recording'
 type Step = 'describe' | 'client'
@@ -32,7 +34,7 @@ interface DraftData {
 
 export default function NouveauDevis() {
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user, profile, isTrialExpired, canCreateQuote, subscriptionStatus } = useAuth()
   const { showToast, ToastContainer } = useToast()
 
   const [step, setStep] = useState<Step>('describe')
@@ -53,9 +55,12 @@ export default function NouveauDevis() {
   const [draftBanner, setDraftBanner] = useState<DraftData | null>(null)
   const [interimText, setInterimText] = useState('')
 
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
+
   const recognitionRef = useRef<any>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isRecordingRef = useRef(false)
   const baseTextRef = useRef('')
 
@@ -108,6 +113,17 @@ export default function NouveauDevis() {
     }
   }, [user])
 
+  // Recording timer
+  useEffect(() => {
+    if (micState === 'recording') {
+      setRecordingSeconds(0)
+      timerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000)
+    } else {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    }
+    return () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null } }
+  }, [micState])
+
   const restoreDraft = (draft: DraftData) => {
     setDescription(draft.description)
     setClientName(draft.clientName || '')
@@ -126,16 +142,27 @@ export default function NouveauDevis() {
     localStorage.removeItem(DRAFT_KEY)
   }
 
+  const formatSeconds = (s: number) =>
+    `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
+
   const toggleMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SR) { showToast('Dictée non supportée sur ce navigateur. Utilise Chrome.', 'info'); return }
 
     if (isRecordingRef.current) {
-      // ── ARRÊT ──
+      // ── ARRÊT ── null handlers first to prevent onend auto-restart race on iOS
       isRecordingRef.current = false
-      recognitionRef.current?.stop()
       setMicState('idle')
       setInterimText('')
+      const r = recognitionRef.current
+      recognitionRef.current = null
+      if (r) {
+        r.onresult = null
+        r.onend = null
+        r.onerror = null
+        r.onstart = null
+        try { r.abort() } catch {}
+      }
       return
     }
 
@@ -201,8 +228,19 @@ export default function NouveauDevis() {
 
   const handleGenerate = async () => {
     if (!user || !canGenerate) return
+
+    // Bloquer si profil trop incomplet (SIRET obligatoire pour mention légale PDF)
+    if (!profile?.company_name || !profile?.owner_name || !profile?.siret) {
+      const missing = []
+      if (!profile?.company_name) missing.push('nom entreprise')
+      if (!profile?.owner_name) missing.push('votre nom')
+      if (!profile?.siret) missing.push('SIRET (obligatoire sur les devis)')
+      showToast(`Profil incomplet : ${missing.join(', ')} manquant${missing.length > 1 ? 's' : ''} — complétez vos réglages`, 'error')
+      setTimeout(() => navigate('/parametres'), 2500)
+      return
+    }
+
     setGenerating(true)
-    clearDraftOnSuccess()
 
     try {
       // Refresh first to avoid 401 mid-generation on long sessions
@@ -260,6 +298,13 @@ export default function NouveauDevis() {
         }
       }
 
+      // Incrémenter le compteur mensuel de devis
+      await supabase
+        .from('profiles')
+        .update({ quotes_this_month: (profile?.quotes_this_month ?? 0) + 1 })
+        .eq('id', user.id)
+
+      clearDraftOnSuccess()
       navigate(`/devis/${data.quote_id}`, { state: { autoEdit: true } })
     } catch (err: any) {
       console.error('Erreur génération:', err)
@@ -279,9 +324,28 @@ export default function NouveauDevis() {
 
   if (generating) return <LoadingOverlay />
 
+  if (isTrialExpired) {
+    return (
+      <UpgradeModal
+        reason="trial_expired"
+        onClose={() => navigate('/dashboard')}
+      />
+    )
+  }
+
+  if (!canCreateQuote && subscriptionStatus === 'trial') {
+    return (
+      <UpgradeModal
+        reason="limit_reached"
+        onClose={() => navigate('/dashboard')}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <ToastContainer />
+      <TrialBanner />
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-12 pb-4 border-b border-gray-100 bg-white sticky top-0 z-20">
@@ -371,21 +435,34 @@ export default function NouveauDevis() {
           )}
 
           {/* Mic */}
-          <div className="flex flex-col items-center my-5">
-            <div className="relative mb-2">
+          <div className="flex flex-col items-center my-6 gap-3">
+            <div className="relative">
               {micState === 'recording' && (
                 <>
-                  <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'rgba(239,68,68,0.15)', transform: 'scale(1.8)' }} />
-                  <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'rgba(239,68,68,0.1)', transform: 'scale(2.4)', animationDelay: '0.3s' }} />
+                  <div className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ border: '1.5px solid #F4A435', animation: 'micRing 1.8s ease-out infinite' }} />
+                  <div className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ border: '1.5px solid #F4A435', animation: 'micRing 1.8s ease-out infinite 0.6s' }} />
+                  <div className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ border: '1.5px solid #F4A435', animation: 'micRing 1.8s ease-out infinite 1.2s' }} />
                 </>
               )}
               <button
                 onClick={toggleMic}
-                className={`w-16 h-16 rounded-full flex items-center justify-center transition-all active:scale-90 ${micState === 'recording' ? 'bg-red-500' : 'bg-primary'}`}
-                style={{ boxShadow: micState === 'recording' ? '0 0 0 8px rgba(239,68,68,0.12)' : '0 6px 20px rgba(30,58,95,0.3)' }}
+                className="relative z-10 flex items-center justify-center active:scale-90 select-none"
+                style={{
+                  width: 72, height: 72, borderRadius: '50%',
+                  background: micState === 'recording'
+                    ? 'linear-gradient(135deg, #F4A435 0%, #D97706 100%)'
+                    : 'linear-gradient(135deg, #1E3A5F 0%, #2D5282 100%)',
+                  boxShadow: micState === 'recording'
+                    ? '0 6px 24px rgba(244,164,53,0.45)'
+                    : '0 6px 20px rgba(30,58,95,0.35)',
+                  transition: 'background 0.3s ease, box-shadow 0.3s ease',
+                }}
               >
                 {micState === 'recording' ? (
-                  <div className="w-5 h-5 bg-white rounded" />
+                  <div className="w-5 h-5 bg-white rounded-[5px]" />
                 ) : (
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -396,9 +473,26 @@ export default function NouveauDevis() {
                 )}
               </button>
             </div>
-            <p className={`text-xs font-semibold ${micState === 'recording' ? 'text-red-500' : 'text-gray-400'}`}>
-              {micState === 'recording' ? '🔴 Écoute en cours... (appuie pour arrêter)' : 'Appuyer pour dicter en français'}
-            </p>
+
+            {micState === 'recording' ? (
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex items-end gap-[3px]" style={{ height: 22 }}>
+                  {([8, 14, 20, 14, 8] as number[]).map((h, i) => (
+                    <div key={i} style={{
+                      width: 3, height: h,
+                      background: '#F4A435',
+                      borderRadius: 2,
+                      transformOrigin: 'bottom',
+                      animation: `soundBar 0.65s ease-in-out infinite ${[0, 0.1, 0.2, 0.1, 0][i]}s`,
+                    }} />
+                  ))}
+                </div>
+                <p className="text-xs font-semibold text-amber-500">Appuie pour arrêter</p>
+                <p className="text-[11px] text-gray-400 font-mono tabular-nums">{formatSeconds(recordingSeconds)}</p>
+              </div>
+            ) : (
+              <p className="text-xs font-medium text-gray-400">Appuyer pour dicter en français</p>
+            )}
           </div>
 
           {/* Templates */}

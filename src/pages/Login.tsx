@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
+import { DevislyIcon } from '../components/DevislyLogo'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -30,11 +31,11 @@ export default function Login() {
 
       {/* Logo */}
       <div className="flex flex-col items-center mb-10 animate-fade-in">
-        <div className="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-4 border border-white/20">
-          <span className="text-3xl">📋</span>
+        <div className="mb-3" style={{ filter: 'drop-shadow(0 8px 24px rgba(244,164,53,0.35))' }}>
+          <DevislyIcon size={80} />
         </div>
-        <h1 className="text-white text-2xl font-bold tracking-tight">DevisPro BTP</h1>
-        <p className="text-blue-200 text-sm mt-1">Créez vos devis en 2 minutes chrono</p>
+        <h1 className="text-white text-2xl font-bold tracking-tight">devisly</h1>
+        <p className="text-blue-200 text-sm mt-1">Créez vos devis en 30 secondes chrono</p>
       </div>
 
       {/* Card */}
@@ -80,10 +81,15 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-center text-gray-500 text-sm mt-5">
-          Pas encore de compte ?{' '}
-          <Link to="/signup" className="text-primary font-semibold">S'inscrire</Link>
-        </p>
+        <div className="flex flex-col items-center gap-2 mt-5">
+          <p className="text-gray-500 text-sm">
+            Pas encore de compte ?{' '}
+            <Link to="/signup" className="text-primary font-semibold">S'inscrire</Link>
+          </p>
+          <Link to="/forgot-password" className="text-gray-400 text-sm hover:text-primary transition-colors">
+            Mot de passe oublié ?
+          </Link>
+        </div>
       </div>
     </div>
   )

@@ -7,6 +7,8 @@ import { BottomNav } from '../components/BottomNav'
 import { StatusBadge } from '../components/StatusBadge'
 import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
 import { usePushNotifications } from '../hooks/usePushNotifications'
+import TrialBanner from '../components/TrialBanner'
+import { Zap, Search, AlertTriangle, Clock, FileText, MessageCircle, TrendingUp, Plus } from 'lucide-react'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string) {
@@ -51,7 +53,7 @@ export default function Dashboard() {
   })
   // CA = devis acceptés seulement
   const accepted = quotes.filter(q => q.status === 'accepted')
-  const caAnnuel = accepted.filter(q => new Date(q.created_at).getFullYear() === now.getFullYear()).reduce((s, q) => s + q.total_ttc, 0)
+
   const caMois = accepted.filter(q => {
     const d = new Date(q.created_at)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
@@ -120,77 +122,101 @@ export default function Dashboard() {
   const firstName = profile?.owner_name?.split(' ')[0] || 'Artisan'
   const filterLabels: Record<Filter, string> = { all: 'Tous', draft: 'Brouillons', sent: 'Envoyés', accepted: 'Acceptés', refused: 'Refusés', pending_approval: 'À valider' }
 
+  const statusStripe: Record<string, string> = {
+    draft: '#CBD5E1', sent: '#3B82F6', accepted: '#10B981',
+    refused: '#EF4444', pending_approval: '#8B5CF6', cancelled: '#9CA3AF',
+  }
+
   return (
-    <div className="min-h-screen pb-24">
-      {/* Header */}
-      <div className="px-5 pt-12 pb-5" style={{ background: 'linear-gradient(160deg, #1E3A5F 0%, #2D5282 100%)' }}>
-        <div className="flex items-center justify-between mb-4">
+    <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
+
+      {/* ─── HEADER ─── */}
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+        <TrialBanner />
+        <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <p className="text-blue-200 text-sm">Bonjour 👷</p>
-            <h1 className="text-white text-2xl font-bold">{firstName}</h1>
-            <p className="text-blue-300 text-xs mt-0.5">CA {now.getFullYear()} : {caAnnuel >= 1000 ? `${(caAnnuel / 1000).toFixed(1)}k €` : fmt(caAnnuel)}</p>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 1px', fontWeight: 400 }}>Bonjour,</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              {firstName}
+            </h1>
           </div>
           <button
             onClick={() => navigate('/nouveau-devis')}
-            className="bg-accent text-white font-bold text-sm px-4 py-2.5 rounded-2xl flex items-center gap-2 active:scale-95 transition-transform shrink-0"
-            style={{ boxShadow: '0 4px 16px rgba(245,158,11,0.4)' }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: '#E87722', color: 'white', border: 'none',
+              borderRadius: 12, cursor: 'pointer', padding: '10px 16px',
+              fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap',
+              boxShadow: '0 4px 14px rgba(232,119,34,0.35)',
+            }}
           >
-            ⚡ Nouveau
+            <Plus size={15} strokeWidth={2.5} />
+            Nouveau
           </button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '14px 20px' }}>
           <StatCard label="Ce mois" value={`${quotesThisMonth.length}`} sub="devis créés" />
-          <StatCard label="CA accepté" value={caMois >= 1000 ? `${(caMois / 1000).toFixed(1)}k` : Math.round(caMois).toString()} sub="€ TTC" color={caMois > 0 ? '#10B981' : undefined} />
+          <StatCard
+            label="CA accepté"
+            value={caMois >= 1000 ? `${(caMois / 1000).toFixed(1)}k` : Math.round(caMois).toString()}
+            sub="€ TTC"
+            positive={caMois > 0}
+          />
           <StatCard
             label="Conversion"
             value={rate !== null ? `${rate}%` : '—'}
-            sub={rate !== null ? `${accepted.length}/${quotesWithAction.length}` : 'pas encore de données'}
-            color={rate !== null && rate >= 50 ? '#10B981' : undefined}
+            sub={rate !== null ? `${accepted.length}/${quotesWithAction.length}` : 'pas de données'}
+            positive={rate !== null && rate >= 50}
           />
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300">🔍</span>
+        <div style={{ padding: '0 20px 16px', position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: 32, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher un client, un devis..."
-            className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/15 text-white placeholder-blue-300 text-sm focus:outline-none focus:bg-white/20 transition-all"
+            style={{
+              width: '100%', height: 40, paddingLeft: 38, paddingRight: 14,
+              background: '#F8FAFC', border: '1.5px solid #E2E8F0',
+              borderRadius: 10, fontSize: 14, color: '#0F172A', outline: 'none',
+              boxSizing: 'border-box',
+            }}
           />
         </div>
       </div>
 
-      {/* ── GRAPHIQUE CA 6 MOIS ── */}
+      {/* ─── CA CHART ─── */}
       {accepted.length > 0 && (
-        <div className="mx-4 mt-4 bg-white rounded-2xl border border-gray-100 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">CA accepté — 6 mois</p>
+        <div style={{ margin: '12px 16px 0', background: 'white', borderRadius: 16, padding: '14px 16px', border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <TrendingUp size={13} color="#1E3A5F" strokeWidth={2.5} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>CA 6 mois</span>
+            </div>
             {avgConvDays !== null && (
-              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">⚡ Conversion : {avgConvDays}j moy.</span>
+              <span style={{ fontSize: 11, color: '#64748B', background: '#F8FAFC', padding: '3px 8px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                Conversion {avgConvDays}j moy.
+              </span>
             )}
           </div>
-          <div className="flex items-end justify-between gap-1 h-20">
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64 }}>
             {last6Months.map((m, i) => {
               const pct = maxCa > 0 ? (m.ca / maxCa) * 100 : 0
               const isCurrentMonth = i === 5
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full flex items-end justify-center" style={{ height: 60 }}>
-                    <div
-                      className="w-full rounded-t-lg transition-all"
-                      style={{
-                        height: `${Math.max(pct, m.ca > 0 ? 8 : 2)}%`,
-                        background: isCurrentMonth ? '#1E3A5F' : m.ca > 0 ? '#93C5FD' : '#F3F4F6',
-                        minHeight: 3,
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-gray-400 font-medium">{m.label}</span>
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, height: '100%', justifyContent: 'flex-end' }}>
+                  <div style={{
+                    width: '100%', borderRadius: '4px 4px 0 0', minHeight: 3,
+                    height: `${Math.max(pct, m.ca > 0 ? 10 : 3)}%`,
+                    background: isCurrentMonth ? '#1E3A5F' : m.ca > 0 ? '#BFDBFE' : '#F1F5F9',
+                  }} />
+                  <span style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 500 }}>{m.label}</span>
                   {m.ca > 0 && (
-                    <span className={`text-[9px] font-bold ${isCurrentMonth ? 'text-primary' : 'text-gray-500'}`}>
+                    <span style={{ fontSize: 8, fontWeight: 700, color: isCurrentMonth ? '#1E3A5F' : '#64748B' }}>
                       {m.ca >= 1000 ? `${(m.ca / 1000).toFixed(0)}k` : Math.round(m.ca)}
                     </span>
                   )}
@@ -201,199 +227,240 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Pipeline */}
+      {/* ─── PIPELINE ─── */}
       {pipelineValue > 0 && (
-        <div className="mx-4 mt-3 bg-white rounded-2xl border border-gray-100 p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <div className="flex items-center justify-between">
+        <div style={{ margin: '8px 16px 0', background: 'white', borderRadius: 16, padding: '14px 16px', border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Pipeline en cours</p>
-              <p className="text-gray-900 font-bold text-xl mt-0.5">
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 3px' }}>Pipeline en cours</p>
+              <p style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 2px', letterSpacing: '-0.02em' }}>
                 {pipelineValue >= 1000 ? `${(pipelineValue / 1000).toFixed(1)}k €` : fmt(pipelineValue)}
               </p>
-              <p className="text-gray-400 text-xs">{sentQuotes.length} devis envoyé{sentQuotes.length !== 1 ? 's' : ''} en attente de signature</p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>{sentQuotes.length} devis en attente</p>
             </div>
-            <button onClick={() => setFilter('sent')} className="bg-primary/10 text-primary text-xs font-semibold px-3 py-2 rounded-xl active:scale-95 transition-transform">
+            <button
+              onClick={() => setFilter('sent')}
+              style={{ background: 'rgba(30,58,95,0.07)', color: '#1E3A5F', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+            >
               Voir →
             </button>
           </div>
         </div>
       )}
 
-      {/* Banners */}
-      <div className="px-4 pt-3 flex flex-col gap-2">
-        {/* Onboarding */}
+      {/* ─── ALERT BANNERS ─── */}
+      <div style={{ padding: '8px 16px 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {profileIncomplete && (
-          <button
-            onClick={() => navigate('/parametres')}
-            className="w-full bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-          >
-            <span className="text-2xl">⚠️</span>
-            <div className="flex-1">
-              <p className="text-amber-800 font-semibold text-sm">Complète ton profil</p>
-              <p className="text-amber-600 text-xs mt-0.5">SIRET, téléphone ou nom manquants — tes devis PDF seront incomplets</p>
+          <button onClick={() => navigate('/parametres')} style={{ width: '100%', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: 'pointer' }}>
+            <AlertTriangle size={16} color="#D97706" strokeWidth={2} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#92400E', margin: '0 0 1px' }}>Complète ton profil</p>
+              <p style={{ fontSize: 11, color: '#B45309', margin: 0 }}>SIRET, téléphone ou nom manquants</p>
             </div>
-            <span className="text-amber-400 text-sm">→</span>
+            <span style={{ color: '#D97706', fontSize: 16, lineHeight: 1 }}>›</span>
           </button>
         )}
-
-        {/* À valider */}
         {pendingApproval.length > 0 && (
-          <button
-            onClick={() => setFilter('pending_approval')}
-            className="w-full bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-          >
-            <span className="text-2xl">📋</span>
-            <div className="flex-1">
-              <p className="text-purple-800 font-semibold text-sm">{pendingApproval.length} devis à valider</p>
-              <p className="text-purple-600 text-xs mt-0.5">Au-dessus du seuil de validation — en attente d'approbation</p>
+          <button onClick={() => setFilter('pending_approval')} style={{ width: '100%', background: '#FAF5FF', border: '1px solid #DDD6FE', borderRadius: 12, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: 'pointer' }}>
+            <FileText size={16} color="#7C3AED" strokeWidth={2} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#5B21B6', margin: '0 0 1px' }}>{pendingApproval.length} devis à valider</p>
+              <p style={{ fontSize: 11, color: '#7C3AED', margin: 0 }}>En attente d'approbation interne</p>
             </div>
-            <span className="text-purple-400 text-sm">→</span>
+            <span style={{ color: '#7C3AED', fontSize: 16, lineHeight: 1 }}>›</span>
           </button>
         )}
-
-        {/* Relances */}
         {overdue.length > 0 && (
-          <button
-            onClick={() => setFilter('sent')}
-            className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-          >
-            <span className="text-2xl">⏰</span>
-            <div className="flex-1">
-              <p className="text-blue-800 font-semibold text-sm">{overdue.length} devis sans réponse</p>
-              <p className="text-blue-600 text-xs mt-0.5">Envoyés il y a plus de 15 jours — pense à relancer</p>
+          <button onClick={() => setFilter('sent')} style={{ width: '100%', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: 'pointer' }}>
+            <Clock size={16} color="#2563EB" strokeWidth={2} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#1E40AF', margin: '0 0 1px' }}>{overdue.length} devis sans réponse</p>
+              <p style={{ fontSize: 11, color: '#2563EB', margin: 0 }}>Envoyés il y a plus de 15 jours</p>
             </div>
-            <span className="text-blue-400 text-sm">→</span>
+            <span style={{ color: '#2563EB', fontSize: 16, lineHeight: 1 }}>›</span>
           </button>
         )}
-
-        {/* Devis qui expirent */}
         {expiringQuotes.length > 0 && (
-          <button
-            onClick={() => setFilter('sent')}
-            className="w-full bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-          >
-            <span className="text-2xl">⚠️</span>
-            <div className="flex-1">
-              <p className="text-orange-800 font-semibold text-sm">
-                {expiringQuotes.length === 1 ? '1 devis expire dans 7 jours' : `${expiringQuotes.length} devis expirent bientôt`}
+          <button onClick={() => setFilter('sent')} style={{ width: '100%', background: '#FFF7ED', border: '1px solid #FDBA74', borderRadius: 12, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: 'pointer' }}>
+            <AlertTriangle size={16} color="#EA580C" strokeWidth={2} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#9A3412', margin: '0 0 1px' }}>
+                {expiringQuotes.length === 1 ? '1 devis expire bientôt' : `${expiringQuotes.length} devis expirent bientôt`}
               </p>
-              <p className="text-orange-600 text-xs mt-0.5">
-                {expiringQuotes.map(q => q.client_name || q.quote_number).slice(0, 3).join(', ')} — relance maintenant !
+              <p style={{ fontSize: 11, color: '#EA580C', margin: 0 }}>
+                {expiringQuotes.map(q => q.client_name || q.quote_number).slice(0, 2).join(', ')}
               </p>
             </div>
-            <span className="text-orange-400 text-sm">→</span>
+            <span style={{ color: '#EA580C', fontSize: 16, lineHeight: 1 }}>›</span>
           </button>
         )}
 
-        {/* Premier devis */}
+        {/* Empty state */}
         {quotes.length === 0 && !loading && (
-          <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-2xl p-6 text-center">
-            <span className="text-4xl mb-3 block">🏗️</span>
-            <p className="text-primary font-bold text-base mb-1">Créé ton premier devis</p>
-            <p className="text-gray-500 text-sm mb-4">L'IA génère un devis professionnel en 30 secondes</p>
-            <button onClick={() => navigate('/nouveau-devis')} className="btn-primary text-sm px-6 py-2.5 inline-block">
-              ⚡ Générer un devis →
+          <div style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2D5282 100%)', borderRadius: 20, padding: '28px 20px', textAlign: 'center', marginTop: 4 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 16, background: 'rgba(255,255,255,0.12)', marginBottom: 14 }}>
+              <Zap size={26} color="white" strokeWidth={2} />
+            </div>
+            <p style={{ fontWeight: 800, fontSize: 18, color: 'white', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+              Bienvenue sur Devisly !
+            </p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '0 0 20px' }}>
+              Créez votre premier devis professionnel en 2 minutes
+            </p>
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
+              {[
+                { icon: <FileText size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'Décrire' },
+                { icon: <Zap size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'IA génère' },
+                { icon: <MessageCircle size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'Envoyer' },
+              ].map(({ icon, label }, i) => (
+                <div key={label} style={{ flex: 1, padding: '12px 4px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 5 }}>{icon}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => navigate('/nouveau-devis')}
+              style={{ width: '100%', padding: '15px 0', borderRadius: 14, background: '#E87722', color: 'white', border: 'none', fontWeight: 800, fontSize: 16, cursor: 'pointer', boxShadow: '0 6px 24px rgba(232,119,34,0.4)' }}
+            >
+              Créer mon premier devis →
             </button>
           </div>
         )}
       </div>
 
-      {/* Filters + Sort */}
-      <div className="flex gap-2 px-4 py-3 overflow-x-auto hide-scrollbar">
-        {(Object.keys(filterLabels) as Filter[]).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filter === f ? 'bg-primary text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
-          >
-            {filterLabels[f]}
-            {f !== 'all' && (
-              <span className="ml-1 opacity-70">({quotes.filter(q => q.status === f).length})</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* ─── FILTERS + SORT ─── */}
+      {quotes.length > 0 && (
+        <>
+          <div style={{ display: 'flex', gap: 6, padding: '16px 16px 0', overflowX: 'auto' }}>
+            {(Object.keys(filterLabels) as Filter[]).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                style={{
+                  flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 13,
+                  fontWeight: 600, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  ...(filter === f
+                    ? { background: '#1E3A5F', color: 'white' }
+                    : { background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0' }
+                  ),
+                }}
+              >
+                {filterLabels[f]}
+                {f !== 'all' && quotes.filter(q => q.status === f).length > 0 && (
+                  <span style={{ fontSize: 11, opacity: 0.65 }}>{quotes.filter(q => q.status === f).length}</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '8px 16px 10px' }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', marginRight: 4 }}>Trier :</span>
+            {(['date', 'amount', 'client'] as SortKey[]).map(s => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                style={{
+                  fontSize: 12, padding: '4px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: sort === s ? 'rgba(30,58,95,0.08)' : 'transparent',
+                  color: sort === s ? '#1E3A5F' : '#94A3B8',
+                  fontWeight: sort === s ? 600 : 400,
+                }}
+              >
+                {s === 'date' ? 'Date' : s === 'amount' ? 'Montant' : 'Client'}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
-      {/* Sort */}
-      <div className="flex items-center gap-2 px-4 pb-2">
-        <span className="text-xs text-gray-400 shrink-0">Trier :</span>
-        {(['date', 'amount', 'client'] as SortKey[]).map(s => (
-          <button key={s} onClick={() => setSort(s)}
-            className={`text-xs px-2.5 py-1 rounded-full transition-all ${sort === s ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-400'}`}>
-            {s === 'date' ? '📅 Date' : s === 'amount' ? '💰 Montant' : '👤 Client'}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      <div className="px-4">
+      {/* ─── QUOTE LIST ─── */}
+      <div style={{ padding: '0 16px' }}>
         {loading ? (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
+              <div key={i} className="skeleton" style={{ height: 82 }} />
             ))}
           </div>
         ) : filtered.length === 0 && quotes.length > 0 ? (
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="text-4xl mb-3">🔍</span>
-            <p className="text-gray-500 font-medium">{search ? 'Aucun résultat pour cette recherche' : 'Aucun devis dans cette catégorie'}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', textAlign: 'center' }}>
+            <Search size={32} color="#CBD5E1" strokeWidth={1.5} style={{ marginBottom: 12 }} />
+            <p style={{ color: '#64748B', fontWeight: 500, fontSize: 14, margin: 0 }}>
+              {search ? 'Aucun résultat pour cette recherche' : 'Aucun devis dans cette catégorie'}
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {sorted.map(q => {
               const isOverdue = q.status === 'sent' && daysSince(q.created_at) > 15
               const clientPhone = (q.quote_json as any)?.client?.phone || ''
               const waPhone = clientPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
+              const stripe = statusStripe[q.status] || '#CBD5E1'
               return (
                 <button
                   key={q.id}
                   onClick={() => navigate(`/devis/${q.id}`)}
-                  className="bg-white rounded-2xl p-4 text-left border border-gray-100 active:scale-[0.98] transition-transform"
-                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                  style={{
+                    background: 'white', borderRadius: 14,
+                    padding: '12px 14px 12px 18px',
+                    textAlign: 'left', border: '1px solid #F1F5F9', cursor: 'pointer',
+                    position: 'relative', overflow: 'hidden', display: 'block', width: '100%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  }}
                 >
-                  {isOverdue && (
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-orange-500 text-xs font-semibold flex items-center gap-1">
-                        <span>⏰</span> Sans réponse depuis {daysSince(q.created_at)}j
-                      </p>
-                      {waPhone && (
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: stripe, borderRadius: '14px 0 0 14px' }} />
+
+                  {(isOverdue || q.status === 'pending_approval' || q.avenant_number) && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      {isOverdue && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} color="#F97316" strokeWidth={2.5} />
+                          <span style={{ fontSize: 11, color: '#F97316', fontWeight: 600 }}>Sans réponse depuis {daysSince(q.created_at)}j</span>
+                        </div>
+                      )}
+                      {q.status === 'pending_approval' && !isOverdue && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <FileText size={11} color="#7C3AED" strokeWidth={2.5} />
+                          <span style={{ fontSize: 11, color: '#7C3AED', fontWeight: 600 }}>En attente de validation</span>
+                        </div>
+                      )}
+                      {q.avenant_number && !isOverdue && q.status !== 'pending_approval' && (
+                        <span style={{ fontSize: 11, color: '#7C3AED', fontWeight: 600 }}>Avenant N°{q.avenant_number}</span>
+                      )}
+                      {isOverdue && waPhone && (
                         <a
                           href={`https://wa.me/${waPhone}`}
                           onClick={e => e.stopPropagation()}
-                          className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shrink-0"
+                          style={{ fontSize: 11, background: '#DCFCE7', color: '#15803D', fontWeight: 600, padding: '3px 8px', borderRadius: 8, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}
                         >
-                          💬 WA
+                          <MessageCircle size={10} strokeWidth={2} />
+                          WA
                         </a>
                       )}
                     </div>
                   )}
-                  {q.status === 'pending_approval' && (
-                    <div className="flex items-center gap-1 mb-1.5 text-purple-600 text-xs font-semibold">
-                      <span>📋</span> En attente de validation interne
-                    </div>
-                  )}
-                  {q.avenant_number && (
-                    <div className="flex items-center gap-1 mb-1.5 text-purple-500 text-xs font-semibold">
-                      <span>📋</span> Avenant N°{q.avenant_number}
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-400 font-mono">{q.quote_number}</span>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'monospace' }}>{q.quote_number}</span>
                         <StatusBadge status={q.status} />
                       </div>
-                      <p className="text-gray-900 font-semibold text-sm truncate">
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {q.quote_json?.titre || q.client_name || 'Nouveau chantier'}
                       </p>
                       {q.client_name && (
-                        <p className="text-gray-400 text-xs truncate mt-0.5">👤 {q.client_name}</p>
+                        <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {q.client_name}
+                        </p>
                       )}
-                      <p className="text-gray-400 text-xs mt-0.5">{fmtDate(q.created_at)}</p>
+                      <p style={{ fontSize: 11, color: '#CBD5E1', margin: 0 }}>{fmtDate(q.created_at)}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-primary font-bold">{q.total_ttc >= 1000 ? `${(q.total_ttc / 1000).toFixed(1)}k €` : fmt(q.total_ttc)}</p>
-                      <p className="text-gray-400 text-xs">TTC</p>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: '#1E3A5F', margin: '0 0 2px' }}>
+                        {q.total_ttc >= 1000 ? `${(q.total_ttc / 1000).toFixed(1)}k €` : fmt(q.total_ttc)}
+                      </p>
+                      <p style={{ fontSize: 10, color: '#94A3B8', margin: 0 }}>TTC</p>
                     </div>
                   </div>
                 </button>
@@ -409,12 +476,12 @@ export default function Dashboard() {
   )
 }
 
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color?: string }) {
+function StatCard({ label, value, sub, positive }: { label: string; value: string; sub: string; positive?: boolean }) {
   return (
-    <div className="bg-white/10 rounded-xl p-3 text-center">
-      <p className="text-blue-200 text-xs leading-tight">{label}</p>
-      <p className="font-bold text-lg leading-tight mt-0.5" style={{ color: color || 'white' }}>{value}</p>
-      <p className="text-blue-300 text-[10px] leading-tight mt-0.5">{sub}</p>
+    <div style={{ background: 'white', borderRadius: 12, padding: '10px 8px', textAlign: 'center', border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 3px' }}>{label}</p>
+      <p style={{ fontSize: 18, fontWeight: 800, color: positive ? '#059669' : '#0F172A', margin: '0 0 2px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{value}</p>
+      <p style={{ fontSize: 10, color: '#94A3B8', margin: 0, lineHeight: 1.2 }}>{sub}</p>
     </div>
   )
 }

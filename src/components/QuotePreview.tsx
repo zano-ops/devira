@@ -252,7 +252,7 @@ export function QuotePreview({ quote, profile }: Props) {
           <div style={{ fontWeight: '700', color: '#1E3A5F', marginBottom: '3px', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px' }}>Mentions légales</div>
           {tvaRates.length > 1 ? tvaRates.map(r => <div key={r}>TVA {r}%</div>) : <div>TVA : {q.taux_tva}%</div>}
           <div>Devis valable {validite} jours</div>
-          <div>Généré avec DevisPro BTP</div>
+          <div>Généré avec Devisly</div>
         </div>
       </div>
 

@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
+import TrialBanner from '../components/TrialBanner'
+import UpgradeModal from '../components/UpgradeModal'
+import { BookOpen, LogOut, Camera, Check } from 'lucide-react'
 
 const vatOptions = [
   { value: 5.5,  label: '5,5% — Amélioration énergétique' },
@@ -134,60 +137,60 @@ export default function Parametres() {
   const initials = (form.company_name || form.owner_name || '?')[0]?.toUpperCase()
 
   return (
-    <div className="min-h-screen pb-24">
+    <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
       <ToastContainer />
 
-      <div className="bg-primary px-6 pt-14 pb-8">
-        <h1 className="text-white text-2xl font-bold mb-4">Réglages</h1>
+      {/* Header */}
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
+        <TrialBanner />
+        <div style={{ padding: '14px 20px 0' }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: '0 0 14px', letterSpacing: '-0.02em' }}>Réglages</h1>
 
-        {/* Logo card */}
-        <div className="bg-white/10 rounded-2xl p-4 flex items-center gap-4 mb-4">
-          <div className="relative">
-            {form.logo_url ? (
-              <img src={form.logo_url} alt="Logo" className="w-16 h-16 rounded-xl object-contain bg-white p-1" />
-            ) : (
-              <div className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
-                {initials}
-              </div>
-            )}
-            {uploadingLogo && (
-              <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
+          {/* Logo card */}
+          <div style={{ background: '#F8FAFC', borderRadius: 14, padding: '14px 14px', display: 'flex', alignItems: 'center', gap: 14, border: '1.5px solid #E2E8F0', marginBottom: 10 }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              {form.logo_url ? (
+                <img src={form.logo_url} alt="Logo" style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'contain', background: 'white', padding: 4 }} />
+              ) : (
+                <div style={{ width: 56, height: 56, borderRadius: 10, background: '#1E3A5F', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 22, fontWeight: 800 }}>
+                  {initials}
+                </div>
+              )}
+              {uploadingLogo && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 20, height: 20, border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                </div>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 700, fontSize: 14, color: '#0F172A', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{form.company_name || 'Votre entreprise'}</p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: '0 0 8px' }}>{form.owner_name}</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingLogo}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, background: 'white', color: '#1E3A5F', border: '1.5px solid #E2E8F0', borderRadius: 8, padding: '5px 10px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Camera size={12} strokeWidth={2} />
+                {uploadingLogo ? 'Upload...' : 'Changer le logo'}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-white font-semibold text-sm">{form.company_name || 'Votre entreprise'}</p>
-            <p className="text-blue-200 text-xs mb-2">{form.owner_name}</p>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingLogo}
-              className="text-xs bg-white/20 text-white px-3 py-1.5 rounded-lg font-medium"
-            >
-              {uploadingLogo ? 'Upload...' : '📷 Changer le logo'}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          </div>
-        </div>
 
-        {/* Barre de complétion */}
-        <div className="bg-white/10 rounded-xl p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white text-xs font-semibold">Complétion du profil</span>
-            <span className="text-xs font-bold" style={{ color: score === 100 ? '#10B981' : '#F59E0B' }}>{score}%</span>
+          {/* Completion bar */}
+          <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1.5px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Complétion du profil</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: score === 100 ? '#059669' : '#F59E0B' }}>{score}%</span>
+            </div>
+            <div style={{ height: 6, background: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${score}%`, background: scoreColor }} />
+            </div>
+            {missing.length > 0 && (
+              <p style={{ fontSize: 11, color: '#94A3B8', margin: '6px 0 0' }}>Manquant : {missing.join(', ')}</p>
+            )}
           </div>
-          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${score}%`, background: scoreColor }}
-            />
-          </div>
-          {missing.length > 0 && (
-            <p className="text-blue-200 text-xs mt-2">
-              Manquant : {missing.join(', ')}
-            </p>
-          )}
         </div>
       </div>
 
@@ -199,7 +202,7 @@ export default function Parametres() {
           <Field label="Téléphone *" value={form.phone} onChange={v => set('phone', v)} placeholder="06 00 00 00 00" type="tel" highlight={!form.phone} />
         </Section>
 
-        <Section title="⚖️ Mentions légales BTP">
+        <Section title="Mentions légales BTP">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-800">Micro-entrepreneur</p>
@@ -241,7 +244,7 @@ export default function Parametres() {
               inputMode="numeric"
             />
             {form.siret.length > 0 && form.siret.length < 14 && (
-              <p className="text-xs text-amber-600 mt-1">⚠️ {14 - form.siret.length} chiffres manquants</p>
+              <p className="text-xs text-amber-600 mt-1">{14 - form.siret.length} chiffres manquants</p>
             )}
             {form.siret.length === 0 && (
               <p className="text-xs text-red-500 mt-1">Requis pour tes devis PDF</p>
@@ -268,7 +271,7 @@ export default function Parametres() {
 
         {/* Relances automatiques */}
         <div className="bg-white rounded-2xl p-4 flex flex-col gap-4 border border-gray-100" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">📧 Relances automatiques</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Relances automatiques</p>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-800">Relances email activées</p>
@@ -298,7 +301,7 @@ export default function Parametres() {
                 ))}
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                ℹ️ Relances envoyées {form.relance_days.map(d => `J+${d}`).join(', ')} après envoi du devis
+                Relances envoyées {form.relance_days.map(d => `J+${d}`).join(', ')} après envoi du devis
               </p>
             </div>
           )}
@@ -306,7 +309,7 @@ export default function Parametres() {
 
         {/* Validation interne */}
         <div className="bg-white rounded-2xl p-4 flex flex-col gap-4 border border-gray-100" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">📋 Validation interne</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Validation interne</p>
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
               Seuil de validation (€ TTC)
@@ -322,8 +325,8 @@ export default function Parametres() {
             />
             <p className="text-xs text-gray-400 mt-1.5">
               {form.validation_threshold > 0
-                ? `⚠️ Les devis > ${form.validation_threshold.toLocaleString('fr-FR')} € TTC passent en statut "À valider" avant envoi`
-                : '💡 Laisse à 0 pour désactiver la validation interne'}
+                ? `Les devis > ${form.validation_threshold.toLocaleString('fr-FR')} € TTC passent en statut "À valider" avant envoi`
+                : 'Laisse à 0 pour désactiver la validation interne'}
             </p>
           </div>
         </div>
@@ -336,38 +339,96 @@ export default function Parametres() {
       {/* Catalogue */}
       <button
         onClick={() => navigate('/catalogue')}
-        className="mx-5 mb-4 w-[calc(100%-40px)] bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between"
-        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+        style={{ margin: '0 20px 16px', width: 'calc(100% - 40px)', background: 'white', border: '1px solid #F1F5F9', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', cursor: 'pointer' }}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📚</span>
-          <div className="text-left">
-            <p className="text-gray-900 font-semibold text-sm">Catalogue de prix</p>
-            <p className="text-gray-400 text-xs">Tes prestations habituelles avec leurs tarifs</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, background: 'rgba(30,58,95,0.07)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <BookOpen size={20} color="#1E3A5F" strokeWidth={1.8} />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0 }}>Catalogue de prix</p>
+            <p style={{ fontSize: 12, color: '#94A3B8', margin: '1px 0 0' }}>Tes prestations habituelles avec leurs tarifs</p>
           </div>
         </div>
-        <span className="text-gray-400">→</span>
+        <span style={{ color: '#CBD5E1', fontSize: 18 }}>›</span>
       </button>
 
       {/* Info abonnement */}
-      <div className="mx-5 mb-4 bg-blue-50 border border-blue-100 rounded-2xl p-4">
-        <p className="text-blue-700 font-semibold text-sm mb-1">🚀 DevisPro BTP Pro</p>
-        <p className="text-blue-600 text-xs">Générations illimitées · PDF · Email · Clients · Factures</p>
-        <p className="text-blue-400 text-xs mt-1">Version bêta — accès gratuit 🎉</p>
-      </div>
+      <SubscriptionCard />
 
       {/* Déconnexion */}
-      <div className="mx-5 mb-8 border border-red-100 rounded-2xl overflow-hidden">
-        <div className="px-4 py-2.5 bg-red-50">
-          <p className="text-red-600 text-xs font-bold uppercase tracking-wide">Compte</p>
+      <div style={{ margin: '0 20px 32px', border: '1px solid #FEE2E2', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ padding: '8px 16px', background: '#FEF2F2' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Compte</p>
         </div>
-        <button onClick={handleLogout} className="w-full px-4 py-4 text-left text-red-600 font-semibold text-sm bg-white flex items-center gap-2">
-          <span>🚪</span> Se déconnecter
+        <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', textAlign: 'left', color: '#DC2626', fontWeight: 600, fontSize: 14, background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <LogOut size={16} strokeWidth={2} />
+          Se déconnecter
         </button>
       </div>
 
       <BottomNav />
     </div>
+  )
+}
+
+function SubscriptionCard() {
+  const { subscriptionStatus, trialDaysLeft, profile } = useAuth()
+  const [showModal, setShowModal] = useState(false)
+
+  if (subscriptionStatus === 'active') {
+    const plan = profile?.subscription_plan === 'essentiel' ? 'Essentiel' : 'Pro'
+    return (
+      <div style={{ margin: '0 20px 16px', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Check size={18} color="#059669" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#065F46', margin: '0 0 2px' }}>Abonnement {plan} actif</p>
+          <p style={{ fontSize: 12, color: '#059669', margin: 0 }}>Merci de faire confiance à Devisly !</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (subscriptionStatus === 'expired') {
+    return (
+      <>
+        <div style={{ margin: '0 20px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: 16 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#991B1B', margin: '0 0 4px' }}>Essai expiré</p>
+          <p style={{ fontSize: 12, color: '#DC2626', margin: '0 0 12px' }}>Votre période d'essai est terminée. Activez un abonnement pour continuer.</p>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ width: '100%', padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+          >
+            Activer mon abonnement →
+          </button>
+        </div>
+        {showModal && <UpgradeModal reason="trial_expired" onClose={() => setShowModal(false)} />}
+      </>
+    )
+  }
+
+  const urgent = trialDaysLeft <= 7
+  return (
+    <>
+      <div style={{ margin: '0 20px 16px', background: urgent ? '#FFF7ED' : '#F0F9FF', border: urgent ? '1px solid #FDBA74' : '1px solid #BAE6FD', borderRadius: 14, padding: 16 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: urgent ? '#C2410C' : '#0369A1', margin: '0 0 8px' }}>
+          Essai gratuit — {trialDaysLeft} jour{trialDaysLeft > 1 ? 's' : ''} restant{trialDaysLeft > 1 ? 's' : ''}
+        </p>
+        <div style={{ height: 6, background: 'rgba(0,0,0,0.08)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
+          <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${Math.max(2, (trialDaysLeft / 14) * 100)}%`, background: urgent ? '#E87722' : '#0EA5E9' }} />
+        </div>
+        <p style={{ fontSize: 12, color: urgent ? '#EA580C' : '#0284C7', margin: '0 0 12px' }}>
+          Génération IA · PDF · Email · Clients · Factures
+        </p>
+        <button
+          onClick={() => setShowModal(true)}
+          style={{ width: '100%', padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+        >
+          Passer à Pro — 79€/mois →
+        </button>
+      </div>
+      {showModal && <UpgradeModal reason="manual" onClose={() => setShowModal(false)} />}
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 {
-  "name": "DevisPro BTP",
-  "short_name": "DevisPro",
-  "description": "Générez des devis professionnels en 2 minutes grâce à l'IA",
+  "name": "Devisly",
+  "short_name": "Devisly",
+  "description": "Générez des devis professionnels en 30 secondes grâce à l'IA",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#1E3A5F",

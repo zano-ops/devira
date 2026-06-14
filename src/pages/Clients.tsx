@@ -6,7 +6,8 @@ import type { Client } from '../types'
 import { BottomNav } from '../components/BottomNav'
 import { AddressAutocomplete } from '../components/AddressAutocomplete'
 import { useToast } from '../components/Toast'
-import { Trash2, Building2, User, Users } from 'lucide-react'
+import { Trash2, Building2, User, Users, Search, Plus } from 'lucide-react'
+import TrialBanner from '../components/TrialBanner'
 
 type ClientType = 'particulier' | 'professionnel'
 
@@ -130,55 +131,60 @@ export default function Clients() {
   )
 
   return (
-    <div className="min-h-screen pb-24">
+    <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
       <ToastContainer />
 
       {/* Header */}
-      <div className="bg-primary px-5 pt-12 pb-5">
-        <div className="flex items-center justify-between mb-4">
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+        <TrialBanner />
+        <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h1 className="text-white text-2xl font-bold">Clients</h1>
-            <p className="text-blue-200 text-sm">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Clients</h1>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '2px 0 0', fontWeight: 400 }}>
+              {clients.length} client{clients.length !== 1 ? 's' : ''}
+            </p>
           </div>
           <button
             onClick={openNew}
-            className="bg-accent text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5"
-            style={{ boxShadow: '0 4px 12px rgba(245,158,11,0.4)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#E87722', color: 'white', border: 'none', borderRadius: 12, cursor: 'pointer', padding: '10px 16px', fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(232,119,34,0.35)' }}
           >
-            + Ajouter
+            <Plus size={15} strokeWidth={2.5} />
+            Ajouter
           </button>
         </div>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300">🔍</span>
+        <div style={{ padding: '12px 20px 16px', position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: 32, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher..."
-            className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/15 text-white placeholder-blue-300 text-sm focus:outline-none"
+            placeholder="Rechercher un client..."
+            style={{ width: '100%', height: 40, paddingLeft: 38, paddingRight: 14, background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 14, color: '#0F172A', outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
       </div>
 
-      <div className="px-4 pt-4">
+      <div style={{ padding: '16px 16px 0' }}>
         {loading ? (
-          <div className="flex flex-col gap-3">{[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />)}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 76 }} />)}
+          </div>
         ) : clients.length === 0 ? (
-          <div className="flex flex-col items-center py-14 text-center">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Users size={36} className="text-primary/40" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 0', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, background: 'rgba(30,58,95,0.08)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Users size={28} color="rgba(30,58,95,0.4)" strokeWidth={1.8} />
             </div>
-            <p className="text-gray-800 font-bold text-lg mb-1">Aucun client encore</p>
-            <p className="text-gray-400 text-sm mb-6 max-w-xs">
-              Ajoute tes clients pour retrouver rapidement leurs coordonnées lors de la création d'un devis.
+            <p style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: '0 0 6px' }}>Aucun client encore</p>
+            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 24px', maxWidth: 280 }}>
+              Ajoute tes clients pour retrouver rapidement leurs coordonnées lors d'un devis.
             </p>
-            <button onClick={openNew} className="bg-primary text-white px-6 py-3 rounded-xl font-semibold text-sm">
+            <button onClick={openNew} style={{ background: '#1E3A5F', color: 'white', border: 'none', borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
               + Ajouter mon premier client
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="text-3xl mb-3">🔍</span>
-            <p className="text-gray-500 font-medium">Aucun résultat pour "{search}"</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', textAlign: 'center' }}>
+            <Search size={32} color="#CBD5E1" strokeWidth={1.5} style={{ marginBottom: 12 }} />
+            <p style={{ color: '#64748B', fontWeight: 500, fontSize: 14, margin: 0 }}>Aucun résultat pour "{search}"</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
