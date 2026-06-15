@@ -46,7 +46,14 @@ export default function Signup() {
     setLoading(true)
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) {
-      showToast(error.message, 'error')
+      const msg = error.message.includes('rate limit') || error.message.includes('too many')
+        ? 'Trop de tentatives — réessayez dans quelques minutes'
+        : error.message.includes('Invalid email') || error.message.includes('invalid email')
+        ? 'Adresse email invalide'
+        : error.message.includes('disabled')
+        ? 'Les inscriptions sont temporairement indisponibles'
+        : 'Une erreur est survenue — réessayez'
+      showToast(msg, 'error')
     } else if (data.user && data.user.identities?.length === 0) {
       // Email déjà utilisé (Supabase retourne un faux succès pour éviter l'énumération)
       showToast('Un compte existe déjà avec cet email', 'error')

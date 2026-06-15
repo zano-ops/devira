@@ -200,7 +200,14 @@ export default function NouveauDevis() {
 
     r.onerror = (e: any) => {
       if (e.error === 'no-speech') return  // silence normal, on continue
-      showToast('Erreur micro : ' + e.error, 'error')
+      const micMsg: Record<string, string> = {
+        'not-allowed': 'Microphone non autorisé — activez-le dans les réglages du navigateur',
+        'audio-capture': 'Aucun microphone détecté sur cet appareil',
+        'network': 'Erreur réseau — vérifiez votre connexion',
+        'service-not-allowed': 'Dictée vocale non disponible sur ce navigateur',
+        'aborted': 'Enregistrement interrompu',
+      }
+      showToast(micMsg[e.error] || 'Impossible d\'utiliser le microphone', 'error')
       isRecordingRef.current = false
       setMicState('idle')
       setInterimText('')
@@ -379,7 +386,7 @@ export default function NouveauDevis() {
           <div className="flex items-start gap-3">
             <AlertTriangle size={20} className="text-orange-500 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-orange-900 font-semibold text-sm mb-1">Complétez votre profil avant de générer</p>
+              <p className="text-orange-900 font-semibold text-sm mb-1">Complète ton profil avant de générer</p>
               <p className="text-orange-700 text-xs mb-3 leading-relaxed">
                 Le SIRET est obligatoire sur tout devis français.{' '}
                 Manquant{[!profile?.company_name, !profile?.owner_name, !profile?.siret].filter(Boolean).length > 1 ? 's' : ''} :{' '}
@@ -442,7 +449,7 @@ export default function NouveauDevis() {
             {/* Indicateur auto-save */}
             {description.length > 20 && (
               <span className="absolute bottom-3 right-3 text-xs text-gray-300">
-                · brouillon local
+                · enregistré
               </span>
             )}
           </div>
