@@ -140,7 +140,7 @@ export default function DevisDetail() {
       client_email: editData.client_email, client_address: editData.client_adresse,
       total_ht: sous_total_ht, total_ttc, discount_percent: discount,
     }).eq('id', id)
-    if (error) showToast('Erreur sauvegarde', 'error')
+    if (error) showToast('Impossible de sauvegarder — vérifiez votre connexion', 'error')
     else { showToast('Devis sauvegardé ✓'); setEditMode(false); fetchQuote() }
     setSaving(false)
   }
@@ -231,7 +231,7 @@ export default function DevisDetail() {
       if (msg.includes('YOUSIGN_API_KEY')) {
         showToast('Clé Yousign manquante — configurez YOUSIGN_API_KEY dans Supabase', 'error')
       } else {
-        showToast('Erreur Yousign : ' + msg, 'error')
+        showToast('Signature impossible — réessayez dans quelques instants', 'error')
       }
     }
     setYousignLoading(false)
@@ -265,8 +265,8 @@ export default function DevisDetail() {
         await supabase.from('quotes').update({ relance_count: (quote.relance_count || 0) + 1, last_relance_at: new Date().toISOString() }).eq('id', id)
         showToast(`Relance envoyée à ${sendEmail} ✓`)
         fetchQuote()
-      } else { showToast('Erreur envoi relance', 'error') }
-    } catch { showToast('Erreur envoi relance', 'error') }
+      } else { showToast('Relance non envoyée — vérifiez l\'adresse email', 'error') }
+    } catch { showToast('Relance non envoyée — vérifiez votre connexion', 'error') }
     setSending(false)
   }
 
@@ -294,7 +294,7 @@ export default function DevisDetail() {
       client_address: quote.client_address, quote_json: avenantJson,
       total_ht: 0, total_ttc: 0, discount_percent: 0,
     }).select().single()
-    if (error) { showToast('Erreur création avenant', 'error'); return }
+    if (error) { showToast('Impossible de créer l\'avenant — réessayez', 'error'); return }
     showToast(`Avenant N°${avenantNumber} créé ✓`)
     setShowAvenantModal(false)
     navigate(`/devis/${data.id}`, { state: { autoEdit: true } })
@@ -415,7 +415,7 @@ export default function DevisDetail() {
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
       showToast(`Envoyé à ${sendEmail} ✓`); setShowEmailModal(false); fetchQuote()
-    } catch { showToast('Erreur envoi email', 'error') }
+    } catch { showToast('Email non envoyé — vérifiez votre connexion', 'error') }
     setSending(false)
   }
 
@@ -875,7 +875,7 @@ export default function DevisDetail() {
                 ? <button onClick={() => setShowRelanceModal(true)} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
                     <span>⏰</span> {sending ? 'Envoi...' : 'Relancer maintenant'}
                     {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}×</span> : null}
-                    {quote.last_relance_at && <span className="text-xs text-orange-400">· il y a {Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000)}j</span>}
+                    {quote.last_relance_at && <span className="text-xs text-orange-400">{Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000) === 0 ? '· aujourd\'hui' : `· il y a ${Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000)}j`}</span>}
                   </button>
                 : <button onClick={() => navigate('/parametres')} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-400 bg-gray-50">
                     🔒 Relances automatiques — Plan Pro
@@ -986,7 +986,7 @@ export default function DevisDetail() {
         <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowRelanceModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <h3 className="text-gray-900 font-bold text-lg mb-1">Preview de la relance</h3>
+            <h3 className="text-gray-900 font-bold text-lg mb-1">Aperçu de la relance</h3>
             <p className="text-gray-400 text-sm mb-4">Voici ce qui sera envoyé à ton client</p>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 text-sm">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Objet</p>

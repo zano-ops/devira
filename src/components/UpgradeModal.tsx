@@ -162,7 +162,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 fontSize: 14, cursor: 'pointer', padding: '8px 0',
               }}
             >
-              Continuer en lecture seule
+              {reason === 'manual' ? 'Fermer' : 'Continuer en lecture seule'}
             </button>
           </div>
         )}
