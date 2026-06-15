@@ -5,9 +5,7 @@ import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
-import TrialBanner from '../components/TrialBanner'
-import UpgradeModal from '../components/UpgradeModal'
-import { BookOpen, LogOut, Camera, Check, Mail, Phone, Globe } from 'lucide-react'
+import { BookOpen, LogOut, Camera, Mail, Phone, Globe } from 'lucide-react'
 
 const vatOptions = [
   { value: 5.5,  label: '5,5% — Amélioration énergétique' },
@@ -484,81 +482,6 @@ export default function Parametres() {
 
       <BottomNav />
     </div>
-  )
-}
-
-function SubscriptionCard() {
-  const { subscriptionStatus, trialDaysLeft, profile } = useAuth()
-  const [showModal, setShowModal] = useState(false)
-
-  useEffect(() => {
-    if (subscriptionStatus === 'trial' && trialDaysLeft > 0) {
-      document.title = `Devira · Essai J-${trialDaysLeft}`
-    }
-    return () => { document.title = 'Devira' }
-  }, [subscriptionStatus, trialDaysLeft])
-
-  if (subscriptionStatus === 'active') {
-    const plan = profile?.subscription_plan === 'essentiel' ? 'Essentiel' : 'Pro'
-    return (
-      <div style={{ margin: '0 20px 16px', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Check size={18} color="#059669" strokeWidth={2.5} style={{ flexShrink: 0 }} />
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#065F46', margin: '0 0 2px' }}>Abonnement {plan} actif</p>
-          <p style={{ fontSize: 12, color: '#059669', margin: 0 }}>Merci de faire confiance à Devira !</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (subscriptionStatus === 'expired') {
-    return (
-      <>
-        <div style={{ margin: '0 20px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#991B1B', margin: '0 0 4px' }}>Essai expiré</p>
-          <p style={{ fontSize: 12, color: '#DC2626', margin: '0 0 12px' }}>Votre période d'essai est terminée. Activez un abonnement pour continuer.</p>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ width: '100%', padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-          >
-            Activer mon abonnement →
-          </button>
-        </div>
-        {showModal && <UpgradeModal reason="trial_expired" onClose={() => setShowModal(false)} />}
-      </>
-    )
-  }
-
-  const urgent = trialDaysLeft <= 7
-  return (
-    <>
-      <div style={{ margin: '0 20px 16px', background: urgent ? '#FFF7ED' : '#F0F9FF', border: urgent ? '1px solid #FDBA74' : '1px solid #BAE6FD', borderRadius: 14, padding: 16 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: urgent ? '#C2410C' : '#0369A1', margin: '0 0 8px' }}>
-          Essai gratuit — {trialDaysLeft} jour{trialDaysLeft > 1 ? 's' : ''} restant{trialDaysLeft > 1 ? 's' : ''}
-        </p>
-        <div style={{ height: 6, background: 'rgba(0,0,0,0.08)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${Math.max(2, (trialDaysLeft / 21) * 100)}%`, background: urgent ? '#E87722' : '#0EA5E9' }} />
-        </div>
-        <p style={{ fontSize: 12, color: urgent ? '#EA580C' : '#0284C7', margin: '0 0 12px' }}>
-          Devis en 2 min · PDF · Email · Clients · Factures
-        </p>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: 'white', color: '#1E3A5F', border: '1.5px solid #1E3A5F', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-          >
-            Essentiel — 29,81 €/mois
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-          >
-            Pro — 79,48 €/mois →
-          </button>
-        </div>
-      </div>
-      {showModal && <UpgradeModal reason="manual" onClose={() => setShowModal(false)} />}
-    </>
   )
 }
 
