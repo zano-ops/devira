@@ -104,7 +104,10 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8.5)
     doc.setTextColor('#555555')
-    if (q.client.adresse) { doc.text(q.client.adresse, clientX, cy, { align: 'right' }); cy += 4 }
+    if (q.client.adresse) {
+      const addrLines = doc.splitTextToSize(q.client.adresse, 65) as string[]
+      addrLines.forEach((l: string) => { doc.text(l, clientX, cy, { align: 'right' }); cy += 4 })
+    }
     if (q.client.email) { doc.text(q.client.email, clientX, cy, { align: 'right' }); cy += 4 }
     if ((q.client as any).phone) { doc.text(`Tél : ${(q.client as any).phone}`, clientX, cy, { align: 'right' }) }
   }
@@ -142,12 +145,12 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   y += 7
 
   // Badge titre chantier
-  doc.setFillColor('#EFF6FF')
-  const badgeText = q.titre
-  const textW = doc.getStringUnitWidth(badgeText) * 10 / doc.internal.scaleFactor
-  doc.roundedRect(ML, y - 4, Math.min(textW + 10, CW), 8, 2, 2, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
+  const badgeText = q.titre.length > 70 ? q.titre.slice(0, 67) + '...' : q.titre
+  const textW = doc.getStringUnitWidth(badgeText) * 10 / doc.internal.scaleFactor
+  doc.setFillColor('#EFF6FF')
+  doc.roundedRect(ML, y - 4, Math.min(textW + 10, CW), 8, 2, 2, 'F')
   doc.setTextColor(BLUE)
   doc.text(badgeText, ML + 5, y + 0.5)
   y += 11
@@ -264,29 +267,33 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
 
   // Notes
   if (q.notes) {
-    doc.setFillColor(255, 251, 235)
-    doc.roundedRect(ML, y, CW, 10, 2, 2, 'F')
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8)
-    doc.setTextColor(146, 64, 14)
-    doc.text('Note : ', ML + 3, y + 6)
     doc.setFont('helvetica', 'normal')
-    const noteLines = doc.splitTextToSize(q.notes, CW - 18)
-    doc.text(noteLines[0] || '', ML + 14, y + 6)
-    y += 14
+    doc.setFontSize(8)
+    const noteLines = doc.splitTextToSize(q.notes, CW - 18) as string[]
+    const noteBoxH = 6 + noteLines.length * 4 + 2
+    doc.setFillColor(255, 251, 235)
+    doc.roundedRect(ML, y, CW, noteBoxH, 2, 2, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(146, 64, 14)
+    doc.text('Note :', ML + 3, y + 6)
+    doc.setFont('helvetica', 'normal')
+    noteLines.forEach((line: string, i: number) => doc.text(line, ML + 14, y + 6 + i * 4))
+    y += noteBoxH + 4
   }
 
   // Attestation TVA réduite
   const hasTvaReduite = tvaRates.some(r => r < 20)
   if (hasTvaReduite && !profile.is_micro_entrepreneur) {
-    doc.setFillColor(239, 246, 255)
-    doc.roundedRect(ML, y, CW, 9, 2, 2, 'F')
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(7.5)
+    const tvaPrefix = 'TVA reduite applicable : '
+    const tvaPrefixW = doc.getStringUnitWidth(tvaPrefix) * 7.5 / doc.internal.scaleFactor
+    doc.setFillColor(239, 246, 255)
+    doc.roundedRect(ML, y, CW, 9, 2, 2, 'F')
     doc.setTextColor(30, 58, 95)
-    doc.text('TVA réduite applicable : ', ML + 3, y + 5.5)
+    doc.text(tvaPrefix, ML + 3, y + 5.5)
     doc.setFont('helvetica', 'normal')
-    doc.text('une attestation simplifiée (Cerfa) doit être signée par le client.', ML + 40, y + 5.5)
+    doc.text('une attestation simplifiee (Cerfa) doit etre signee par le client.', ML + 3 + tvaPrefixW, y + 5.5)
     y += 13
   }
 
@@ -325,6 +332,12 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   const hamonLines = doc.splitTextToSize(hamonText, CW)
   doc.text(hamonLines, ML, y)
   y += hamonLines.length * 3.5 + 5
+
+  // Nouvelle page si pas assez d'espace pour les signatures
+  if (y > 250) {
+    doc.addPage()
+    y = 14
+  }
 
   // ── ZONES DE SIGNATURE ──
   const sigW = (CW - 6) / 2
@@ -386,6 +399,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.text('Date et signature client', sigRX + sigW / 2, y + 25, { align: 'center' })
   }
 
+  y += sigH  // avancer après les boîtes de signature
+
   // ── PHOTOS DE CHANTIER (si présentes, max 4) ──
   const photos = q.photos?.slice(0, 4) || []
   if (photos.length > 0) {
@@ -426,13 +441,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     if (col > 0) y += photoH + 4
   }
 
-  // ── PIED DE PAGE ──
+  // ── PIED DE PAGE (sur toutes les pages) ──
   const footerY = 286
-  doc.setFillColor(30, 58, 95)
-  doc.rect(0, footerY, W, 1, 'F')
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.setTextColor('#777777')
 
   const f1Parts = [
     profile.company_name,
@@ -450,9 +460,18 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     ? 'TVA non applicable art. 293B CGI'
     : (Object.keys(tvaByRate).length > 1 ? 'TVA mixte' : `TVA ${q.taux_tva}%`)
 
-  doc.text(f1.trim().slice(0, 70), ML, footerY + 5)
-  if (f2) doc.text(f2.slice(0, 60), W / 2, footerY + 5, { align: 'center' })
-  doc.text(tvaLabel, W - MR, footerY + 5, { align: 'right' })
+  const totalPages = doc.getNumberOfPages()
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p)
+    doc.setFillColor(30, 58, 95)
+    doc.rect(0, footerY, W, 1, 'F')
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor('#777777')
+    doc.text(f1.trim().slice(0, 70), ML, footerY + 5)
+    if (f2) doc.text(f2.slice(0, 60), W / 2, footerY + 5, { align: 'center' })
+    doc.text(tvaLabel, W - MR, footerY + 5, { align: 'right' })
+  }
 
   return doc
 }
@@ -653,28 +672,38 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
 
   y = ttcY + 22
 
+  // Nouvelle page si contenu trop bas
+  if (y > 230) {
+    doc.addPage()
+    y = 14
+  }
+
   // Conditions
   if (q.conditions) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8.5)
     doc.setTextColor('#555555')
-    const condLines = doc.splitTextToSize(q.conditions, W - ML - MR)
+    const condLines = doc.splitTextToSize(q.conditions, W - ML - MR) as string[]
     doc.text(condLines, ML, y)
     y += condLines.length * 4 + 4
   }
 
-  // Footer
+  // Footer sur toutes les pages
   const footerY = 286
-  doc.setFillColor(30, 58, 95)
-  doc.rect(0, footerY, W, 1, 'F')
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.setTextColor('#777777')
-  const f1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' - ')
-  const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
-  doc.text(f1.slice(0, 70), ML, footerY + 5)
-  if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
-  doc.text('Généré avec Devira', W - MR, footerY + 5, { align: 'right' })
+  const invoiceF1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' - ')
+  const invoiceF2 = profile.siret ? `SIRET : ${profile.siret}` : ''
+  const invoiceTotalPages = doc.getNumberOfPages()
+  for (let p = 1; p <= invoiceTotalPages; p++) {
+    doc.setPage(p)
+    doc.setFillColor(30, 58, 95)
+    doc.rect(0, footerY, W, 1, 'F')
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor('#777777')
+    doc.text(invoiceF1.slice(0, 70), ML, footerY + 5)
+    if (invoiceF2) doc.text(invoiceF2, W / 2, footerY + 5, { align: 'center' })
+    doc.text('Genere avec Devira', W - MR, footerY + 5, { align: 'right' })
+  }
 
   doc.save(`Facture-${invoice.invoice_number}.pdf`)
 }
