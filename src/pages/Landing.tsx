@@ -411,7 +411,7 @@ const FAQS = [
   { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
-  { q: 'Que se passe-t-il si j\'ai un problème ?', a: 'Notre support répond en moins de 2h ouvrées par email. Nous avons aussi une base d\'aide avec des tutoriels pour chaque fonctionnalité.' },
+  { q: 'Que se passe-t-il si j\'ai un problème ?', a: 'Notre support répond sous 24h par email. Les abonnés Pro bénéficient d\'une réponse prioritaire en moins de 2h ouvrées. Nous avons aussi une base d\'aide avec des tutoriels pour chaque fonctionnalité.' },
 ]
 
 const ESSENTIEL_FEATURES = [
@@ -431,7 +431,7 @@ const PRO_FEATURES = [
   'Facturation intégrée',
   'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
-  'Support prioritaire < 24h',
+  'Support prioritaire < 2h ouvrées',
 ]
 
 const TESTIMONIALS = [
@@ -741,7 +741,7 @@ export default function Landing() {
             {[
               { Icon: ShieldCheck, title: 'Légalement conforme', desc: 'SIRET, TVA, mentions obligatoires — tout est inclus automatiquement dans chaque devis.' },
               { Icon: Lock, title: 'Données sécurisées', desc: 'Hébergement européen, chiffrement SSL. Vos données et celles de vos clients ne quittent pas l\'Europe.' },
-              { Icon: Headphones, title: 'Support humain', desc: 'Une vraie personne vous répond sous 2h ouvrées. Pas un chatbot, pas une FAQ interminable.' },
+              { Icon: Headphones, title: 'Support humain', desc: 'Une vraie personne vous répond sous 24h. Les abonnés Pro sont pris en charge en moins de 2h ouvrées.' },
               { Icon: RotateCcw, title: 'Sans engagement', desc: 'Résiliez quand vous voulez. Aucune période de préavis, aucuns frais cachés.' },
             ].map((item, i) => (
               <div key={i} className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1009,9 +1009,6 @@ export default function Landing() {
             </div>
             <div style={{ flex: '1 1 140px' }}>
               <h4 style={{ color: 'white', fontWeight: 700, fontSize: 13, margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact</h4>
-              <div style={{ marginBottom: 10 }}>
-                <a href="tel:0781687598" style={{ color: 'rgba(255,255,255,0.42)', textDecoration: 'none', fontSize: 14 }}>07 81 68 75 98</a>
-              </div>
               <div style={{ marginBottom: 10 }}>
                 <a href="mailto:support@devira.fr" style={{ color: 'rgba(255,255,255,0.42)', textDecoration: 'none', fontSize: 14 }}>support@devira.fr</a>
               </div>
