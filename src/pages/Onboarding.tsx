@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -44,6 +44,25 @@ export default function Onboarding() {
   const [logoUploading, setLogoUploading] = useState(false)
   const [previewLogo, setPreviewLogo] = useState<string | null>(null)
   const [showOptional, setShowOptional] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+  const isAndroid = /Android/.test(navigator.userAgent)
+  const isMobile = isIOS || isAndroid
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleAndroidInstall = async () => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    await deferredPrompt.userChoice
+    setDeferredPrompt(null)
+  }
   const [siretLoading, setSiretLoading] = useState(false)
   const [siretFound, setSiretFound] = useState(false)
 
@@ -402,6 +421,66 @@ export default function Onboarding() {
               Voir le tableau de bord
             </button>
           </div>
+
+          {/* PWA install tutorial */}
+          {isMobile && !isStandalone && (
+            <div style={{ width: '100%', maxWidth: 360, marginTop: 28 }}>
+              <div style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '20px 18px' }}>
+                <p style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 800, color: 'white', textAlign: 'center', letterSpacing: '-0.01em' }}>
+                  📲 Ajouter Devira sur ton téléphone
+                </p>
+                <p style={{ margin: '0 0 16px', fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+                  Accès direct depuis l'écran d'accueil, sans passer par le navigateur
+                </p>
+
+                {isIOS && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[
+                      { n: 1, emoji: '⬆️', title: 'Appuie sur Partager', sub: 'Le bouton en bas de Safari (carré avec une flèche)' },
+                      { n: 2, emoji: '🏠', title: '"Sur l\'écran d\'accueil"', sub: 'Fais défiler vers le bas dans le menu' },
+                      { n: 3, emoji: '✅', title: 'Appuie sur "Ajouter"', sub: 'En haut à droite — c\'est installé !' },
+                    ].map(s => (
+                      <div key={s.n} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: 'white', flexShrink: 0, marginTop: 1 }}>{s.n}</div>
+                        <div>
+                          <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>{s.emoji} {s.title}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{s.sub}</p>
+                        </div>
+                      </div>
+                    ))}
+                    <p style={{ margin: '8px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>Fonctionne uniquement depuis Safari</p>
+                  </div>
+                )}
+
+                {isAndroid && deferredPrompt && (
+                  <button
+                    onClick={handleAndroidInstall}
+                    style={{ width: '100%', padding: '14px 0', borderRadius: 12, background: A, color: 'white', border: 'none', fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 16px rgba(232,119,34,0.35)' }}
+                  >
+                    📲 Installer l'application
+                  </button>
+                )}
+
+                {isAndroid && !deferredPrompt && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[
+                      { n: 1, emoji: '⋮', title: 'Appuie sur les 3 points', sub: 'En haut à droite de Chrome' },
+                      { n: 2, emoji: '🏠', title: '"Ajouter à l\'écran d\'accueil"', sub: 'Ou "Installer l\'application"' },
+                      { n: 3, emoji: '✅', title: 'Confirme en appuyant "Ajouter"', sub: 'L\'icône Devira apparaît sur ton écran' },
+                    ].map(s => (
+                      <div key={s.n} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: 'white', flexShrink: 0, marginTop: 1 }}>{s.n}</div>
+                        <div>
+                          <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>{s.emoji} {s.title}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{s.sub}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
         </div>
