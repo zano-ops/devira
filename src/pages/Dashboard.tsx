@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -8,7 +8,8 @@ import { StatusBadge } from '../components/StatusBadge'
 import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 import TrialBanner from '../components/TrialBanner'
-import { Zap, Search, AlertTriangle, Clock, FileText, MessageCircle, TrendingUp, Plus } from 'lucide-react'
+import UpgradeModal from '../components/UpgradeModal'
+import { Zap, Search, AlertTriangle, Clock, FileText, MessageCircle, TrendingUp, Plus, ArrowUpRight } from 'lucide-react'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string) {
@@ -80,6 +81,11 @@ export default function Dashboard() {
 
   // Devis en attente de validation interne
   const pendingApproval = quotes.filter(q => q.status === 'pending_approval')
+
+  // Panier moyen (tous devis acceptés, pas seulement ce mois)
+  const panierMoyen = accepted.length > 0
+    ? Math.round(accepted.reduce((s, q) => s + q.total_ttc, 0) / accepted.length)
+    : null
 
   // Profil incomplet
   const profileIncomplete = !profile?.company_name || !profile?.siret || !profile?.phone
@@ -156,7 +162,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '14px 20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '14px 20px' }}>
           <StatCard label="Ce mois" value={`${quotesThisMonth.length}`} sub="devis créés" />
           <StatCard
             label="CA accepté"
@@ -170,7 +176,16 @@ export default function Dashboard() {
             sub={rate !== null ? `${accepted.length}/${quotesWithAction.length}` : 'pas de données'}
             positive={rate !== null && rate >= 50}
           />
+          <StatCard
+            label="Panier moyen"
+            value={panierMoyen !== null ? (panierMoyen >= 1000 ? `${(panierMoyen / 1000).toFixed(1)}k` : panierMoyen.toString()) : '—'}
+            sub={panierMoyen !== null ? '€ TTC / devis' : 'pas de données'}
+            positive={panierMoyen !== null && panierMoyen > 0}
+          />
         </div>
+
+        {/* Plan usage */}
+        <PlanUsageCard />
 
         {/* Search */}
         <div style={{ padding: '0 20px 16px', position: 'relative' }}>
@@ -302,7 +317,7 @@ export default function Dashboard() {
               <Zap size={26} color="white" strokeWidth={2} />
             </div>
             <p style={{ fontWeight: 800, fontSize: 18, color: 'white', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-              Bienvenue sur Devisly !
+              Bienvenue sur Devira !
             </p>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '0 0 20px' }}>
               Créez votre premier devis professionnel en 2 minutes
@@ -483,5 +498,67 @@ function StatCard({ label, value, sub, positive }: { label: string; value: strin
       <p style={{ fontSize: 18, fontWeight: 800, color: positive ? '#059669' : '#0F172A', margin: '0 0 2px', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{value}</p>
       <p style={{ fontSize: 10, color: '#94A3B8', margin: 0, lineHeight: 1.2 }}>{sub}</p>
     </div>
+  )
+}
+
+function PlanUsageCard() {
+  const { profile, subscriptionStatus, quotesThisMonth } = useAuth()
+  const [showUpgrade, setShowUpgrade] = useState(false)
+
+  if (subscriptionStatus !== 'active') return null
+
+  const plan = profile?.subscription_plan
+  const LIMIT = 20
+  const used = quotesThisMonth
+  const remaining = Math.max(0, LIMIT - used)
+  const pct = Math.min(100, Math.round((used / LIMIT) * 100))
+  const barColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981'
+
+  if (plan === 'pro' || plan === 'equipe') {
+    return (
+      <div style={{ margin: '4px 20px 8px', padding: '10px 14px', background: 'linear-gradient(135deg, #F0FDF4, #ECFDF5)', border: '1px solid #BBF7D0', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontSize: 15, color: 'white', fontWeight: 900, lineHeight: 1 }}>∞</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46', margin: '0 0 1px' }}>Plan Pro · Devis illimités</p>
+          <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{used} devis créés ce mois</p>
+        </div>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', background: 'white', padding: '3px 8px', borderRadius: 99, border: '1px solid #BBF7D0', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>Actif</span>
+      </div>
+    )
+  }
+
+  // Plan Essentiel (ou plan null mais actif)
+  return (
+    <>
+      <div style={{ margin: '4px 20px 8px', padding: '12px 14px', background: pct >= 90 ? '#FEF2F2' : 'white', border: `1.5px solid ${pct >= 90 ? '#FECACA' : '#E2E8F0'}`, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', background: '#EEF2FF', padding: '2px 9px', borderRadius: 99 }}>Essentiel</span>
+            <span style={{ fontSize: 12, color: pct >= 90 ? '#DC2626' : '#64748B', fontWeight: pct >= 90 ? 600 : 400 }}>
+              {remaining > 0 ? `${remaining} devis restants` : 'Limite du mois atteinte'}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowUpgrade(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 700, color: '#E87722', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 9px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+          >
+            Passer à Pro
+            <ArrowUpRight size={10} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Barre de progression */}
+        <div style={{ height: 7, background: '#F1F5F9', borderRadius: 99, overflow: 'hidden', marginBottom: 5 }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 99, transition: 'width 0.4s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 10, color: '#94A3B8' }}>{used} utilisés</span>
+          <span style={{ fontSize: 10, color: '#94A3B8' }}>{LIMIT} / mois</span>
+        </div>
+      </div>
+      {showUpgrade && <UpgradeModal reason="manual" onClose={() => setShowUpgrade(false)} />}
+    </>
   )
 }

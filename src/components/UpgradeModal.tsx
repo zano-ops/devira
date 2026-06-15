@@ -1,23 +1,25 @@
-import { Check } from 'lucide-react'
-import { DevislyIcon } from './DevislyLogo'
+﻿import { Check, ShieldCheck } from 'lucide-react'
+import { DeviraIcon } from './DeviraLogo'
+
+const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
+const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
 
 const ESSENTIEL_FEATURES = [
-  '15 devis par mois',
-  'Génération IA voix & texte',
+  '20 devis par mois',
+  'Génération IA par voix ou texte',
   'PDF professionnel',
-  'Envoi email + relances auto',
+  'Envoi par email',
+  'Signature électronique en ligne',
   'Support email',
 ]
 
 const PRO_FEATURES = [
   'Devis illimités',
-  'Génération IA voix & texte',
-  'PDF professionnel',
-  'Envoi email + relances auto',
-  'Signature électronique',
-  'Catalogue prestations IA',
+  'Relances automatiques (J+7, J+14, J+21)',
+  'Catalogue prestations + import IA',
   'Facturation intégrée',
-  'Export comptable FEC',
+  'Photos chantier dans les devis PDF',
+  'Export comptable (FEC)',
   'Support prioritaire < 24h',
 ]
 
@@ -34,7 +36,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
 
   const subtitle =
     reason === 'trial_expired' ? 'Continuez à créer des devis en quelques secondes.'
-    : reason === 'limit_reached' ? "Vous avez utilisé vos 15 devis d'essai ce mois-ci."
+    : reason === 'limit_reached' ? 'Vous avez atteint vos 20 devis Essentiel ce mois-ci.'
     : 'Activez votre abonnement pour continuer.'
 
   return (
@@ -62,7 +64,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
 
         {/* Header */}
         <div style={{ padding: '16px 24px 20px', textAlign: 'center', borderBottom: '1px solid #F1F5F9' }}>
-          <DevislyIcon size={36} />
+          <DeviraIcon size={36} />
           <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '10px 0 4px', letterSpacing: '-0.02em' }}>
             {title}
           </h2>
@@ -79,8 +81,8 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Pour démarrer</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>29€</p>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>HT / mois</p>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>30€</p>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>
@@ -92,14 +94,14 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               ))}
             </div>
             <a
-              href="mailto:support@devisly.fr?subject=Abonnement Essentiel 29€/mois"
+              href={STRIPE_ESSENTIEL}
               style={{
                 display: 'block', textAlign: 'center', padding: '12px 0',
                 border: '1.5px solid #1E3A5F', borderRadius: 12, color: '#1E3A5F',
                 fontWeight: 700, fontSize: 14, textDecoration: 'none',
               }}
             >
-              Choisir Essentiel
+              Choisir Essentiel — 30€/mois
             </a>
           </div>
 
@@ -119,8 +121,8 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Tout inclus, sans limites</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 900, fontSize: 22, color: '#E87722', margin: 0, letterSpacing: '-0.03em' }}>79€</p>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>HT / mois</p>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#E87722', margin: 0, letterSpacing: '-0.03em' }}>80€</p>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>
@@ -132,7 +134,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               ))}
             </div>
             <a
-              href="mailto:support@devisly.fr?subject=Abonnement Pro 79€/mois"
+              href={STRIPE_PRO}
               style={{
                 display: 'block', textAlign: 'center', padding: '13px 0',
                 background: '#E87722', borderRadius: 12, color: 'white',
@@ -140,13 +142,18 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 boxShadow: '0 4px 14px rgba(232,119,34,0.35)',
               }}
             >
-              Choisir Pro
+              Choisir Pro — 80€/mois
             </a>
           </div>
         </div>
 
+        <div style={{ padding: '0 20px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <ShieldCheck size={13} color="#10B981" strokeWidth={2} />
+          <span style={{ fontSize: 12, color: '#64748B' }}>Satisfait ou remboursé 14 jours · Annulation à tout moment</span>
+        </div>
+
         {onClose && (
-          <div style={{ padding: '0 20px 32px', textAlign: 'center' }}>
+          <div style={{ padding: '8px 20px 32px', textAlign: 'center' }}>
             <button
               onClick={onClose}
               style={{

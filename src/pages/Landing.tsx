@@ -533,7 +533,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 29€/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 30€/mois TTC · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
         </div>
       </section>
 
@@ -735,7 +735,7 @@ export default function Landing() {
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79€<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>80€<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Obat</div>
@@ -819,7 +819,7 @@ export default function Landing() {
             <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 48, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29€</span>
+                <span style={{ fontSize: 48, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>30€</span>
                 <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
@@ -834,7 +834,7 @@ export default function Landing() {
                 ))}
               </div>
               <a href={STRIPE_ESSENTIEL} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Essentiel — 29€/mois
+                Choisir Essentiel — 30€/mois
               </a>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
                 <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
@@ -847,7 +847,7 @@ export default function Landing() {
               <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 48, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79€</span>
+                <span style={{ fontSize: 48, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>80€</span>
                 <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
@@ -862,7 +862,7 @@ export default function Landing() {
                 ))}
               </div>
               <a href={STRIPE_PRO} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Pro — 79€/mois
+                Choisir Pro — 80€/mois
               </a>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
                 <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
@@ -935,7 +935,7 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 40px' }}>
-            À partir de 29€/mois. Paiement sécurisé. Vous arrêtez quand vous voulez.
+            À partir de 30€/mois TTC. Paiement sécurisé. Vous arrêtez quand vous voulez.
           </p>
           <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s', textDecoration: 'none' }}>
             Commencer maintenant

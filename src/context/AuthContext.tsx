@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   refreshProfile: async () => {},
-  trialDaysLeft: 14,
+  trialDaysLeft: 21,
   subscriptionStatus: 'trial',
   isTrialExpired: false,
   canCreateQuote: true,
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const derived = useMemo(() => {
     if (!profile) {
       return {
-        trialDaysLeft: 14,
+        trialDaysLeft: 21,
         subscriptionStatus: 'trial' as const,
         isTrialExpired: false,
         canCreateQuote: true,
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const status = profile.subscription_status ?? 'trial'
-    const trialEndsAt = profile.trial_ends_at ? new Date(profile.trial_ends_at) : new Date(Date.now() + 14 * 86400000)
+    const trialEndsAt = profile.trial_ends_at ? new Date(profile.trial_ends_at) : new Date(Date.now() + 21 * 86400000)
     const msLeft = trialEndsAt.getTime() - Date.now()
     const trialDaysLeft = Math.max(0, Math.ceil(msLeft / 86400000))
     const quotesThisMonth = profile.quotes_this_month ?? 0
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isTrialExpired = subscriptionStatus === 'expired'
 
-    const ESSENTIEL_LIMIT = 15
+    const ESSENTIEL_LIMIT = 20
     const isEssentiel = profile.subscription_plan === 'essentiel'
     const canCreateQuote =
       !isTrialExpired &&
