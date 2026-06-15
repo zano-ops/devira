@@ -899,7 +899,7 @@ export default function Landing() {
               </div>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
-                {PRO_FEATURES.map((f, i) => (
+                {PRO_FEATURES.map((f) => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${A}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Check size={11} color={A} strokeWidth={3} />

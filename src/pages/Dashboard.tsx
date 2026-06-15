@@ -496,13 +496,11 @@ function PlanUsageCard() {
   if (subscriptionStatus !== 'active') return null
 
   const plan = profile?.subscription_plan
-  const LIMIT = 20
+  const LIMIT = 10
   const used = quotesThisMonth
   const remaining = Math.max(0, LIMIT - used)
   const pct = Math.min(100, Math.round((used / LIMIT) * 100))
   const barColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981'
-
-  const LIMIT = 10
 
   if (plan === 'pro' || plan === 'equipe') {
     return (

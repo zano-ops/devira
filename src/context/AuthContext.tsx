@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         canCreateQuote: true,
         quotesThisMonth: 0,
         trialQuotaUsed: false,
+        isPro: false,
       }
     }
 
