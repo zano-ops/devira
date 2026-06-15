@@ -42,8 +42,9 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
 
   const tvaByRate: Record<number, number> = {}
   q.lignes.forEach(l => {
+    if (l.isSection) return
     const rate = l.tva_rate ?? q.taux_tva
-    const lineBase = l.total_ht * (1 - discount / 100)
+    const lineBase = (l.total_ht || l.quantite * l.prix_unitaire_ht) * (1 - discount / 100)
     tvaByRate[rate] = parseFloat(((tvaByRate[rate] || 0) + lineBase * rate / 100).toFixed(2))
   })
   const totalTva = Object.values(tvaByRate).reduce((s, v) => s + v, 0)
@@ -139,7 +140,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   doc.setFontSize(8.5)
   doc.setTextColor('#666666')
   doc.text(
-    `Date : ${fmtDate(quote.created_at)}   -   Valide jusqu'au : ${addDays(quote.created_at, validite)}   -   Duree : ${q.duree_estimee}`,
+    `Date : ${fmtDate(quote.created_at)}   -   Valide jusqu'au : ${addDays(quote.created_at, validite)}   -   Durée : ${q.duree_estimee}`,
     ML, y
   )
   y += 7
@@ -354,7 +355,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(BLUE)
-  doc.text(profile.company_name || '', ML + 3, y + 11)
+  const companyInSig = (doc.splitTextToSize(profile.company_name || '', sigW - 6) as string[])[0] || ''
+  doc.text(companyInSig, ML + 3, y + 11)
   if (!q.signature) {
     doc.setDrawColor(200, 200, 200)
     doc.line(ML + 3, y + 22, ML + sigW - 3, y + 22)
@@ -401,6 +403,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
 
   y += sigH  // avancer après les boîtes de signature
 
+  const footerY = 286
+
   // ── PHOTOS DE CHANTIER (si présentes, max 4) ──
   const photos = q.photos?.slice(0, 4) || []
   if (photos.length > 0) {
@@ -431,6 +435,11 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
       try {
         const photoB64 = await loadImageBase64(photoUrl)
         if (photoB64) {
+          // Nouvelle page si la ligne de photos dépasse le footer
+          if (col === 0 && y + photoH > footerY - 4) {
+            doc.addPage()
+            y = 14
+          }
           const x = ML + col * (photoW + 6)
           doc.addImage(photoB64, x, y, photoW, photoH, undefined, 'FAST')
           col++
@@ -442,7 +451,6 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   }
 
   // ── PIED DE PAGE (sur toutes les pages) ──
-  const footerY = 286
 
   const f1Parts = [
     profile.company_name,
@@ -452,7 +460,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
 
   const f2Parts = [
     profile.siret ? `SIRET : ${profile.siret}` : '',
-    profile.assurance_decennale ? `Dec. : ${profile.assurance_decennale}` : '',
+    profile.assurance_decennale ? `Déc. : ${profile.assurance_decennale}` : '',
   ].filter(Boolean)
   const f2 = f2Parts.join(' - ')
 
