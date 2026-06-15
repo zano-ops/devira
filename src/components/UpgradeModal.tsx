@@ -6,7 +6,7 @@ const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
 
 const ESSENTIEL_FEATURES = [
   '10 devis par mois',
-  'Génération IA par voix ou texte',
+  'Devis par voix ou texte',
   'PDF professionnel',
   'Envoi par email et SMS',
   'Signature électronique en ligne',
@@ -17,7 +17,7 @@ const PRO_FEATURES = [
   'Devis illimités',
   'Envoi par email et SMS illimité',
   'Relances automatiques (J+7, J+14, J+21)',
-  'Catalogue prestations + import IA',
+  'Catalogue prestations + import intelligent',
   'Facturation intégrée',
   'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
@@ -26,18 +26,20 @@ const PRO_FEATURES = [
 
 interface Props {
   onClose?: () => void
-  reason?: 'trial_expired' | 'limit_reached' | 'manual'
+  reason?: 'trial_expired' | 'limit_reached' | 'trial_limit_reached' | 'manual'
 }
 
 export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
   const title =
     reason === 'trial_expired' ? 'Votre essai est terminé'
     : reason === 'limit_reached' ? 'Limite atteinte'
+    : reason === 'trial_limit_reached' ? 'Devis d\'essai utilisé'
     : 'Choisissez votre plan'
 
   const subtitle =
     reason === 'trial_expired' ? 'Continuez à créer des devis en quelques secondes.'
     : reason === 'limit_reached' ? 'Vous avez atteint vos 10 devis Essentiel ce mois-ci.'
+    : reason === 'trial_limit_reached' ? 'Votre devis gratuit a été utilisé. Choisissez un plan pour continuer à créer des devis.'
     : 'Activez votre abonnement pour continuer.'
 
   return (

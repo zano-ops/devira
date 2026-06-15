@@ -36,10 +36,14 @@ const DEMO_URLS: Record<number, string> = {
 
 const DEMO_STEPS = ['Décrire', 'Devis', 'Envoyer', 'Relances', 'Signé']
 
+const DEMO_WORDS = DEMO_TEXT.split(' ')
+
+const CHECK_STEPS = ['Description analysée', 'Lignes calculées', 'Devis mis en page']
+
 function DemoAnimation() {
   const [phase, setPhase] = useState<0|1|2|3|4|5|6|7>(0)
-  const [typed, setTyped] = useState('')
-  const [progress, setProgress] = useState(0)
+  const [wordCount, setWordCount] = useState(0)
+  const [checkStep, setCheckStep] = useState(0)
   const [rowCount, setRowCount] = useState(0)
 
   const activeStep = phase <= 1 ? 0 : phase <= 3 ? 1 : phase === 4 ? 2 : phase === 5 ? 3 : 4
@@ -47,16 +51,16 @@ function DemoAnimation() {
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>
     if (phase === 0) {
-      if (typed.length < DEMO_TEXT.length) {
-        t = setTimeout(() => setTyped(DEMO_TEXT.slice(0, typed.length + 3)), 40)
+      if (wordCount < DEMO_WORDS.length) {
+        t = setTimeout(() => setWordCount(w => w + 1), 170)
       } else {
-        t = setTimeout(() => { setPhase(1); setProgress(0) }, 500)
+        t = setTimeout(() => { setPhase(1); setCheckStep(0) }, 700)
       }
     } else if (phase === 1) {
-      if (progress < 100) {
-        t = setTimeout(() => setProgress(p => Math.min(100, p + 5)), 28)
+      if (checkStep < CHECK_STEPS.length) {
+        t = setTimeout(() => setCheckStep(s => s + 1), 520)
       } else {
-        t = setTimeout(() => { setPhase(2); setRowCount(0) }, 200)
+        t = setTimeout(() => { setPhase(2); setRowCount(0) }, 300)
       }
     } else if (phase === 2) {
       if (rowCount < DEMO_ROWS.length) {
@@ -73,10 +77,10 @@ function DemoAnimation() {
     } else if (phase === 6) {
       t = setTimeout(() => setPhase(7), 3200)
     } else {
-      t = setTimeout(() => { setPhase(0); setTyped(''); setProgress(0); setRowCount(0) }, 2200)
+      t = setTimeout(() => { setPhase(0); setWordCount(0); setCheckStep(0); setRowCount(0) }, 2200)
     }
     return () => clearTimeout(t)
-  }, [phase, typed, progress, rowCount])
+  }, [phase, wordCount, checkStep, rowCount])
 
   return (
     <div style={{ background: '#F8FAFC', borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 80px rgba(30,58,95,0.22)', border: '1px solid #E2E6EA', width: '100%', maxWidth: 760 }}>
@@ -114,44 +118,54 @@ function DemoAnimation() {
       {/* Screen content */}
       <div style={{ padding: '20px 24px', minHeight: 290 }}>
 
-        {/* Phase 0 — Saisie */}
+        {/* Phase 0 — Saisie vocale */}
         {phase === 0 && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>
-              Décrivez vos travaux en langage naturel
-            </p>
-            <div style={{ background: 'white', border: `2px solid ${P}`, borderRadius: 12, padding: '14px 16px', minHeight: 72, fontSize: 14, color: '#111827', lineHeight: 1.6, position: 'relative' }}>
-              {typed}
-              <span style={{ display: 'inline-block', width: 2, height: 17, background: P, marginLeft: 2, verticalAlign: 'text-bottom', animation: 'lp-blink 1s step-end infinite' }} />
-            </div>
-            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: `${A}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Mic size={13} color={A} />
+            {/* Barre dictée */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, padding: '8px 14px', background: `${A}0f`, borderRadius: 10, border: `1px solid ${A}30` }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: 'lp-pulse 1.4s ease-in-out infinite' }}>
+                <Mic size={13} color="white" />
               </div>
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>Ou dictez directement depuis votre chantier</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: A, flex: 1 }}>Dictée en cours</span>
+              <div style={{ display: 'flex', gap: 2, alignItems: 'center', height: 20 }}>
+                {[5, 10, 7, 14, 8, 11, 5, 9, 13, 6].map((h, i) => (
+                  <div key={i} style={{ width: 3, borderRadius: 99, background: A, height: h, opacity: 0.55 + (i % 3) * 0.15, animation: `lp-wave ${0.5 + (i % 4) * 0.13}s ease-in-out infinite alternate` }} />
+                ))}
+              </div>
+            </div>
+            {/* Zone de texte transcrit */}
+            <div style={{ background: 'white', border: `1.5px solid #E2E8F0`, borderRadius: 12, padding: '14px 16px', minHeight: 80, fontSize: 14, color: '#111827', lineHeight: 1.65 }}>
+              {wordCount > 0 ? DEMO_WORDS.slice(0, wordCount).join(' ') : <span style={{ color: '#C4C9D4' }}>Transcription...</span>}
+            </div>
+            {/* Bouton valider qui apparaît quand le texte est complet */}
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', opacity: wordCount >= DEMO_WORDS.length ? 1 : 0, transition: 'opacity 0.4s' }}>
+              <div style={{ background: A, color: 'white', padding: '9px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={13} /> Créer le devis
+              </div>
             </div>
           </div>
         )}
 
-        {/* Phase 1 — Génération IA */}
+        {/* Phase 1 — Checklist création */}
         {phase === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 18, textAlign: 'center' }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${A}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={24} color={A} />
-            </div>
-            <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>Génération en cours...</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>Calcul des quantités, des prix et mise en page automatique</p>
-            </div>
-            <div style={{ width: '100%', maxWidth: 340 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: A, fontWeight: 600 }}>Analyse en cours</span>
-                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{progress}%</span>
-              </div>
-              <div style={{ height: 6, background: '#E5E7EB', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: `linear-gradient(90deg, ${P}, ${A})`, borderRadius: 99, width: `${progress}%`, transition: 'width 0.08s linear' }} />
-              </div>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 230, padding: '8px 4px', gap: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 20px', textAlign: 'center' }}>Préparation de votre devis</p>
+            {CHECK_STEPS.map((label, i) => {
+              const done = checkStep > i
+              const active = checkStep === i
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderRadius: 12, marginBottom: 10, background: done ? '#F0FDF4' : active ? '#F8FAFC' : 'transparent', border: `1px solid ${done ? '#BBF7D0' : active ? '#E2E8F0' : 'transparent'}`, opacity: checkStep < i ? 0.3 : 1, transition: 'all 0.35s ease' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, background: done ? '#16A34A' : active ? P : '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.35s' }}>
+                    {done
+                      ? <Check size={13} color="white" strokeWidth={3} />
+                      : active
+                        ? <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white', animation: 'lp-pulse 1s ease-in-out infinite' }} />
+                        : null}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: done ? 600 : 400, color: done ? '#15803D' : active ? '#111827' : '#9CA3AF', transition: 'color 0.35s' }}>{label}</span>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -369,9 +383,9 @@ function TabIllustration({ index }: { index: number }) {
 const TABS = [
   {
     icon: MessageSquare,
-    label: 'IA vocale',
-    title: 'Dictez, l\'IA rédige',
-    desc: 'Plus besoin de taper au clavier. Décrivez vos travaux à voix haute ou en texte libre, l\'IA génère automatiquement toutes les lignes avec descriptifs, quantités et prix.',
+    label: 'Voix & texte',
+    title: 'Dictez, le devis se rédige',
+    desc: 'Plus besoin de taper au clavier. Décrivez votre chantier en quelques mots ou par dictée vocale. Toutes les lignes, les quantités et les prix apparaissent en moins de 30 secondes.',
     badge: 'Moins de 2 minutes',
   },
   {
@@ -407,7 +421,7 @@ const TABS = [
 const FAQS = [
   { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devira est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devira. La configuration prend 5 minutes.' },
   { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devira inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
-  { q: 'Est-ce que je peux tester avant de payer ?', a: 'Oui. Votre premier devis est entièrement gratuit, sans carte bancaire. Ça vous permet de voir concrètement ce que l\'IA génère. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n\'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.' },
+  { q: 'Est-ce que je peux tester avant de payer ?', a: 'Oui. Votre premier devis est entièrement gratuit, sans carte bancaire. Ça vous permet de voir concrètement ce que ça donne. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n\'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.' },
   { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
@@ -416,7 +430,7 @@ const FAQS = [
 
 const ESSENTIEL_FEATURES = [
   '10 devis par mois',
-  'Génération IA par voix ou texte',
+  'Devis par voix ou texte',
   'PDF professionnel',
   'Envoi par email et par SMS',
   'Signature électronique en ligne',
@@ -427,7 +441,7 @@ const PRO_FEATURES = [
   'Devis illimités',
   'Envoi par email et par SMS illimité',
   'Relances automatiques (J+7, J+14, J+21)',
-  'Catalogue prestations + import IA',
+  'Catalogue prestations + import intelligent',
   'Facturation intégrée',
   'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
@@ -436,30 +450,30 @@ const PRO_FEATURES = [
 
 const TESTIMONIALS = [
   {
-    name: 'Stéphane R.',
+    name: 'Luc B.',
     job: 'Plomberie & Chauffage',
     city: 'Paris',
-    text: "Honnêtement je cherchais juste à aller plus vite. J'ai testé, le devis est sorti propre, le client a signé. C'est tout ce qu'il me fallait.",
-    initials: 'SR',
+    text: "Je faisais mes devis le soir sur Excel, parfois 2h pour un chantier standard. Maintenant je dicte depuis la voiture avant de rentrer, le devis est dans la boîte mail du client dans la foulée. La semaine dernière j'en ai sorti 4 dans la journée. C'est du temps récupéré, point.",
+    initials: 'LB',
     bg: '#1E3A5F',
     stars: 5,
   },
   {
-    name: 'Marc T.',
-    job: 'MT Électricité',
+    name: 'Marie-Hélène C.',
+    job: 'Peinture & Décoration',
     city: 'Paris',
-    text: "Je savais pas trop au début. Maintenant je l'utilise à chaque visite. Mes devis me prennent moins de temps.",
-    initials: 'MT',
-    bg: '#0F766E',
+    text: "J'avais peur que le rendu fasse cheap. Le premier devis m'a convaincue, mes clients me disent que c'est plus pro qu'avant, une cliente m'a même demandé si j'avais changé de secrétaire. Un artisan du coin m'a demandé quel logiciel j'utilisais. J'ai gardé le secret 😄",
+    initials: 'MC',
+    bg: '#B45309',
     stars: 5,
   },
   {
-    name: 'Karim B.',
-    job: 'KB Rénovations',
+    name: 'Tony M.',
+    job: 'Carrelage & Faïence',
     city: 'Paris',
-    text: "Je faisais tout sur Excel avant, c'était long. Cette appli m'a surpris car elle comprend vraiment les termes du bâtiment, les métrés, tout. Et y'a eu un client qui avait pas répondu depuis 12 jours, la relance automatique l'a relancé, il a signé. J'aurais jamais pensé à le rappeler à ce moment-là.",
-    initials: 'KB',
-    bg: '#7C3AED',
+    text: "Faut être précis dans la description sinon les prix partent un peu. Une fois qu'on a le coup de main c'est nickel. Ce qui m'a convaincu c'est les relances, j'avais 3 devis sans réponse depuis 2 semaines, ils ont relancé tout seuls, 2 ont signé. J'aurais laissé tomber.",
+    initials: 'TM',
+    bg: '#0F766E',
     stars: 4,
   },
 ]
@@ -497,6 +511,8 @@ export default function Landing() {
     style.id = 'lp-styles'
     style.textContent = `
       @keyframes lp-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+      @keyframes lp-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(232,119,34,0.4)} 50%{transform:scale(1.08);box-shadow:0 0 0 6px rgba(232,119,34,0)} }
+      @keyframes lp-wave { from{transform:scaleY(0.4)} to{transform:scaleY(1)} }
       .lp-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease }
       .lp-reveal.lp-d1 { transition-delay: 0.1s }
       .lp-reveal.lp-d2 { transition-delay: 0.2s }
@@ -554,7 +570,7 @@ export default function Landing() {
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, maxWidth: 600, margin: '0 auto 40px' }}>
-            Décrivez vos travaux en langage naturel. Devira génère un devis professionnel complet en quelques secondes, le met en page, l'envoie à votre client et le relance automatiquement.
+            Décrivez votre chantier en quelques mots. En 2 minutes, votre devis est prêt, mis en page, envoyé et relancé automatiquement.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
@@ -566,10 +582,10 @@ export default function Landing() {
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit pour tester l'IA · Sans carte bancaire</p>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,81 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {['📱 Depuis le chantier', '📱 Envoi par SMS', '✍️ Signature en ligne', '🤖 IA BTP'].map(tag => (
+            {['📱 Depuis le chantier', '📱 Envoi par SMS', '✍️ Signature en ligne', '⚡ Devis en 2 min'].map(tag => (
               <span key={tag} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, padding: '6px 13px', borderRadius: 99 }}>{tag}</span>
             ))}
           </div>
@@ -761,10 +777,10 @@ export default function Landing() {
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
           <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Comparatif</p>
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
-            Moins cher que la concurrence.<br />Avec l'IA en plus.
+            Moins cher que la concurrence.<br />Et bien plus efficace.
           </h2>
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 52px', maxWidth: 560 }}>
-            Les logiciels BTP coûtent cher et ne génèrent rien. Devira génère votre devis en 2 minutes.
+            Les logiciels BTP coûtent cher et restent compliqués. Avec Devira, votre devis est prêt en 2 minutes.
           </p>
 
           <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 8px 36px rgba(0,0,0,0.08)', marginBottom: 36 }}>
@@ -789,7 +805,7 @@ export default function Landing() {
                 </thead>
                 <tbody>
                   {([
-                    { feature: 'Génération IA vocale', d: true, o: false, b: false },
+                    { feature: 'Devis par voix ou texte', d: true, o: false, b: false },
                     { feature: 'Devis en moins de 2 min', d: true, o: false, b: false },
                     { feature: 'Envoi par SMS intégré', d: true, o: false, b: false },
                     { feature: 'Signature électronique', d: true, o: false, b: true },
@@ -822,7 +838,7 @@ export default function Landing() {
             </div>
           </div>
           <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 14, textAlign: 'center' }}>
-            * La génération IA, le PDF professionnel et la signature électronique sont inclus dans tous les plans, dès Essentiel.
+            * Le devis vocal, le PDF professionnel et la signature électronique sont inclus dans tous les plans, dès Essentiel.
           </p>
 
           <div className="lp-reveal" style={{ background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, borderRadius: 20, padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', marginTop: 36 }}>
@@ -961,7 +977,7 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
-            Testez l'IA sur 1 devis gratuit, sans carte bancaire. Abonnement à partir de 29,81 €/mois.
+            1 devis complet offert, sans carte bancaire. Abonnement à partir de 29,81 €/mois.
           </p>
           <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement

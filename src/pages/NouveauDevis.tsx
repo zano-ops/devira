@@ -35,7 +35,7 @@ interface DraftData {
 
 export default function NouveauDevis() {
   const navigate = useNavigate()
-  const { user, profile, isTrialExpired, canCreateQuote } = useAuth()
+  const { user, profile, isTrialExpired, canCreateQuote, trialQuotaUsed } = useAuth()
   const { showToast, ToastContainer } = useToast()
 
   const [step, setStep] = useState<Step>('describe')
@@ -354,7 +354,7 @@ export default function NouveauDevis() {
   if (!canCreateQuote) {
     return (
       <UpgradeModal
-        reason="limit_reached"
+        reason={trialQuotaUsed ? 'trial_limit_reached' : 'limit_reached'}
         onClose={() => navigate('/dashboard')}
       />
     )

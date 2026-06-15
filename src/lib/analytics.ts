@@ -3,8 +3,9 @@ import posthog from 'posthog-js'
 export function initAnalytics() {
   const key = import.meta.env.VITE_POSTHOG_KEY
   if (!key) return
+  const host = import.meta.env.VITE_POSTHOG_HOST || 'https://eu.i.posthog.com'
   posthog.init(key, {
-    api_host: 'https://eu.i.posthog.com',
+    api_host: host,
     person_profiles: 'identified_only',
     capture_pageview: true,
     capture_pageleave: true,

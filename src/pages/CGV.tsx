@@ -62,8 +62,8 @@ export default function CGV() {
         <Section title="Article 4 — Abonnements et tarifs">
           <p>Les offres disponibles sont les suivantes :</p>
           <ul style={{ marginTop: 10, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <li><strong>Essentiel — 29,81 € TTC/mois</strong> : 20 devis par mois, génération IA par voix ou texte, PDF professionnel, envoi par email, signature électronique en ligne, support email.</li>
-            <li><strong>Pro — 79,48 € TTC/mois</strong> : devis illimités, relances automatiques (J+7, J+14, J+21), catalogue de prestations avec import IA, facturation intégrée, photos chantier dans les PDF, export comptable (FEC), support prioritaire &lt; 24h.</li>
+            <li><strong>Essentiel — 29,81 € TTC/mois</strong> : 10 devis par mois, devis par voix ou texte, PDF professionnel, envoi par email, signature électronique en ligne, support email.</li>
+            <li><strong>Pro — 79,48 € TTC/mois</strong> : devis illimités, relances automatiques (J+7, J+14, J+21), catalogue de prestations avec import intelligent, facturation intégrée, photos chantier dans les PDF, export comptable (FEC), support prioritaire &lt; 24h.</li>
           </ul>
           <p style={{ marginTop: 12 }}>Les prix sont indiqués hors taxes. La TVA applicable est celle en vigueur à la date de facturation. Devira se réserve le droit de modifier ses tarifs avec un préavis de 30 jours. Les abonnements en cours ne sont pas affectés jusqu'à leur prochaine échéance.</p>
         </Section>

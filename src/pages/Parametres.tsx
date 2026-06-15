@@ -179,7 +179,6 @@ export default function Parametres() {
 
       {/* Header */}
       <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
-        <TrialBanner />
         <div style={{ padding: '14px 20px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Réglages</h1>
@@ -422,7 +421,6 @@ export default function Parametres() {
       </button>
 
       {/* Info abonnement */}
-      <SubscriptionCard />
 
       {/* Besoin d'aide */}
       <div style={{ margin: '0 20px 16px' }}>
@@ -544,12 +542,20 @@ function SubscriptionCard() {
         <p style={{ fontSize: 12, color: urgent ? '#EA580C' : '#0284C7', margin: '0 0 12px' }}>
           Devis en 2 min · PDF · Email · Clients · Factures
         </p>
-        <button
-          onClick={() => setShowModal(true)}
-          style={{ width: '100%', padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-        >
-          Passer à Pro — 79,48 €/mois →
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: 'white', color: '#1E3A5F', border: '1.5px solid #1E3A5F', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+          >
+            Essentiel — 29,81 €/mois
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{ flex: 1, padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+          >
+            Pro — 79,48 €/mois →
+          </button>
+        </div>
       </div>
       {showModal && <UpgradeModal reason="manual" onClose={() => setShowModal(false)} />}
     </>

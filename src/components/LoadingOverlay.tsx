@@ -32,8 +32,6 @@ export function LoadingOverlay() {
     }
   }, [])
 
-  const progressPct = Math.min(95, (activeStep / (STEPS.length - 1)) * 100)
-
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-8"
       style={{ background: 'linear-gradient(160deg, #1E3A5F 0%, #0f2240 100%)' }}>
@@ -48,27 +46,10 @@ export function LoadingOverlay() {
       </div>
 
       {/* Titre */}
-      <h2 className="text-white text-xl font-bold mb-1 text-center">Génération IA en cours</h2>
+      <h2 className="text-white text-xl font-bold mb-1 text-center">Création du devis en cours</h2>
       <p className="text-blue-300 text-sm mb-8 text-center">
-        {activeStep < STEPS.length - 1 ? 'Analyse de ton chantier par Claude…' : 'Presque terminé !'}
+        {activeStep < STEPS.length - 1 ? 'Ton chantier est en cours de traitement…' : 'Presque terminé !'}
       </p>
-
-      {/* Barre de progression */}
-      <div className="w-full max-w-sm mb-6">
-        <div className="flex justify-between text-xs text-blue-400 mb-2">
-          <span>{STEPS[activeStep].label}</span>
-          <span>{Math.round(progressPct)}%</span>
-        </div>
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-1000"
-            style={{
-              width: `${progressPct}%`,
-              background: 'linear-gradient(90deg, #3B82F6, #F59E0B)',
-            }}
-          />
-        </div>
-      </div>
 
       {/* Checklist des étapes */}
       <div className="w-full max-w-sm flex flex-col gap-2">
@@ -96,7 +77,7 @@ export function LoadingOverlay() {
                 )}
               </div>
               <span className={`text-sm transition-all ${
-                isDone ? 'text-green-300 line-through opacity-60'
+                isDone ? 'text-green-300 opacity-75'
                 : isActive ? 'text-white font-semibold'
                 : 'text-blue-400 opacity-50'
               }`}>
@@ -110,11 +91,11 @@ export function LoadingOverlay() {
       {/* Timer */}
       <p className="text-blue-500 text-xs mt-6 text-center" style={{ maxWidth: 300 }}>
         {elapsed < 5
-          ? '⚡ Démarrage de l\'IA…'
+          ? '⚡ Démarrage en cours…'
           : elapsed < 15
-          ? `⏱ ${elapsed}s — L'IA rédige ton devis`
+          ? `⏱ ${elapsed}s — Ton devis est en cours de rédaction`
           : elapsed < 30
-          ? `⏱ ${elapsed}s — L'IA prend un peu plus de temps que prévu…`
+          ? `⏱ ${elapsed}s — Les chantiers détaillés prennent un peu plus de temps…`
           : `⏱ ${elapsed}s — Les devis complexes peuvent prendre jusqu'à 30 secondes`}
       </p>
     </div>
