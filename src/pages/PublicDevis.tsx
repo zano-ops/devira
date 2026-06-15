@@ -415,7 +415,7 @@ export default function PublicDevis() {
               <span>{fmt(quoteData.total_ht)}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-500">
-              <span>TVA ({quoteData.taux_tva}%)</span>
+              <span>TVA</span>
               <span>{fmt(totalTva)}</span>
             </div>
             <div className="flex justify-between font-bold text-primary text-lg pt-1.5 border-t border-gray-200">

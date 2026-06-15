@@ -31,7 +31,6 @@ export function QuotePreview({ quote, profile }: Props) {
   const totalTva = Object.values(tvaByRate).reduce((s, v) => s + v, 0)
   const ttc = sousTotal - remise + totalTva
   const validite = q.validite_jours || 30
-  const acompte = ttc * 0.3
   const tvaRates = Object.keys(tvaByRate).map(Number).sort((a, b) => a - b)
 
   return (
@@ -206,11 +205,6 @@ export function QuotePreview({ quote, profile }: Props) {
               <tr style={{ background: '#1E3A5F' }}>
                 <td style={{ padding: '10px 10px', color: '#fff', fontWeight: '800', fontSize: '13px', borderRadius: '4px 0 0 4px' }}>TOTAL TTC</td>
                 <td style={{ padding: '10px 10px', textAlign: 'right', color: '#F59E0B', fontWeight: '900', fontSize: '15px', borderRadius: '0 4px 4px 0' }}>{fmt(ttc)}</td>
-              </tr>
-              <tr>
-                <td colSpan={2} style={{ padding: '5px 10px', color: '#888', fontSize: '10px', textAlign: 'right' }}>
-                  Acompte 30% à la commande : <strong>{fmt(acompte)}</strong>
-                </td>
               </tr>
             </tbody>
           </table>

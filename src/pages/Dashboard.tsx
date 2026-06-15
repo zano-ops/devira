@@ -88,7 +88,7 @@ export default function Dashboard() {
     : null
 
   // Profil incomplet
-  const profileIncomplete = !profile?.company_name || !profile?.siret || !profile?.phone
+  const profileIncomplete = !profile?.company_name || !profile?.siret
 
   const filtered = quotes.filter(q => {
     const matchSearch = !search ||

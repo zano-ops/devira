@@ -44,6 +44,10 @@ export function IosPwaInstallBanner() {
                 <span className="text-base shrink-0">2️⃣</span>
                 <p className="text-blue-700 text-xs">Sélectionne <strong>« Sur l'écran d'accueil »</strong></p>
               </div>
+              <div className="bg-blue-50 rounded-xl px-3 py-2 flex items-center gap-2">
+                <span className="text-base shrink-0">3️⃣</span>
+                <p className="text-blue-700 text-xs">Appuie sur <strong>« Ajouter »</strong> en haut à droite</p>
+              </div>
             </div>
           </div>
         </div>
