@@ -438,7 +438,7 @@ const TESTIMONIALS = [
   {
     name: 'Stéphane R.',
     job: 'Plomberie & Chauffage',
-    city: 'Lyon',
+    city: 'Paris',
     text: "Honnêtement je cherchais juste à aller plus vite. J'ai testé, le devis est sorti propre, le client a signé. C'est tout ce qu'il me fallait.",
     initials: 'SR',
     bg: '#1E3A5F',
@@ -447,7 +447,7 @@ const TESTIMONIALS = [
   {
     name: 'Marc T.',
     job: 'MT Électricité',
-    city: 'Bordeaux',
+    city: 'Paris',
     text: "Je savais pas trop au début. Maintenant je l'utilise à chaque visite. Mes devis me prennent moins de temps.",
     initials: 'MT',
     bg: '#0F766E',
@@ -456,7 +456,7 @@ const TESTIMONIALS = [
   {
     name: 'Karim B.',
     job: 'KB Rénovations',
-    city: 'Marseille',
+    city: 'Paris',
     text: "Je faisais tout sur Excel avant, c'était long. Cette appli m'a surpris car elle comprend vraiment les termes du bâtiment, les métrés, tout. Et y'a eu un client qui avait pas répondu depuis 12 jours, la relance automatique l'a relancé, il a signé. J'aurais jamais pensé à le rappeler à ce moment-là.",
     initials: 'KB',
     bg: '#7C3AED',
