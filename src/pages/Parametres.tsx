@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
 import TrialBanner from '../components/TrialBanner'
 import UpgradeModal from '../components/UpgradeModal'
-import { BookOpen, LogOut, Camera, Check } from 'lucide-react'
+import { BookOpen, LogOut, Camera, Check, Mail, Phone, Globe } from 'lucide-react'
 
 const vatOptions = [
   { value: 5.5,  label: '5,5% — Amélioration énergétique' },
@@ -412,6 +412,55 @@ export default function Parametres() {
       {/* Info abonnement */}
       <SubscriptionCard />
 
+      {/* Besoin d'aide */}
+      <div style={{ margin: '0 20px 16px' }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 4px' }}>Besoin d'aide ?</p>
+        <div style={{ background: 'white', border: '1px solid #F1F5F9', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          {[
+            {
+              icon: <Mail size={18} color="#1E3A5F" strokeWidth={1.8} />,
+              label: 'Nous écrire',
+              sub: 'contact@devira.fr',
+              href: 'mailto:contact@devira.fr',
+            },
+            {
+              icon: <Phone size={18} color="#1E3A5F" strokeWidth={1.8} />,
+              label: 'Nous appeler',
+              sub: '07 81 68 75 98',
+              href: 'tel:+33781687598',
+            },
+            {
+              icon: <Globe size={18} color="#1E3A5F" strokeWidth={1.8} />,
+              label: 'Site Devira',
+              sub: 'devira.fr',
+              href: 'https://devira.fr',
+            },
+          ].map(({ icon, label, sub, href }, i, arr) => (
+            <a
+              key={href}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : undefined}
+              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '13px 16px',
+                borderBottom: i < arr.length - 1 ? '1px solid #F8FAFC' : 'none',
+                textDecoration: 'none', color: 'inherit',
+              }}
+            >
+              <div style={{ width: 36, height: 36, background: 'rgba(30,58,95,0.07)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0 }}>{label}</p>
+                <p style={{ fontSize: 12, color: '#94A3B8', margin: '1px 0 0' }}>{sub}</p>
+              </div>
+              <span style={{ color: '#CBD5E1', fontSize: 18 }}>›</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
       {/* Déconnexion */}
       <div style={{ margin: '0 20px 32px', border: '1px solid #FEE2E2', borderRadius: 14, overflow: 'hidden' }}>
         <div style={{ padding: '8px 16px', background: '#FEF2F2' }}>
@@ -481,7 +530,7 @@ function SubscriptionCard() {
           <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${Math.max(2, (trialDaysLeft / 21) * 100)}%`, background: urgent ? '#E87722' : '#0EA5E9' }} />
         </div>
         <p style={{ fontSize: 12, color: urgent ? '#EA580C' : '#0284C7', margin: '0 0 12px' }}>
-          Génération IA · PDF · Email · Clients · Factures
+          Devis en 2 min · PDF · Email · Clients · Factures
         </p>
         <button
           onClick={() => setShowModal(true)}
