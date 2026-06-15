@@ -63,7 +63,6 @@ export default function DevisDetail() {
   const [showSmsModal, setShowSmsModal] = useState(false)
   const [sendSmsPhone, setSendSmsPhone] = useState('')
   const [sendingSms, setSendingSms] = useState(false)
-  const [yousignLoading, setYousignLoading] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [showRelanceModal, setShowRelanceModal] = useState(false)
 
@@ -202,39 +201,6 @@ export default function DevisDetail() {
       setShowSmsModal(false)
     } catch { showToast('Erreur envoi SMS — vérifiez votre numéro', 'error') }
     setSendingSms(false)
-  }
-
-  // ── YOUSIGN ──
-  const handleYousign = async () => {
-    if (!quote || !profile) return
-    setYousignLoading(true)
-    try {
-      const pdf_base64 = await getQuotePdfBase64(quote, profile)
-      const { data: { session: freshSession } } = await supabase.auth.getSession()
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-yousign-signature`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({
-          quote_id: quote.id,
-          pdf_base64,
-          signer_email: quote.client_email || sendEmail,
-          signer_name: quote.client_name || 'Client',
-        }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error || 'Erreur Yousign')
-      window.open(data.signature_url, '_blank')
-      showToast('Lien de signature Yousign créé ✓')
-      setShowSignModal(false)
-    } catch (err: any) {
-      const msg = err?.message || ''
-      if (msg.includes('YOUSIGN_API_KEY')) {
-        showToast('Clé Yousign manquante — configurez YOUSIGN_API_KEY dans Supabase', 'error')
-      } else {
-        showToast('Signature impossible — réessayez dans quelques instants', 'error')
-      }
-    }
-    setYousignLoading(false)
   }
 
   // ── RELANCE MANUELLE ──
@@ -1030,14 +996,11 @@ export default function DevisDetail() {
                 </div>
               ))}
             </div>
-            <button
-              onClick={handleYousign}
-              disabled={yousignLoading}
-              className="w-full py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-2"
-              style={{ background: yousignLoading ? '#9CA3AF' : 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-            >
-              {yousignLoading ? '⏳ Création…' : '⚖️ Signature légale Yousign (eIDAS)'}
-            </button>
+            <div className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2 relative overflow-hidden"
+              style={{ background: '#F1F5F9', color: '#94A3B8', cursor: 'default' }}>
+              <span>⚖️</span> Signature légale eIDAS
+              <span className="absolute top-2 right-3 text-[10px] font-bold bg-indigo-100 text-indigo-500 px-2 py-0.5 rounded-full">Bientôt</span>
+            </div>
             <button onClick={handleCopySignLink} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50">
               📋 Copier le lien (signature simple)
             </button>
