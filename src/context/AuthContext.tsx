@@ -17,6 +17,7 @@ interface AuthContextType {
   canCreateQuote: boolean
   quotesThisMonth: number
   trialQuotaUsed: boolean
+  isPro: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   canCreateQuote: true,
   quotesThisMonth: 0,
   trialQuotaUsed: false,
+  isPro: false,
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -114,7 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       !trialQuotaUsed &&
       !(isEssentiel && quotesThisMonth >= ESSENTIEL_LIMIT)
 
-    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth, trialQuotaUsed }
+    const isPro = status === 'active' && profile.subscription_plan === 'pro'
+
+    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth, trialQuotaUsed, isPro }
   }, [profile])
 
   return (

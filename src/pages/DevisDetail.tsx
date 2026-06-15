@@ -43,7 +43,7 @@ export default function DevisDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, profile } = useAuth()
+  const { user, profile, isPro } = useAuth()
   const { showToast, ToastContainer } = useToast()
   const photoInputRef = useRef<HTMLInputElement>(null)
 
@@ -804,13 +804,18 @@ export default function DevisDetail() {
           <div className="mx-4 mb-4 bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">📷 Photos chantier ({photos.length}/8)</p>
-              <button
-                onClick={() => photoInputRef.current?.click()}
-                disabled={uploadingPhoto || photos.length >= 8}
-                className="text-xs bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-lg disabled:opacity-40"
-              >
-                {uploadingPhoto ? '⏳ Upload...' : '+ Ajouter'}
-              </button>
+              {isPro
+                ? <button
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={uploadingPhoto || photos.length >= 8}
+                    className="text-xs bg-primary/10 text-primary font-semibold px-3 py-1.5 rounded-lg disabled:opacity-40"
+                  >
+                    {uploadingPhoto ? '⏳ Upload...' : '+ Ajouter'}
+                  </button>
+                : <button onClick={() => navigate('/parametres')} className="text-xs bg-gray-100 text-gray-400 font-semibold px-3 py-1.5 rounded-lg">
+                    🔒 Pro
+                  </button>
+              }
             </div>
             {photos.length === 0 ? (
               <button onClick={() => photoInputRef.current?.click()} className="w-full py-6 flex flex-col items-center gap-2 text-gray-300 hover:text-gray-400 transition-colors">
@@ -883,11 +888,15 @@ export default function DevisDetail() {
             )}
 
             {quote.status === 'sent' && (
-              <button onClick={() => setShowRelanceModal(true)} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
-                <span>⏰</span> {sending ? 'Envoi...' : 'Relancer maintenant'}
-                {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}×</span> : null}
-                {quote.last_relance_at && <span className="text-xs text-orange-400">· il y a {Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000)}j</span>}
-              </button>
+              isPro
+                ? <button onClick={() => setShowRelanceModal(true)} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
+                    <span>⏰</span> {sending ? 'Envoi...' : 'Relancer maintenant'}
+                    {quote.relance_count ? <span className="text-xs bg-orange-100 px-2 py-0.5 rounded-full">{quote.relance_count}×</span> : null}
+                    {quote.last_relance_at && <span className="text-xs text-orange-400">· il y a {Math.floor((Date.now() - new Date(quote.last_relance_at).getTime()) / 86400000)}j</span>}
+                  </button>
+                : <button onClick={() => navigate('/parametres')} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-400 bg-gray-50">
+                    🔒 Relances automatiques — Plan Pro
+                  </button>
             )}
             <button onClick={handleDownload} disabled={downloading} className="btn-primary">
               <span className="flex items-center justify-center gap-2"><span>⬇️</span>{downloading ? 'Génération PDF...' : 'Télécharger PDF'}</span>

@@ -5,7 +5,8 @@ import { useToast } from '../components/Toast'
 import { supabase, SUPABASE_URL } from '../lib/supabase'
 import type { CatalogueItem } from '../lib/catalogue'
 import TrialBanner from '../components/TrialBanner'
-import { Search, Upload, Trash2, Plus, BookOpen, Zap, ArrowLeft, Package } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { Search, Upload, Trash2, Plus, BookOpen, Zap, ArrowLeft, Package, Lock } from 'lucide-react'
 
 export type { CatalogueItem }
 
@@ -28,6 +29,26 @@ function fmt(n: number) {
 export default function Catalogue() {
   const navigate = useNavigate()
   const { showToast, ToastContainer } = useToast()
+  const { isPro } = useAuth()
+
+  if (!isPro) return (
+    <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          <Lock size={30} color="#7C3AED" />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1E3A5F', marginBottom: 8 }}>Catalogue — Plan Pro</h2>
+        <p style={{ color: '#6B7280', fontSize: 15, lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
+          Créez votre catalogue de prestations avec prix standards pour générer vos devis encore plus vite. Disponible uniquement en plan Pro.
+        </p>
+        <button onClick={() => navigate('/parametres')} style={{ background: '#E87722', color: 'white', border: 'none', padding: '14px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
+          Passer au plan Pro →
+        </button>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#9CA3AF', fontSize: 14, cursor: 'pointer', marginTop: 16 }}>Retour</button>
+      </div>
+      <BottomNav />
+    </div>
+  )
   const [items, setItems] = useState<CatalogueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
