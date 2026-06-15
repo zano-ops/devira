@@ -314,8 +314,8 @@ export default function DevisDetail() {
     setPdfStep(steps[0])
     const t = setInterval(() => { si = Math.min(si + 1, steps.length - 1); setPdfStep(steps[si]) }, 2500)
     try {
-      const openedInBrowser = await downloadQuotePdf(quote, profile)
-      showToast(openedInBrowser ? 'PDF ouvert — appuie sur le bouton de partage pour enregistrer' : 'PDF téléchargé ✓')
+      const isIOS = await downloadQuotePdf(quote, profile)
+      if (!isIOS) showToast('PDF téléchargé ✓')
     }
     catch { showToast('Erreur PDF — réessaie', 'error') }
     clearInterval(t)

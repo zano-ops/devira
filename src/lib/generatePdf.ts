@@ -460,11 +460,22 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
 export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<boolean> {
   const doc = await buildDoc(quote, profile)
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
   if (isIOS) {
-    const blobUrl = doc.output('bloburl')
-    window.open(blobUrl as string, '_blank')
+    const blob = doc.output('blob')
+    const file = new File([blob], `Devis-${quote.quote_number}.pdf`, { type: 'application/pdf' })
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Devis ${quote.quote_number}` })
+      } catch (e) {
+        if ((e as DOMException).name !== 'AbortError') throw e
+      }
+    } else {
+      window.open(doc.output('bloburl') as string, '_blank')
+    }
     return true
   }
+
   doc.save(`Devis-${quote.quote_number}.pdf`)
   return false
 }
