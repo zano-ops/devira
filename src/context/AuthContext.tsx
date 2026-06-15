@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { Profile } from '../types'
+import { analytics } from '../lib/analytics'
 
 interface AuthContextType {
   user: User | null
@@ -15,6 +16,7 @@ interface AuthContextType {
   isTrialExpired: boolean
   canCreateQuote: boolean
   quotesThisMonth: number
+  trialQuotaUsed: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   isTrialExpired: false,
   canCreateQuote: true,
   quotesThisMonth: 0,
+  trialQuotaUsed: false,
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -57,11 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setProfile(null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+        analytics.identify(session.user.id, { email: session.user.email })
+      } else {
+        setProfile(null)
+        analytics.reset()
+      }
+      if (event === 'SIGNED_IN') analytics.track('user_signed_in')
+      if (event === 'SIGNED_OUT') analytics.track('user_signed_out')
     })
 
     return () => subscription.unsubscribe()
@@ -75,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isTrialExpired: false,
         canCreateQuote: true,
         quotesThisMonth: 0,
+        trialQuotaUsed: false,
       }
     }
 
@@ -93,12 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isTrialExpired = subscriptionStatus === 'expired'
 
     const ESSENTIEL_LIMIT = 20
+    const TRIAL_LIMIT = 1
     const isEssentiel = profile.subscription_plan === 'essentiel'
+    const isTrial = subscriptionStatus === 'trial'
+    const trialQuotaUsed = isTrial && quotesThisMonth >= TRIAL_LIMIT
+
     const canCreateQuote =
       !isTrialExpired &&
+      !trialQuotaUsed &&
       !(isEssentiel && quotesThisMonth >= ESSENTIEL_LIMIT)
 
-    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth }
+    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth, trialQuotaUsed }
   }, [profile])
 
   return (

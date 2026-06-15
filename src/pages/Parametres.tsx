@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
@@ -35,6 +35,8 @@ export default function Parametres() {
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [siretLoading, setSiretLoading] = useState(false)
+  const [siretFound, setSiretFound] = useState(false)
 
   const [form, setForm] = useState({
     company_name: '',
@@ -87,6 +89,31 @@ export default function Parametres() {
 
   const set = (k: string, v: string | number | boolean | number[]) => setForm(f => ({ ...f, [k]: v }))
 
+  const lookupSiret = async (siret: string) => {
+    setSiretLoading(true)
+    setSiretFound(false)
+    try {
+      const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siret}&per_page=1`)
+      if (!res.ok) return
+      const data = await res.json()
+      const result = data.results?.[0]
+      if (!result) return
+      const companyName = result.nom_complet || result.nom_raison_sociale || ''
+      if (companyName && !form.company_name) set('company_name', companyName)
+      const siege = result.siege
+      if (siege) {
+        const addrParts = [siege.numero_voie, siege.type_voie, siege.libelle_voie].filter(Boolean)
+        const address = addrParts.join(' ')
+        if (address && !form.address) set('address', address)
+        if (siege.libelle_commune && !form.city) set('city', siege.libelle_commune)
+        if (siege.code_postal && !form.zip_code) set('zip_code', siege.code_postal)
+      }
+      setSiretFound(true)
+    } catch { /* silent */ } finally {
+      setSiretLoading(false)
+    }
+  }
+
   const toggleRelanceDay = (day: number) => {
     const days = form.relance_days.includes(day)
       ? form.relance_days.filter(d => d !== day)
@@ -103,13 +130,19 @@ export default function Parametres() {
     try {
       const ext = file.name.split('.').pop()
       const path = `logos/${user.id}.${ext}`
-      const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-      if (error) throw error
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      set('logo_url', publicUrl)
-      showToast('Logo uploadé ✓')
+      // Cache-bust pour éviter l'image ancienne en mémoire navigateur
+      const bustedUrl = publicUrl + (publicUrl.includes('?') ? '&' : '?') + 't=' + Date.now()
+      // Persister immédiatement en base — ne pas attendre le bouton "Sauvegarder"
+      const { error: updateError } = await supabase.from('profiles').update({ logo_url: bustedUrl }).eq('id', user.id)
+      if (updateError) throw updateError
+      set('logo_url', bustedUrl)
+      await refreshProfile()
+      showToast('Logo sauvegardé ✓')
     } catch {
-      showToast('Erreur upload logo', 'error')
+      showToast('Erreur upload logo — vérifie les droits du bucket "avatars"', 'error')
     }
     setUploadingLogo(false)
   }
@@ -235,19 +268,33 @@ export default function Parametres() {
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
               SIRET * <span className="text-gray-400 font-normal normal-case">(14 chiffres)</span>
             </label>
-            <input
-              type="text"
-              value={form.siret}
-              onChange={e => set('siret', e.target.value.replace(/\D/g, '').slice(0, 14))}
-              placeholder="12345678900010"
-              className={`input-field ${form.siret.length > 0 && form.siret.length < 14 ? 'border-amber-300' : ''}`}
-              inputMode="numeric"
-            />
-            {form.siret.length > 0 && form.siret.length < 14 && (
+            <div className="relative">
+              <input
+                type="text"
+                value={form.siret}
+                onChange={e => {
+                  const v = e.target.value.replace(/\D/g, '').slice(0, 14)
+                  set('siret', v)
+                  setSiretFound(false)
+                  if (v.length === 14) lookupSiret(v)
+                }}
+                placeholder="12345678900010"
+                className={`input-field pr-9 ${form.siret.length > 0 && form.siret.length < 14 ? 'border-amber-300' : ''}`}
+                inputMode="numeric"
+              />
+              {siretLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+              )}
+              {siretFound && !siretLoading && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base">✓</span>
+              )}
+            </div>
+            {siretFound && <p className="text-xs text-green-600 mt-1 font-medium">Entreprise trouvée · champs vides complétés ✓</p>}
+            {!siretFound && form.siret.length > 0 && form.siret.length < 14 && (
               <p className="text-xs text-amber-600 mt-1">{14 - form.siret.length} chiffres manquants</p>
             )}
-            {form.siret.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">Requis pour tes devis PDF</p>
+            {!siretFound && form.siret.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">Requis pour tes devis PDF · auto-remplissage depuis SIRENE</p>
             )}
           </div>
           <div>
@@ -376,6 +423,13 @@ function SubscriptionCard() {
   const { subscriptionStatus, trialDaysLeft, profile } = useAuth()
   const [showModal, setShowModal] = useState(false)
 
+  useEffect(() => {
+    if (subscriptionStatus === 'trial' && trialDaysLeft > 0) {
+      document.title = `DevisPro · Essai J-${trialDaysLeft}`
+    }
+    return () => { document.title = 'DevisPro' }
+  }, [subscriptionStatus, trialDaysLeft])
+
   if (subscriptionStatus === 'active') {
     const plan = profile?.subscription_plan === 'essentiel' ? 'Essentiel' : 'Pro'
     return (
@@ -383,7 +437,7 @@ function SubscriptionCard() {
         <Check size={18} color="#059669" strokeWidth={2.5} style={{ flexShrink: 0 }} />
         <div>
           <p style={{ fontSize: 14, fontWeight: 600, color: '#065F46', margin: '0 0 2px' }}>Abonnement {plan} actif</p>
-          <p style={{ fontSize: 12, color: '#059669', margin: 0 }}>Merci de faire confiance à Devisly !</p>
+          <p style={{ fontSize: 12, color: '#059669', margin: 0 }}>Merci de faire confiance à Devira !</p>
         </div>
       </div>
     )
@@ -415,7 +469,7 @@ function SubscriptionCard() {
           Essai gratuit — {trialDaysLeft} jour{trialDaysLeft > 1 ? 's' : ''} restant{trialDaysLeft > 1 ? 's' : ''}
         </p>
         <div style={{ height: 6, background: 'rgba(0,0,0,0.08)', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
-          <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${Math.max(2, (trialDaysLeft / 14) * 100)}%`, background: urgent ? '#E87722' : '#0EA5E9' }} />
+          <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${Math.max(2, (trialDaysLeft / 21) * 100)}%`, background: urgent ? '#E87722' : '#0EA5E9' }} />
         </div>
         <p style={{ fontSize: 12, color: urgent ? '#EA580C' : '#0284C7', margin: '0 0 12px' }}>
           Génération IA · PDF · Email · Clients · Factures

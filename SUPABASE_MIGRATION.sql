@@ -134,3 +134,39 @@ SELECT 'Migration DevisPro BTP V4 réussie ! (Avenants + Photos + Relances + Val
 -- ============================================================
 -- V5 : Mentions legales PDF + Email entreprise
 -- ============================================================
+
+-- ============================================================
+-- V6 : Sécurité — RLS quotes + sign_token + unicité numéros
+-- IMPORTANT : À exécuter dans Supabase → SQL Editor → Run
+-- ============================================================
+
+-- RLS pour la table quotes (manquait dans les migrations précédentes)
+ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users see own quotes" ON quotes;
+CREATE POLICY "Users see own quotes" ON quotes FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Token UUID opaque pour les liens de signature (non-devinable, remplace l'URL séquentielle)
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS sign_token UUID DEFAULT gen_random_uuid();
+CREATE UNIQUE INDEX IF NOT EXISTS idx_quotes_sign_token ON quotes(sign_token);
+
+-- Contrainte unicité numéro de devis par utilisateur (évite les doublons en race condition)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'quotes_user_quote_number_unique') THEN
+    ALTER TABLE quotes ADD CONSTRAINT quotes_user_quote_number_unique UNIQUE (user_id, quote_number);
+  END IF;
+END $$;
+
+-- Contrainte unicité numéro de facture par utilisateur
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoices_user_invoice_number_unique') THEN
+    ALTER TABLE invoices ADD CONSTRAINT invoices_user_invoice_number_unique UNIQUE (user_id, invoice_number);
+  END IF;
+END $$;
+
+-- Supprimer la lecture publique non authentifiée des photos de chantier
+-- (les URLs publiques du bucket restent accessibles via Supabase Storage directement)
+DROP POLICY IF EXISTS "Public read quote photos" ON storage.objects;
+
+SELECT 'Migration DevisPro BTP V6 réussie ! (RLS quotes + sign_token + unicité numéros)' as message;

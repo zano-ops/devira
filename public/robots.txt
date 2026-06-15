@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /nouveau-devis
+Disallow: /devis/
+Disallow: /clients
+Disallow: /factures
+Disallow: /parametres
+Disallow: /catalogue
+Disallow: /onboarding
+Disallow: /auth/
+
+Sitemap: https://devira.fr/sitemap.xml

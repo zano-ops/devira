@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { SUPABASE_URL } from '../lib/supabase'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 
 interface PublicQuoteData {
   quote_number: string
@@ -163,7 +163,7 @@ export default function PublicDevis() {
     try {
       const param = id ? `quote_id=${id}` : `quote_number=${encodeURIComponent(quoteNumber!)}`
       const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-quote?${param}`, {
-        headers: { 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' }
+        headers: { 'apikey': SUPABASE_ANON_KEY }
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error || 'Devis introuvable')
@@ -182,7 +182,7 @@ export default function PublicDevis() {
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-quote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' },
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
         body: JSON.stringify({
           quote_id: resolvedId || id,
           quote_number: quoteNumber,
@@ -545,7 +545,7 @@ export default function PublicDevis() {
 
         {/* Footer confiance */}
         <div className="text-center pb-4">
-          <p className="text-gray-300 text-xs">🔒 Signature horodatée · Sécurisée par Devisly</p>
+          <p className="text-gray-300 text-xs">🔒 Signature horodatée · Sécurisée par Devira</p>
         </div>
       </div>
     </div>

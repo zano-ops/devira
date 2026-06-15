@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom'
-import { DevislyIcon } from '../components/DevislyLogo'
+﻿import { useNavigate } from 'react-router-dom'
+import { DeviraIcon } from '../components/DeviraLogo'
 
 export default function NotFound() {
   const navigate = useNavigate()
@@ -12,7 +12,7 @@ export default function NotFound() {
       padding: '40px 24px', textAlign: 'center',
       fontFamily: 'Inter, system-ui, sans-serif',
     }}>
-      <DevislyIcon size={48} />
+      <DeviraIcon size={48} />
       <div style={{ fontSize: 72, fontWeight: 900, color: 'rgba(255,255,255,0.12)', margin: '16px 0 0', letterSpacing: '-0.05em' }}>
         404
       </div>

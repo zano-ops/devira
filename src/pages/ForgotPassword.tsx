@@ -1,9 +1,9 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../components/Toast'
-import { DevislyIcon } from '../components/DevislyLogo'
+import { DeviraIcon } from '../components/DeviraLogo'
 
 export default function ForgotPassword() {
   const { showToast, ToastContainer } = useToast()
@@ -32,9 +32,9 @@ export default function ForgotPassword() {
 
       <div className="flex flex-col items-center mb-10 animate-fade-in">
         <div className="mb-3" style={{ filter: 'drop-shadow(0 8px 24px rgba(244,164,53,0.35))' }}>
-          <DevislyIcon size={80} />
+          <DeviraIcon size={80} />
         </div>
-        <h1 className="text-white text-2xl font-bold">devisly</h1>
+        <h1 className="text-white text-2xl font-bold">devira</h1>
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-3xl p-7 animate-slide-up" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>

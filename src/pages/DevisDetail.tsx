@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { supabase, SUPABASE_URL } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import type { Quote, QuoteLine } from '../types'
 import { QuotePreview } from '../components/QuotePreview'
@@ -10,11 +10,15 @@ import { downloadQuotePdf, getQuotePdfBase64 } from '../lib/generatePdf'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
 function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR') }
+function escapeHtml(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
 const TVA_OPTIONS = [
-  { value: 5.5,  label: '5,5%' },
-  { value: 10,   label: '10%' },
-  { value: 20,   label: '20%' },
+  { value: 0,    label: '0% — Micro-entrepreneur' },
+  { value: 5.5,  label: '5,5% — Travaux énergétiques' },
+  { value: 10,   label: '10% — Rénovation' },
+  { value: 20,   label: '20% — Neuf / autre' },
 ]
 
 function recalc(lignes: QuoteLine[], globalTva: number, discount: number) {
@@ -56,6 +60,10 @@ export default function DevisDetail() {
   const [showSignModal, setShowSignModal] = useState(false)
   const [showAvenantModal, setShowAvenantModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [showSmsModal, setShowSmsModal] = useState(false)
+  const [sendSmsPhone, setSendSmsPhone] = useState('')
+  const [sendingSms, setSendingSms] = useState(false)
+  const [yousignLoading, setYousignLoading] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [showRelanceModal, setShowRelanceModal] = useState(false)
 
@@ -173,33 +181,89 @@ export default function DevisDetail() {
     })
   }
 
+  // ── SMS ──
+  const handleSendSms = async () => {
+    if (!quote || !sendSmsPhone) return
+    setSendingSms(true)
+    try {
+      const phone = sendSmsPhone.replace(/\s/g, '').replace(/^0/, '+33')
+      const signUrl = `${window.location.origin}/sign/${quote.id}`
+      const clientFirst = quote.client_name?.split(' ')[0] || ''
+      const msg = `Bonjour${clientFirst ? ' ' + clientFirst : ''}, votre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Consultez-le ici : ${signUrl}\n\nCordialement, ${profile?.company_name || ''}`
+      const { data: { session: freshSession } } = await supabase.auth.getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ phone, message: msg }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error)
+      showToast(`SMS envoyé à ${phone} ✓`)
+      setShowSmsModal(false)
+    } catch { showToast('Erreur envoi SMS — vérifiez votre numéro', 'error') }
+    setSendingSms(false)
+  }
+
+  // ── YOUSIGN ──
+  const handleYousign = async () => {
+    if (!quote || !profile) return
+    setYousignLoading(true)
+    try {
+      const pdf_base64 = await getQuotePdfBase64(quote, profile)
+      const { data: { session: freshSession } } = await supabase.auth.getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-yousign-signature`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({
+          quote_id: quote.id,
+          pdf_base64,
+          signer_email: quote.client_email || sendEmail,
+          signer_name: quote.client_name || 'Client',
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error || 'Erreur Yousign')
+      window.open(data.signature_url, '_blank')
+      showToast('Lien de signature Yousign créé ✓')
+      setShowSignModal(false)
+    } catch (err: any) {
+      const msg = err?.message || ''
+      if (msg.includes('YOUSIGN_API_KEY')) {
+        showToast('Clé Yousign manquante — configurez YOUSIGN_API_KEY dans Supabase', 'error')
+      } else {
+        showToast('Erreur Yousign : ' + msg, 'error')
+      }
+    }
+    setYousignLoading(false)
+  }
+
   // ── RELANCE MANUELLE ──
   const handleRelanceMaintenant = async () => {
     if (!quote || !profile) return
-    if (!quote.client_email) { showToast('Pas d\'email client — ajoute-le d\'abord', 'error'); return }
+    if (!sendEmail) { showToast('Pas d\'email — renseigne-le dans le champ destinataire', 'error'); return }
     setSending(true)
     try {
       const daysSince = Math.floor((Date.now() - new Date(quote.sent_at || quote.created_at).getTime()) / 86400000)
-      const subject = `Relance devis ${quote.quote_number} — ${profile.company_name}`
+      const subject = `Relance devis ${escapeHtml(quote.quote_number)} — ${escapeHtml(profile.company_name)}`
       const html = `<div style="font-family:Arial,sans-serif;max-width:600px">
-        <div style="background:#1E3A5F;padding:24px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">${profile.company_name}</h2></div>
+        <div style="background:#1E3A5F;padding:24px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">${escapeHtml(profile.company_name)}</h2></div>
         <div style="background:#f9f9f9;padding:24px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
           <p>Bonjour,</p>
-          <p>Je me permets de revenir vers vous concernant le devis <strong>${quote.quote_number}</strong> de <strong>${quote.total_ttc.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € TTC</strong>${daysSince > 0 ? ` transmis il y a ${daysSince} jour${daysSince > 1 ? 's' : ''}` : ''}.</p>
+          <p>Je me permets de revenir vers vous concernant le devis <strong>${escapeHtml(quote.quote_number)}</strong> de <strong>${quote.total_ttc.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € TTC</strong>${daysSince > 0 ? ` transmis il y a ${daysSince} jour${daysSince > 1 ? 's' : ''}` : ''}.</p>
           <p>Avez-vous pu en prendre connaissance ? Je reste disponible pour toute question ou ajustement.</p>
-          <p>Cordialement,<br><strong>${profile.owner_name || profile.company_name}</strong></p>
+          <p>Cordialement,<br><strong>${escapeHtml(profile.owner_name || profile.company_name)}</strong></p>
         </div></div>`
 
       const { data: { session: freshSession } } = await supabase.auth.getSession()
       const res = await fetch(`${SUPABASE_URL}/functions/v1/send-quote-email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' },
-        body: JSON.stringify({ quote_id: quote.id, client_email: quote.client_email, html_body: html, subject, user_id: user!.id }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ quote_id: quote.id, client_email: sendEmail, html_body: html, subject, user_id: user!.id }),
       })
       const data = await res.json()
       if (data.success) {
         await supabase.from('quotes').update({ relance_count: (quote.relance_count || 0) + 1, last_relance_at: new Date().toISOString() }).eq('id', id)
-        showToast(`Relance envoyée à ${quote.client_email} ✓`)
+        showToast(`Relance envoyée à ${sendEmail} ✓`)
         fetchQuote()
       } else { showToast('Erreur envoi relance', 'error') }
     } catch { showToast('Erreur envoi relance', 'error') }
@@ -306,12 +370,19 @@ export default function DevisDetail() {
 
   const handleCopySignLink = async () => {
     if (!quote) return
+    const hasNonZeroLine = quote.quote_json.lignes.some(l => !l.isSection && l.prix_unitaire_ht > 0)
+    if (!hasNonZeroLine) {
+      showToast('Le devis n\'a aucune ligne avec un prix — remplis le devis avant d\'envoyer en signature', 'error')
+      return
+    }
+    const signUrl = `${window.location.origin}/sign/${quote.id}`
     if (quote.status === 'draft') {
       await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', id)
       fetchQuote()
+      navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien copié — statut mis à jour en "Envoyé"'))
+    } else {
+      navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien de signature copié !'))
     }
-    const signUrl = `${window.location.origin}/signer/${quote.quote_number}`
-    navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien de signature copié !'))
     setShowSignModal(false)
   }
 
@@ -322,13 +393,22 @@ export default function DevisDetail() {
 
   const handleSendEmail = async () => {
     if (!quote || !sendEmail) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sendEmail)) {
+      showToast('Format d\'email invalide', 'error')
+      return
+    }
+    const hasNonZeroLine = quote.quote_json.lignes.some(l => !l.isSection && l.prix_unitaire_ht > 0)
+    if (!hasNonZeroLine) {
+      showToast('Le devis n\'a aucune ligne avec un prix — remplis le devis avant d\'envoyer', 'error')
+      return
+    }
     setSending(true)
     try {
       const pdf_base64 = await getQuotePdfBase64(quote, profile!)
       const { data: { session: freshSession } } = await supabase.auth.getSession()
       const res = await fetch(`${SUPABASE_URL}/functions/v1/send-quote-email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshSession?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
         body: JSON.stringify({ quote_id: quote.id, client_email: sendEmail, pdf_base64, user_id: user!.id }),
       })
       const data = await res.json()
@@ -411,7 +491,14 @@ export default function DevisDetail() {
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
-  if (!quote || !profile) return null
+  if (!quote) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-center px-6">
+      <span className="text-4xl">🔍</span>
+      <p className="text-gray-700 font-semibold">Devis introuvable</p>
+      <button onClick={() => navigate('/dashboard')} className="text-primary text-sm underline">← Retour au tableau de bord</button>
+    </div>
+  )
+  if (!profile) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
 
   const calc = editData ? recalc(editData.lignes, editData.taux_tva, discount) : null
   const isSigned = !!quote.quote_json?.signature
@@ -428,7 +515,7 @@ export default function DevisDetail() {
       {/* ── HEADER ── */}
       <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-3 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/dashboard')} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
+          <button onClick={() => navigate('/dashboard')} aria-label="Retour au tableau de bord" className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono text-xs text-gray-400 shrink-0">{quote.quote_number}</span>
@@ -450,7 +537,7 @@ export default function DevisDetail() {
               ✏️ Modifier
             </button>
           )}
-          <button onClick={() => setShowStatusMenu(!showStatusMenu)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">⋮</button>
+          <button onClick={() => setShowStatusMenu(!showStatusMenu)} aria-label="Menu actions" className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">⋮</button>
         </div>
       </div>
 
@@ -516,6 +603,7 @@ export default function DevisDetail() {
                     )
                   }))
                 }} className="input-field mt-1">
+                  <option value={0}>0% — Micro-entrepreneur</option>
                   <option value={5.5}>5,5% — Énergétique</option>
                   <option value={10}>10% — Rénovation</option>
                   <option value={20}>20% — Neuf</option>
@@ -523,7 +611,7 @@ export default function DevisDetail() {
               </div>
               <div className="flex-1">
                 <label className="text-xs text-gray-500 font-medium">Remise (%)</label>
-                <input type="number" value={discount} onChange={e => setDiscount(parseFloat(e.target.value) || 0)} className="input-field mt-1" min="0" max="100" />
+                <input type="number" value={discount} onChange={e => setDiscount(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))} className="input-field mt-1" min="0" max="100" />
               </div>
             </div>
           </EditSection>
@@ -623,7 +711,7 @@ export default function DevisDetail() {
                       </div>
                     </div>
                     <div className="flex justify-between items-center mt-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${lineTva === 5.5 ? 'bg-green-100 text-green-700' : lineTva === 10 ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>TVA {lineTva}%</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${lineTva === 0 ? 'bg-gray-100 text-gray-500' : lineTva === 5.5 ? 'bg-green-100 text-green-700' : lineTva === 10 ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{lineTva === 0 ? 'TVA non applicable' : `TVA ${lineTva}%`}</span>
                       <span className="text-sm font-bold text-primary">{fmt(l.quantite * l.prix_unitaire_ht)}</span>
                     </div>
                   </div>
@@ -770,20 +858,29 @@ export default function DevisDetail() {
             </button>
 
             <button
-              onClick={() => {
-                const signUrl = `${window.location.origin}/signer/${quote.quote_number}`
-                const clientFirst = quote.client_name?.split(' ')[0] || ''
-                const clientRawPhone = (quote.quote_json.client as any)?.phone || ''
-                const waPhone = clientRawPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
-                const msg = encodeURIComponent(
-                  `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
-                )
-                window.open(`https://wa.me/${waPhone}?text=${msg}`, '_blank')
-              }}
-              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50 active:scale-95 transition-transform"
+              onClick={() => { setSendSmsPhone((quote.quote_json.client as any)?.phone || ''); setShowSmsModal(true) }}
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-blue-200 text-blue-700 bg-blue-50 active:scale-95 transition-transform"
             >
-              <span>💬</span> Envoyer sur WhatsApp
+              <span>📱</span> Envoyer par SMS
             </button>
+
+            {(quote.quote_json.client as any)?.phone && (
+              <button
+                onClick={() => {
+                  const signUrl = `${window.location.origin}/sign/${quote.id}`
+                  const clientFirst = quote.client_name?.split(' ')[0] || ''
+                  const clientRawPhone = (quote.quote_json.client as any)?.phone || ''
+                  const waPhone = clientRawPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
+                  const msg = encodeURIComponent(
+                    `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
+                  )
+                  window.open(`https://wa.me/${waPhone}?text=${msg}`, '_blank')
+                }}
+                className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50 active:scale-95 transition-transform"
+              >
+                <span>💬</span> Envoyer sur WhatsApp
+              </button>
+            )}
 
             {quote.status === 'sent' && (
               <button onClick={() => setShowRelanceModal(true)} disabled={sending} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-orange-200 text-orange-600 bg-orange-50">
@@ -941,10 +1038,43 @@ export default function DevisDetail() {
                 </div>
               ))}
             </div>
-            <button onClick={handleCopySignLink} className="w-full py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}>
-              📋 Copier le lien de signature
+            <button
+              onClick={handleYousign}
+              disabled={yousignLoading}
+              className="w-full py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 mb-2"
+              style={{ background: yousignLoading ? '#9CA3AF' : 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
+            >
+              {yousignLoading ? '⏳ Création…' : '⚖️ Signature légale Yousign (eIDAS)'}
+            </button>
+            <button onClick={handleCopySignLink} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50">
+              📋 Copier le lien (signature simple)
             </button>
             <button onClick={() => setShowSignModal(false)} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL SMS ── */}
+      {showSmsModal && (
+        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSmsModal(false)}>
+          <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="text-gray-900 font-bold text-lg mb-1">📱 Envoyer par SMS</h3>
+            <p className="text-gray-400 text-sm mb-4">Le client reçoit un lien pour consulter et signer son devis</p>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Numéro de téléphone</label>
+            <input
+              type="tel"
+              value={sendSmsPhone}
+              onChange={e => setSendSmsPhone(e.target.value)}
+              placeholder="+33 6 00 00 00 00"
+              className="input-field mt-2 mb-4"
+              autoFocus
+              disabled={sendingSms}
+            />
+            <button onClick={handleSendSms} disabled={!sendSmsPhone || sendingSms} className="btn-accent">
+              {sendingSms ? '⏳ Envoi en cours…' : '📱 Envoyer le SMS'}
+            </button>
+            <button onClick={() => setShowSmsModal(false)} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
           </div>
         </div>
       )}

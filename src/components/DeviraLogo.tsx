@@ -1,9 +1,9 @@
-interface IconProps {
+﻿interface IconProps {
   size?: number
   className?: string
 }
 
-export function DevislyIcon({ size = 40, className = '' }: IconProps) {
+export function DeviraIcon({ size = 40, className = '' }: IconProps) {
   return (
     <svg
       width={size}
@@ -33,11 +33,11 @@ interface LogoProps {
   className?: string
 }
 
-export function DevislyLogo({ size = 36, variant = 'dark', className = '' }: LogoProps) {
+export function DeviraLogo({ size = 36, variant = 'dark', className = '' }: LogoProps) {
   const textColor = variant === 'white' ? 'white' : '#1E3A5F'
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <DevislyIcon size={size} />
+      <DeviraIcon size={size} />
       <span
         style={{
           fontFamily: 'Inter, system-ui, sans-serif',
@@ -48,7 +48,7 @@ export function DevislyLogo({ size = 36, variant = 'dark', className = '' }: Log
           lineHeight: 1,
         }}
       >
-        devisly
+        devira
       </span>
     </div>
   )

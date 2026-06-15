@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FileEdit, Mic, Users } from 'lucide-react'
+import { FileEdit, Mic, Users, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -38,7 +38,7 @@ export default function NouveauDevis() {
   const { user, profile, isTrialExpired, canCreateQuote } = useAuth()
   const { showToast, ToastContainer } = useToast()
 
-  const [step, setStep] = useState<Step>('client')
+  const [step, setStep] = useState<Step>('describe')
   const [description, setDescription] = useState('')
   const [micState, setMicState] = useState<MicState>('idle')
   const [generating, setGenerating] = useState(false)
@@ -57,6 +57,7 @@ export default function NouveauDevis() {
   const [interimText, setInterimText] = useState('')
 
   const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const recognitionRef = useRef<any>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -272,6 +273,15 @@ export default function NouveauDevis() {
       })
 
       if (!res.ok) {
+        if (res.status === 403) {
+          const errData = await res.json().catch(() => ({}))
+          if (errData.error === 'quota_exceeded') {
+            setGenerating(false)
+            setShowUpgradeModal(true)
+            return
+          }
+          throw new Error('Session expirée — déconnecte-toi et reconnecte-toi')
+        }
         const text = await res.text()
         throw new Error(`HTTP ${res.status}: ${text}`)
       }
@@ -309,7 +319,7 @@ export default function NouveauDevis() {
       navigate(`/devis/${data.quote_id}`, { state: { autoEdit: true } })
     } catch (err: any) {
       console.error('Erreur génération:', err)
-      const msg = err.message?.includes('401') || err.message?.includes('403')
+      const msg = err.message?.includes('401') || err.message?.includes('Session expirée')
         ? 'Session expirée — déconnecte-toi et reconnecte-toi'
         : err.message?.includes('500')
         ? 'Erreur serveur — vérifie ta clé ANTHROPIC_API_KEY dans Supabase'
@@ -325,11 +335,11 @@ export default function NouveauDevis() {
 
   if (generating) return <LoadingOverlay />
 
-  if (isTrialExpired) {
+  if (isTrialExpired || showUpgradeModal) {
     return (
       <UpgradeModal
-        reason="trial_expired"
-        onClose={() => navigate('/dashboard')}
+        reason={isTrialExpired ? 'trial_expired' : 'limit_reached'}
+        onClose={() => { setShowUpgradeModal(false); navigate('/dashboard') }}
       />
     )
   }
@@ -350,21 +360,44 @@ export default function NouveauDevis() {
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-12 pb-4 border-b border-gray-100 bg-white sticky top-0 z-20">
-        <button onClick={() => step === 'describe' ? setStep('client') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
+        <button onClick={() => step === 'client' ? setStep('describe') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
         <div className="flex-1">
           <h1 className="text-gray-900 font-bold text-lg leading-none">Nouveau devis</h1>
           <div className="flex items-center gap-1 mt-1.5">
             <div className="h-1.5 w-14 rounded-full bg-primary" />
-            <div className={`h-1.5 w-14 rounded-full transition-all ${step === 'describe' ? 'bg-primary' : 'bg-gray-200'}`} />
+            <div className={`h-1.5 w-14 rounded-full transition-all ${step === 'client' ? 'bg-primary' : 'bg-gray-200'}`} />
           </div>
         </div>
         <div className="text-xs text-gray-400 font-medium">
-          {step === 'client' ? 'Étape 1/2' : 'Étape 2/2'}
+          {step === 'describe' ? 'Étape 1/2' : 'Client (optionnel)'}
         </div>
       </div>
 
+      {/* Profil incomplet — avertissement dès l'entrée */}
+      {(!profile?.company_name || !profile?.owner_name || !profile?.siret) && (
+        <div className="mx-4 mt-4 bg-orange-50 border border-orange-200 rounded-2xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={20} className="text-orange-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-orange-900 font-semibold text-sm mb-1">Complétez votre profil avant de générer</p>
+              <p className="text-orange-700 text-xs mb-3 leading-relaxed">
+                Le SIRET est obligatoire sur tout devis français.{' '}
+                Manquant{[!profile?.company_name, !profile?.owner_name, !profile?.siret].filter(Boolean).length > 1 ? 's' : ''} :{' '}
+                {[!profile?.company_name && 'nom entreprise', !profile?.owner_name && 'votre nom', !profile?.siret && 'SIRET'].filter(Boolean).join(', ')}.
+              </p>
+              <button
+                onClick={() => navigate('/parametres')}
+                className="bg-orange-500 text-white text-xs font-bold px-4 py-2 rounded-xl"
+              >
+                Compléter mon profil — 2 min
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Banner de reprise de brouillon */}
-      {draftBanner && step === 'client' && !description && (
+      {draftBanner && step === 'describe' && !description && (
         <div className="mx-4 mt-4 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <div className="flex items-start gap-3">
             <FileEdit size={22} className="text-amber-500 shrink-0 mt-0.5" />
@@ -602,23 +635,43 @@ export default function NouveauDevis() {
 
       {/* CTA sticky */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 px-5 py-4 z-20">
-        {step === 'client' ? (
-          <button onClick={() => setStep('describe')} className="btn-primary">
-            Suivant →
-          </button>
+        {step === 'describe' ? (
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className="btn-accent"
+              style={!canGenerate ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+            >
+              {canGenerate ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span>⚡</span> Créer mon devis →
+                </span>
+              ) : `Encore ${20 - charCount} caractères min`}
+            </button>
+            {canGenerate && (
+              <button
+                onClick={() => setStep('client')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#94A3B8', padding: '2px 0', textAlign: 'center' }}
+              >
+                Ajouter les infos client (optionnel) ›
+              </button>
+            )}
+          </div>
         ) : (
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className="btn-accent"
-            style={!canGenerate ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-          >
-            {canGenerate ? (
+          <div className="flex flex-col gap-2">
+            <button onClick={handleGenerate} className="btn-accent">
               <span className="flex items-center justify-center gap-2">
-                <span>⚡</span> Créer mon devis →
+                <span>⚡</span> Générer le devis →
               </span>
-            ) : `Encore ${20 - charCount} caractères min`}
-          </button>
+            </button>
+            <button
+              onClick={() => setStep('describe')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#94A3B8', padding: '2px 0', textAlign: 'center' }}
+            >
+              ← Modifier la description
+            </button>
+          </div>
         )}
       </div>
     </div>

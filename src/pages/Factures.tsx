@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -84,19 +84,29 @@ export default function Factures() {
     const rows: string[] = [cols.join('|')]
     let lineNum = 1
 
+    const tvaCompteOf = (r: number) => r <= 5.5 ? '445710' : r <= 10 ? '445711' : '445712'
+    const tvaLibelOf = (r: number) => r <= 5.5 ? 'TVA collectée 5,5%' : r <= 10 ? 'TVA collectée 10%' : 'TVA collectée 20%'
+
     paid.forEach(inv => {
       const d = fmtD(inv.paid_at || inv.created_at)
       const ref = inv.invoice_number
       const clientNum = `411-${ref}`.slice(0, 20)
       const clientLib = (inv.client_name || 'Client').slice(0, 99)
-      const ht = inv.total_ht
       const ttc = inv.total_ttc
-      const tva = parseFloat((ttc - ht).toFixed(2))
+      const ht = inv.total_ht
 
-      // Déterminer le compte TVA selon le taux
-      const tvaRate = inv.invoice_json?.taux_tva ?? 10
-      const tvaCompte = tvaRate <= 5.5 ? '445710' : tvaRate <= 10 ? '445711' : '445712'
-      const tvaLibel = tvaRate <= 5.5 ? 'TVA collectée 5,5%' : tvaRate <= 10 ? 'TVA collectée 10%' : 'TVA collectée 20%'
+      // Ventilation TVA par taux depuis les lignes
+      const realLines = ((inv.invoice_json as any)?.lignes || []).filter((l: any) => !l.isSection)
+      const globalTvaRate = (inv.invoice_json as any)?.taux_tva ?? 10
+      const tvaByRateMap: Record<number, number> = {}
+      realLines.forEach((l: any) => {
+        const rate = l.tva_rate ?? globalTvaRate
+        const lineHt = l.total_ht || 0
+        tvaByRateMap[rate] = parseFloat(((tvaByRateMap[rate] || 0) + lineHt * rate / 100).toFixed(2))
+      })
+      if (!Object.keys(tvaByRateMap).length) {
+        tvaByRateMap[globalTvaRate] = parseFloat((ttc - ht).toFixed(2))
+      }
 
       const n = String(lineNum++).padStart(6, '0')
       const lib = `FAC ${ref} ${clientLib}`.slice(0, 99)
@@ -105,10 +115,14 @@ export default function Factures() {
       rows.push(row(`VTE-${n}-1`, d, '411000', 'Clients', clientNum, clientLib, ref, d, lib, fmtAmt(ttc), '0,00'))
       // Crédit Produit (706100 = Prestations de services BTP)
       rows.push(row(`VTE-${n}-2`, d, '706100', 'Prestations de services BTP', '', '', ref, d, lib, '0,00', fmtAmt(ht)))
-      // Crédit TVA collectée
-      if (tva > 0) {
-        rows.push(row(`VTE-${n}-3`, d, tvaCompte, tvaLibel, '', '', ref, d, lib, '0,00', fmtAmt(tva)))
-      }
+      // Crédit TVA collectée — ventilé par taux
+      let tvaSub = 3
+      Object.entries(tvaByRateMap).sort(([a], [b]) => parseFloat(a) - parseFloat(b)).forEach(([rStr, tvaAmt]) => {
+        const rate = parseFloat(rStr)
+        if (tvaAmt > 0) {
+          rows.push(row(`VTE-${n}-${tvaSub++}`, d, tvaCompteOf(rate), tvaLibelOf(rate), '', '', ref, d, lib, '0,00', fmtAmt(tvaAmt)))
+        }
+      })
     })
 
     const content = rows.join('\r\n')
@@ -117,7 +131,7 @@ export default function Factures() {
     const a = document.createElement('a')
     const year = new Date().getFullYear()
     a.href = url
-    a.download = `FEC_${year}_Devisly.txt`
+    a.download = `FEC_${year}_Devira.txt`
     a.click()
     URL.revokeObjectURL(url)
     showToast(`FEC exporté — ${paid.length} facture(s) ✓`)

@@ -54,16 +54,16 @@ export default function CGV() {
           <p style={{ marginTop: 8 }}>Contact : <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a></p>
         </Section>
 
-        <Section title="Article 3 — Accès au Service et essai gratuit">
-          <p>Devira propose un accès gratuit de <strong>7 jours</strong> à l'ensemble des fonctionnalités, sans carte bancaire requise. À l'issue de cette période d'essai, la poursuite de l'utilisation du Service est conditionnée à la souscription d'un abonnement payant.</p>
+        <Section title="Article 3 — Accès au Service et devis d'essai">
+          <p>Devira permet la création d'<strong>un devis gratuit</strong> dès l'inscription, sans carte bancaire requise. Ce devis d'essai vous permet d'évaluer concrètement les fonctionnalités de génération IA. Au-delà de ce premier devis, la poursuite de l'utilisation du Service est conditionnée à la souscription d'un abonnement payant.</p>
           <p style={{ marginTop: 10 }}>Pour accéder au Service, vous devez créer un compte en fournissant une adresse email valide et un mot de passe. Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée depuis votre compte.</p>
         </Section>
 
         <Section title="Article 4 — Abonnements et tarifs">
           <p>Les offres disponibles sont les suivantes :</p>
           <ul style={{ marginTop: 10, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <li><strong>Essentiel — 29 € HT/mois</strong> : 15 devis par mois, génération IA, PDF professionnel, envoi par email, relances automatiques, support email.</li>
-            <li><strong>Pro — 79 € HT/mois</strong> : devis illimités, signature électronique, catalogue de prestations avec import IA, facturation intégrée, export comptable (FEC), support prioritaire.</li>
+            <li><strong>Essentiel — 29,81 € TTC/mois</strong> : 20 devis par mois, génération IA par voix ou texte, PDF professionnel, envoi par email, signature électronique en ligne, support email.</li>
+            <li><strong>Pro — 79,48 € TTC/mois</strong> : devis illimités, relances automatiques (J+7, J+14, J+21), catalogue de prestations avec import IA, facturation intégrée, photos chantier dans les PDF, export comptable (FEC), support prioritaire &lt; 24h.</li>
           </ul>
           <p style={{ marginTop: 12 }}>Les prix sont indiqués hors taxes. La TVA applicable est celle en vigueur à la date de facturation. Devira se réserve le droit de modifier ses tarifs avec un préavis de 30 jours. Les abonnements en cours ne sont pas affectés jusqu'à leur prochaine échéance.</p>
         </Section>
@@ -74,8 +74,8 @@ export default function CGV() {
         </Section>
 
         <Section title="Article 6 — Politique de remboursement">
-          <p>Devira offre une <strong>garantie satisfait ou remboursé de 7 jours</strong> à compter du premier prélèvement. Pour en bénéficier, envoyez simplement un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> en indiquant votre demande de remboursement. Le remboursement sera effectué sous 5 à 10 jours ouvrés sur votre moyen de paiement d'origine.</p>
-          <p style={{ marginTop: 10 }}>Au-delà de cette période de 7 jours, aucun remboursement partiel ou proratisé ne pourra être accordé pour la période d'abonnement en cours.</p>
+          <p>Devira offre une <strong>garantie satisfait ou remboursé de 14 jours</strong> à compter du premier prélèvement. Pour en bénéficier, envoyez simplement un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> en indiquant votre demande de remboursement. Le remboursement sera effectué sous 5 à 10 jours ouvrés sur votre moyen de paiement d'origine.</p>
+          <p style={{ marginTop: 10 }}>Au-delà de cette période de 14 jours, aucun remboursement partiel ou proratisé ne pourra être accordé pour la période d'abonnement en cours.</p>
         </Section>
 
         <Section title="Article 7 — Résiliation">

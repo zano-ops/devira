@@ -1,4 +1,4 @@
-import type { Quote, Profile } from '../types'
+﻿import type { Quote, Profile } from '../types'
 
 function fmt(n: number) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
@@ -183,10 +183,20 @@ export function QuotePreview({ quote, profile }: Props) {
               {tvaRates.length > 1 ? (
                 tvaRates.map(rate => (
                   <tr key={rate}>
-                    <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>TVA {rate}%</td>
-                    <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>{fmt(tvaByRate[rate])}</td>
+                    <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>
+                      {rate === 0 ? 'TVA non applicable (art. 293B CGI)' : `TVA ${rate}%`}
+                    </td>
+                    <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: '600', borderBottom: '1px solid #f0f0f0' }}>
+                      {rate === 0 ? '—' : fmt(tvaByRate[rate])}
+                    </td>
                   </tr>
                 ))
+              ) : q.taux_tva === 0 ? (
+                <tr>
+                  <td colSpan={2} style={{ padding: '5px 10px', color: '#666', fontStyle: 'italic', fontSize: '10px', borderBottom: '1px solid #f0f0f0' }}>
+                    TVA non applicable — art. 293B du CGI
+                  </td>
+                </tr>
               ) : (
                 <tr>
                   <td style={{ padding: '5px 10px', color: '#666', borderBottom: '1px solid #f0f0f0' }}>Total TVA ({q.taux_tva}%)</td>
@@ -250,9 +260,14 @@ export function QuotePreview({ quote, profile }: Props) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: '700', color: '#1E3A5F', marginBottom: '3px', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.5px' }}>Mentions légales</div>
-          {tvaRates.length > 1 ? tvaRates.map(r => <div key={r}>TVA {r}%</div>) : <div>TVA : {q.taux_tva}%</div>}
+          {tvaRates.length > 1
+            ? tvaRates.map(r => <div key={r}>{r === 0 ? 'TVA non applicable' : `TVA ${r}%`}</div>)
+            : q.taux_tva === 0
+              ? <div style={{ fontStyle: 'italic' }}>TVA non applicable — art. 293B CGI</div>
+              : <div>TVA : {q.taux_tva}%</div>
+          }
           <div>Devis valable {validite} jours</div>
-          <div>Généré avec Devisly</div>
+          <div>Généré avec Devira</div>
         </div>
       </div>
 

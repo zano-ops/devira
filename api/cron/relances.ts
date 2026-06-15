@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://osvwlgchubgtklyonqpv.supabase.co'
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
@@ -85,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <p>Si vous avez des questions ou souhaitez modifier certains points, n'hésitez pas à nous contacter.</p>
             <p style="margin-top:24px">Cordialement,<br><strong>${profile.company_name}</strong><br>${profile.phone || ''}</p>
             <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb"/>
-            <p style="color:#9ca3af;font-size:12px">Généré automatiquement par Devisly</p>
+            <p style="color:#9ca3af;font-size:12px">Généré automatiquement par Devira</p>
           </div>
         `
 

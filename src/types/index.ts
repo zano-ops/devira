@@ -27,6 +27,10 @@ export interface Profile {
   subscription_plan?: 'essentiel' | 'pro' | 'equipe' | null
   quotes_this_month?: number
   quotes_reset_at?: string
+  // Lifecycle emails
+  welcome_email_sent?: boolean
+  nudge_j3_sent?: boolean
+  expiry_warning_sent?: boolean
   created_at: string
 }
 

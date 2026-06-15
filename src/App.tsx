@@ -20,6 +20,7 @@ const Landing = lazy(() => import('./pages/Landing'))
 const CGV = lazy(() => import('./pages/CGV'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const AuthCallback = lazy(() => import('./pages/AuthCallback'))
 
 function LoadingScreen() {
   return (
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/cgv" element={<CGV />} />
         <Route path="/confidentialite" element={<PrivacyPolicy />} />
 

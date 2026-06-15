@@ -1,6 +1,6 @@
-import { Component } from 'react'
+﻿import { Component } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
-import { DevislyIcon } from './DevislyLogo'
+import { DeviraIcon } from './DeviraLogo'
 
 interface Props { children: ReactNode }
 interface State { hasError: boolean; errorMessage: string }
@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         padding: '40px 24px', textAlign: 'center',
         fontFamily: 'Inter, system-ui, sans-serif',
       }}>
-        <DevislyIcon size={48} />
+        <DeviraIcon size={48} />
         <div style={{ fontSize: 48, margin: '16px 0 4px' }}>⚠️</div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'white', margin: '0 0 8px' }}>
           Une erreur est survenue

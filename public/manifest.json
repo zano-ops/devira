@@ -1,6 +1,6 @@
-{
-  "name": "Devisly",
-  "short_name": "Devisly",
+﻿{
+  "name": "Devira",
+  "short_name": "Devira",
   "description": "Générez des devis professionnels en 30 secondes grâce à l'IA",
   "start_url": "/dashboard",
   "display": "standalone",

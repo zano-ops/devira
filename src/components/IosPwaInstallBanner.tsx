@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 
 export function IosPwaInstallBanner() {
   const [visible, setVisible] = useState(false)
@@ -33,7 +33,7 @@ export function IosPwaInstallBanner() {
             <span className="text-2xl">📋</span>
           </div>
           <div className="flex-1 pr-5">
-            <p className="text-gray-900 font-bold text-sm mb-0.5">Installer Devisly</p>
+            <p className="text-gray-900 font-bold text-sm mb-0.5">Installer Devira</p>
             <p className="text-gray-400 text-xs mb-3">Accès en 1 clic depuis ton iPhone</p>
             <div className="flex flex-col gap-1.5">
               <div className="bg-blue-50 rounded-xl px-3 py-2 flex items-center gap-2">

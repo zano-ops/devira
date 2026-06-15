@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DevislyIcon } from '../components/DevislyLogo'
+import { DeviraIcon } from '../components/DeviraLogo'
 
 const P = '#1E3A5F'
 const A = '#E87722'
@@ -32,8 +32,8 @@ export default function PrivacyPolicy() {
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, padding: '48px 24px 40px', textAlign: 'center' }}>
         <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <DevislyIcon size={40} />
-          <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.02em' }}>devisly</span>
+          <DeviraIcon size={40} />
+          <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.02em' }}>devira</span>
         </button>
         <h1 style={{ fontSize: 'clamp(22px, 4vw, 36px)', fontWeight: 900, color: 'white', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
           Politique de Confidentialité
@@ -45,8 +45,8 @@ export default function PrivacyPolicy() {
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '56px 24px 80px' }}>
 
         <Section title="1. Responsable du traitement">
-          <p><strong>Devisly</strong> est responsable du traitement de vos données personnelles collectées via la plateforme accessible sur <strong>devisly.com</strong>.</p>
-          <p style={{ marginTop: 8 }}>Contact délégué à la protection des données : <a href="mailto:support@devisly.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devisly.fr</a></p>
+          <p><strong>Devira</strong> est responsable du traitement de vos données personnelles collectées via la plateforme accessible sur <strong>devira.fr</strong>.</p>
+          <p style={{ marginTop: 8 }}>Contact délégué à la protection des données : <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a></p>
         </Section>
 
         <Section title="2. Données que nous collectons">
@@ -54,7 +54,7 @@ export default function PrivacyPolicy() {
           <ul style={{ marginTop: 10, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <li><strong>Données de compte :</strong> adresse email, nom, prénom, nom d'entreprise, SIRET, numéro de téléphone, adresse postale.</li>
             <li><strong>Données professionnelles :</strong> devis créés, liste de clients, catalogue de prestations et tarifs, logos.</li>
-            <li><strong>Données de paiement :</strong> traitement délégué à Stripe. Devisly ne stocke jamais vos coordonnées bancaires.</li>
+            <li><strong>Données de paiement :</strong> traitement délégué à Stripe. Devira ne stocke jamais vos coordonnées bancaires.</li>
             <li><strong>Données techniques :</strong> adresse IP, type de navigateur, appareil, pages visitées, durée de session (à des fins d'amélioration du service).</li>
           </ul>
         </Section>
@@ -110,17 +110,17 @@ export default function PrivacyPolicy() {
             <li><strong>Droit d'opposition</strong> : vous opposer à certains traitements, notamment à des fins de marketing.</li>
             <li><strong>Droit à la limitation</strong> : suspendre le traitement de vos données dans certaines circonstances.</li>
           </ul>
-          <p style={{ marginTop: 12 }}>Pour exercer ces droits, contactez-nous à <a href="mailto:support@devisly.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devisly.fr</a>. Nous répondrons dans un délai de 30 jours.</p>
+          <p style={{ marginTop: 12 }}>Pour exercer ces droits, contactez-nous à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a>. Nous répondrons dans un délai de 30 jours.</p>
           <p style={{ marginTop: 10 }}>Vous avez également le droit d'introduire une réclamation auprès de la <strong>CNIL</strong> : <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>www.cnil.fr</a>.</p>
         </Section>
 
         <Section title="8. Cookies">
-          <p>Devisly utilise uniquement des cookies <strong>strictement nécessaires</strong> au fonctionnement du service (authentification, préférences de session). Nous n'utilisons aucun cookie publicitaire ou de tracking tiers.</p>
+          <p>Devira utilise uniquement des cookies <strong>strictement nécessaires</strong> au fonctionnement du service (authentification, préférences de session). Nous n'utilisons aucun cookie publicitaire ou de tracking tiers.</p>
           <p style={{ marginTop: 10 }}>Vous pouvez gérer ou supprimer les cookies via les paramètres de votre navigateur, mais cela pourrait affecter le bon fonctionnement de votre session.</p>
         </Section>
 
         <Section title="9. Sécurité des données">
-          <p>Devisly met en œuvre des mesures de sécurité conformes aux standards de l'industrie :</p>
+          <p>Devira met en œuvre des mesures de sécurité conformes aux standards de l'industrie :</p>
           <ul style={{ marginTop: 10, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <li>Chiffrement des communications via HTTPS/TLS.</li>
             <li>Hébergement des données en Europe (Supabase EU).</li>
@@ -135,12 +135,12 @@ export default function PrivacyPolicy() {
         </Section>
 
         <Section title="11. Modifications de cette politique">
-          <p>Devisly peut mettre à jour cette Politique de Confidentialité pour refléter des changements dans nos pratiques ou pour satisfaire des obligations légales. Toute modification significative vous sera notifiée par email avec un préavis de 30 jours. La date de dernière mise à jour est indiquée en haut de cette page.</p>
+          <p>Devira peut mettre à jour cette Politique de Confidentialité pour refléter des changements dans nos pratiques ou pour satisfaire des obligations légales. Toute modification significative vous sera notifiée par email avec un préavis de 30 jours. La date de dernière mise à jour est indiquée en haut de cette page.</p>
         </Section>
 
         <Section title="12. Contact">
           <p>Pour toute question relative à cette Politique de Confidentialité ou à vos données personnelles :</p>
-          <p style={{ marginTop: 8 }}>Email : <a href="mailto:support@devisly.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devisly.fr</a></p>
+          <p style={{ marginTop: 8 }}>Email : <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a></p>
         </Section>
 
       </div>
@@ -148,8 +148,8 @@ export default function PrivacyPolicy() {
       {/* Footer */}
       <footer style={{ background: '#0F1923', padding: '40px 24px 28px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <DevislyIcon size={28} />
-          <span style={{ fontWeight: 800, fontSize: 16, color: 'white' }}>devisly</span>
+          <DeviraIcon size={28} />
+          <span style={{ fontWeight: 800, fontSize: 16, color: 'white' }}>devira</span>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: '0 0 16px' }}>
           L'outil de devis BTP conçu pour les artisans.
@@ -159,7 +159,7 @@ export default function PrivacyPolicy() {
           <button onClick={() => navigate('/cgv')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.42)', cursor: 'pointer', fontSize: 13 }}>CGV & CGU</button>
           <button onClick={() => navigate('/confidentialite')} style={{ background: 'none', border: 'none', color: A, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Politique de confidentialité</button>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, margin: 0 }}>© 2026 Devisly. Tous droits réservés.</p>
+        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, margin: 0 }}>© 2026 Devira. Tous droits réservés.</p>
       </footer>
 
     </div>

@@ -1,9 +1,9 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
-import { DevislyIcon } from '../components/DevislyLogo'
+import { DeviraIcon } from '../components/DeviraLogo'
 
 const P = '#1E3A5F'
 const A = '#E87722'
@@ -43,6 +43,9 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false)
   const [logoUploading, setLogoUploading] = useState(false)
   const [previewLogo, setPreviewLogo] = useState<string | null>(null)
+  const [showOptional, setShowOptional] = useState(false)
+  const [siretLoading, setSiretLoading] = useState(false)
+  const [siretFound, setSiretFound] = useState(false)
 
   const [form, setForm] = useState({
     company_name: '',
@@ -58,9 +61,35 @@ export default function Onboarding() {
 
   const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }))
 
+  const lookupSiret = async (siret: string) => {
+    setSiretLoading(true)
+    setSiretFound(false)
+    try {
+      const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siret}&per_page=1`)
+      if (!res.ok) return
+      const data = await res.json()
+      const result = data.results?.[0]
+      if (!result) return
+      const companyName = result.nom_complet || result.nom_raison_sociale || ''
+      if (companyName) set('company_name', companyName)
+      const siege = result.siege
+      if (siege) {
+        const addrParts = [siege.numero_voie, siege.type_voie, siege.libelle_voie].filter(Boolean)
+        const address = addrParts.join(' ')
+        if (address) set('address', address)
+        if (siege.libelle_commune) set('city', siege.libelle_commune)
+        if (siege.code_postal) set('zip_code', siege.code_postal)
+        if (address || siege.libelle_commune) setShowOptional(true)
+      }
+      setSiretFound(true)
+    } catch { /* silent */ } finally {
+      setSiretLoading(false)
+    }
+  }
+
   const handleStep1 = async () => {
-    if (!form.company_name.trim() || !form.owner_name.trim()) {
-      showToast('Le nom de l\'entreprise et votre nom sont obligatoires', 'error')
+    if (!form.company_name.trim() || !form.owner_name.trim() || !form.siret.trim()) {
+      showToast('Le nom de l\'entreprise, votre nom et le SIRET sont obligatoires', 'error')
       return
     }
     setLoading(true)
@@ -142,8 +171,8 @@ export default function Onboarding() {
         <div>
           <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '40px 24px 32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <DevislyIcon size={32} />
-              <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>devisly</span>
+              <DeviraIcon size={32} />
+              <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>devira</span>
             </div>
             <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>Étape 1 sur 3</div>
             <h1 style={{ fontSize: 24, fontWeight: 900, color: 'white', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Votre entreprise</h1>
@@ -151,48 +180,79 @@ export default function Onboarding() {
           </div>
 
           <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+            {/* ── Champs obligatoires ── */}
             <Field label="Nom de l'entreprise" value={form.company_name} onChange={v => set('company_name', v)} placeholder="Plomberie Dupont" required />
             <Field label="Votre prénom et nom" value={form.owner_name} onChange={v => set('owner_name', v)} placeholder="Jean Dupont" required />
-            <Field label="Téléphone" value={form.phone} onChange={v => set('phone', v)} placeholder="06 00 00 00 00" type="tel" />
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                 SIRET<span style={{ color: A }}> *</span>
               </label>
-              <input
-                type="text"
-                value={form.siret}
-                onChange={e => {
-                  const v = e.target.value.replace(/\D/g, '').slice(0, 14)
-                  set('siret', v)
-                }}
-                placeholder="123 456 789 00010"
-                className="input-field"
-                inputMode="numeric"
-              />
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Obligatoire sur les devis (Code de commerce)</p>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={form.siret}
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, '').slice(0, 14)
+                    set('siret', v)
+                    setSiretFound(false)
+                    if (v.length === 14) lookupSiret(v)
+                  }}
+                  placeholder="12345678900010"
+                  className="input-field"
+                  inputMode="numeric"
+                  style={{ paddingRight: 36 }}
+                />
+                {siretLoading && (
+                  <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, border: '2px solid #E5E7EB', borderTopColor: A, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                )}
+                {siretFound && !siretLoading && (
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#10B981', fontSize: 16 }}>✓</span>
+                )}
+              </div>
+              {siretFound
+                ? <p style={{ fontSize: 11, color: '#10B981', marginTop: 4, fontWeight: 600 }}>Entreprise trouvée — adresse pré-remplie ✓</p>
+                : <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Requis légalement · auto-remplissage depuis SIRENE</p>
+              }
             </div>
 
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 1 }}>
+            {/* ── Champs optionnels ── */}
+            <button
+              type="button"
+              onClick={() => setShowOptional(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12,
+                padding: '12px 16px', cursor: 'pointer', width: '100%',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>
+                Informations supplémentaires <span style={{ fontWeight: 400 }}>(optionnel)</span>
+              </span>
+              <span style={{ fontSize: 12, color: '#94A3B8' }}>{showOptional ? '▲' : '▼'}</span>
+            </button>
+
+            {showOptional && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingLeft: 4 }}>
+                <Field label="Téléphone" value={form.phone} onChange={v => set('phone', v)} placeholder="06 00 00 00 00" type="tel" />
                 <Field label="Adresse" value={form.address} onChange={v => set('address', v)} placeholder="12 rue des Acacias" />
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <Field label="Ville" value={form.city} onChange={v => set('city', v)} placeholder="Paris" />
+                  </div>
+                  <div style={{ width: 110 }}>
+                    <Field label="Code postal" value={form.zip_code} onChange={v => set('zip_code', v)} placeholder="75001" type="tel" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">TVA par défaut</label>
+                  <select value={form.vat_rate} onChange={e => set('vat_rate', parseFloat(e.target.value))} className="input-field">
+                    {vatOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <Field label="Ville" value={form.city} onChange={v => set('city', v)} placeholder="Bordeaux" />
-              </div>
-              <div style={{ width: 110 }}>
-                <Field label="Code postal" value={form.zip_code} onChange={v => set('zip_code', v)} placeholder="33000" type="tel" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">TVA par défaut</label>
-              <select value={form.vat_rate} onChange={e => set('vat_rate', parseFloat(e.target.value))} className="input-field">
-                {vatOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
+            )}
 
             <div style={{ paddingBottom: 32 }}>
               <button

@@ -46,6 +46,7 @@ export default function Clients() {
   const [form, setForm] = useState<ClientForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [siretError, setSiretError] = useState('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   useEffect(() => { if (user) fetchAll() }, [user])
 
@@ -115,9 +116,21 @@ export default function Clients() {
     setSaving(false)
   }
 
-  const handleDelete = async (id: string) => {
-    await supabase.from('clients').delete().eq('id', id)
+  const handleDelete = async (clientId: string) => {
+    if (deleteConfirmId !== clientId) {
+      const c = clients.find(cl => cl.id === clientId)
+      const qc = c ? (quoteCounts[c.name.toLowerCase()] || 0) : 0
+      const msg = qc > 0
+        ? `Supprimer ${c?.name} ? (${qc} devis associé${qc > 1 ? 's' : ''}) — clique de nouveau pour confirmer`
+        : `Supprimer ${c?.name} ? Clique de nouveau pour confirmer`
+      showToast(msg, 'error')
+      setDeleteConfirmId(clientId)
+      setTimeout(() => setDeleteConfirmId(null), 3000)
+      return
+    }
+    await supabase.from('clients').delete().eq('id', clientId)
     showToast('Client supprimé')
+    setDeleteConfirmId(null)
     fetchAll()
   }
 
@@ -226,7 +239,8 @@ export default function Clients() {
                     </button>
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-400 transition-colors"
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${deleteConfirmId === c.id ? 'bg-red-100 text-red-600' : 'text-gray-300 hover:text-red-400'}`}
+                      title={deleteConfirmId === c.id ? 'Cliquer pour confirmer la suppression' : 'Supprimer le client'}
                     >
                       <Trash2 size={16} />
                     </button>

@@ -4,7 +4,7 @@ import { DeviraIcon } from '../components/DeviraLogo'
 import {
   Check, ChevronDown, MessageSquare, FileText, PenLine, Bell, ArrowRight,
   ShieldCheck, Lock, Headphones, RotateCcw, Clock, TrendingDown, AlertCircle,
-  Mic, Zap, Send,
+  Mic, Zap, Send, Smartphone,
 } from 'lucide-react'
 
 const P = '#1E3A5F'
@@ -191,19 +191,26 @@ function DemoAnimation() {
           </div>
         )}
 
-        {/* Phase 4 — Email envoyé */}
+        {/* Phase 4 — Email + SMS envoyés */}
         {phase === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 14, textAlign: 'center' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Send size={24} color="#16A34A" />
-            </div>
-            <div>
-              <p style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Email envoyé</p>
-              <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 2px' }}>jean.dupont@gmail.com</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>Devis DEV-2025-089 · Carrelage salle de bain</p>
-            </div>
-            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '10px 18px' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#15803D', margin: 0 }}>Relances automatiques activées</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 10, textAlign: 'center' }}>
+            <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Devis envoyé sur 3 canaux</p>
+            {[
+              { icon: '📧', label: 'Email', sub: 'jean.dupont@gmail.com', ok: true },
+              { icon: '📱', label: 'SMS', sub: '+33 6 12 34 56 78', ok: true },
+              { icon: '💬', label: 'WhatsApp', sub: 'Jean Dupont', ok: true },
+            ].map((ch, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: '#F0FDF4', borderRadius: 10, border: '1px solid #BBF7D0', width: '100%', maxWidth: 300, textAlign: 'left' }}>
+                <span style={{ fontSize: 16 }}>{ch.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{ch.label} </span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{ch.sub}</span>
+                </div>
+                <Check size={14} color="#16A34A" strokeWidth={3} />
+              </div>
+            ))}
+            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '8px 18px', marginTop: 2 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#15803D', margin: 0 }}>Relances automatiques activées · J+7, J+14, J+21</p>
             </div>
           </div>
         )}
@@ -332,6 +339,30 @@ function TabIllustration({ index }: { index: number }) {
       ))}
     </div>
   )
+
+  // Index 4 — SMS & WhatsApp
+  return (
+    <div style={{ width: '100%' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Devis DEV-2025-089 · 3 878 € TTC</div>
+      {[
+        { icon: '📧', label: 'Email envoyé', sub: 'jean.dupont@gmail.com', status: 'Lu', statusColor: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
+        { icon: '📱', label: 'SMS envoyé', sub: '+33 6 00 00 00 00', status: 'Livré', statusColor: '#0891B2', bg: '#F0F9FF', border: '#BAE6FD' },
+        { icon: '💬', label: 'WhatsApp', sub: 'Jean Dupont', status: '✓✓ Lu', statusColor: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
+      ].map((ch, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: ch.bg, borderRadius: 10, border: `1px solid ${ch.border}`, marginBottom: i < 2 ? 8 : 0 }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>{ch.icon}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{ch.label}</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF' }}>{ch.sub}</div>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: ch.statusColor }}>{ch.status}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: 10, padding: '8px 12px', background: '#DCFCE7', borderRadius: 8, border: '1px solid #BBF7D0', textAlign: 'center' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#16A34A' }}>✓ Devis signé — réponse via WhatsApp en 47 min</span>
+      </div>
+    </div>
+  )
 }
 
 // ── LANDING PAGE ─────────────────────────────────────────────────────────────
@@ -365,12 +396,20 @@ const TABS = [
     desc: 'Devira envoie automatiquement des relances personnalisées à J+7, J+14 et J+21 après l\'envoi. Récupérez les devis oubliés sans lever le petit doigt.',
     badge: 'Plus de taux de signature',
   },
+  {
+    icon: Smartphone,
+    label: 'SMS & WhatsApp',
+    title: '40% des clients préfèrent le SMS à l\'email',
+    desc: 'Envoyez votre devis par email, SMS ou WhatsApp en un seul clic. Vos clients reçoivent un lien pour consulter et signer depuis leur téléphone. Même sans connexion email.',
+    badge: 'Moins de devis ignorés',
+  },
 ]
 
 const FAQS = [
   { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devira est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devira. La configuration prend 5 minutes.' },
   { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devira inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
-  { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro), payez par carte via Stripe, et accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client.' },
+  { q: 'Est-ce que je peux tester avant de payer ?', a: 'Oui. Votre premier devis est entièrement gratuit, sans carte bancaire. Ça vous permet de voir concrètement ce que l\'IA génère. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n\'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.' },
+  { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
   { q: 'Que se passe-t-il si j\'ai un problème ?', a: 'Notre support répond en moins de 2h ouvrées par email. Nous avons aussi une base d\'aide avec des tutoriels pour chaque fonctionnalité.' },
@@ -393,15 +432,6 @@ const PRO_FEATURES = [
   'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
   'Support prioritaire < 24h',
-]
-
-const EQUIPE_FEATURES = [
-  'Tout Pro, plus...',
-  "Jusqu'à 3 utilisateurs",
-  "Tableau de bord chef d'équipe",
-  'Validation devis avant envoi',
-  'Personnalisation avancée',
-  'Support dédié < 4h',
 ]
 
 const TESTIMONIALS = [
@@ -505,9 +535,9 @@ export default function Landing() {
             <button onClick={() => goto('/login')} className="lp-nav-conn" style={{ background: 'none', border: `1.5px solid ${scrolled ? P : 'rgba(255,255,255,0.5)'}`, color: scrolled ? P : 'white', padding: '8px 18px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
               Connexion
             </button>
-            <a href={STRIPE_ESSENTIEL} className="lp-nav-cta" style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s', textDecoration: 'none' }}>
-              Commencer
-            </a>
+            <button onClick={() => goto('/signup')} className="lp-nav-cta" style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s' }}>
+              Essai gratuit
+            </button>
           </div>
         </div>
       </nav>
@@ -527,16 +557,22 @@ export default function Landing() {
             Décrivez vos travaux en langage naturel. Devira génère un devis professionnel complet en quelques secondes, le met en page, l'envoie à votre client et le relance automatiquement.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 32 }}>
-            <a href={STRIPE_ESSENTIEL} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 14, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s', textDecoration: 'none' }}>
-              Commencer maintenant
-            </a>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
+            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 14, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
+              Démarrer gratuitement
+            </button>
             <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 14, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
               Voir la démo
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 29,81 €/mois · Satisfait ou remboursé 7 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit pour tester l'IA · Sans carte bancaire</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,81 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {['📱 Depuis le chantier', '💬 Envoi SMS & WhatsApp', '✍️ Signature en ligne', '🤖 IA BTP'].map(tag => (
+              <span key={tag} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, padding: '6px 13px', borderRadius: 99 }}>{tag}</span>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -548,11 +584,12 @@ export default function Landing() {
             Combien d'heures perdez-vous<br />chaque semaine sur vos devis ?
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
             {[
               { Icon: Clock, color: '#DC2626', bg: '#FEF2F2', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
               { Icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
               { Icon: AlertCircle, color: '#7C3AED', bg: '#F5F3FF', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
+              { Icon: MessageSquare, color: '#0891B2', bg: '#F0F9FF', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS ni WhatsApp, vous perdez des chantiers sans même le savoir.' },
             ].map((item, i) => (
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', borderRadius: 16, padding: '28px 28px 32px', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
@@ -634,9 +671,9 @@ export default function Landing() {
               <span style={{ background: `${P}12`, color: P, padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700 }}>{TABS[tab].badge}</span>
               <h3 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 800, color: P, margin: '16px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{TABS[tab].title}</h3>
               <p style={{ color: '#6B7280', fontSize: 16, lineHeight: 1.72, margin: '0 0 28px' }}>{TABS[tab].desc}</p>
-              <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)', textDecoration: 'none' }}>
-                Commencer maintenant <ArrowRight size={16} />
-              </a>
+              <button onClick={() => goto('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)' }}>
+                Démarrer gratuitement <ArrowRight size={16} />
+              </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ background: 'white', borderRadius: 16, padding: '28px 24px', boxShadow: '0 8px 36px rgba(30,58,95,0.12)', width: '100%', maxWidth: 300, border: '1px solid #E5E7EB' }}>
@@ -695,8 +732,8 @@ export default function Landing() {
               <RotateCcw size={26} color="white" strokeWidth={2} />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 7 jours</h3>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 7 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 14 jours</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 14 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
             </div>
           </div>
 
@@ -754,6 +791,8 @@ export default function Landing() {
                   {([
                     { feature: 'Génération IA vocale', d: true, o: false, b: false },
                     { feature: 'Devis en moins de 2 min', d: true, o: false, b: false },
+                    { feature: 'Envoi par SMS', d: true, o: false, b: false },
+                    { feature: 'Envoi WhatsApp intégré', d: true, o: false, b: false },
                     { feature: 'Signature électronique', d: true, o: false, b: true },
                     { feature: 'Relances automatiques', d: true, o: false, b: false },
                     { feature: 'PDF professionnel', d: true, o: true, b: true },
@@ -783,8 +822,11 @@ export default function Landing() {
               </table>
             </div>
           </div>
+          <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 14, textAlign: 'center' }}>
+            * La génération IA, le PDF professionnel et la signature électronique sont inclus dans tous les plans, dès Essentiel.
+          </p>
 
-          <div className="lp-reveal" style={{ background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, borderRadius: 20, padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="lp-reveal" style={{ background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, borderRadius: 20, padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', marginTop: 36 }}>
             <div style={{ flex: '1 1 260px' }}>
               <p style={{ color: A, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>Le calcul est simple</p>
               <h3 style={{ color: 'white', fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>2h économisées par devis.</h3>
@@ -836,12 +878,15 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <a href={STRIPE_ESSENTIEL} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Essentiel — 29,81 €/mois
-              </a>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
+              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+                Commencer — 1 devis gratuit
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
                 <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 7 jours</span>
+                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 6 }}>
+                <a href={STRIPE_ESSENTIEL} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
 
@@ -864,42 +909,21 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <a href={STRIPE_PRO} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Pro — 79,48 €/mois
-              </a>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
-                <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 7 jours</span>
-              </div>
-            </div>
-
-            {/* Équipe */}
-            <div className="lp-reveal lp-d2" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: `2px dashed ${P}30`, boxShadow: '0 4px 20px rgba(0,0,0,0.04)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 16, right: 16, background: '#F3F4F6', color: '#9CA3AF', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bientôt</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Équipe</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 48, fontWeight: 900, color: '#9CA3AF', letterSpacing: '-0.03em', lineHeight: 1 }}>129€</span>
-                <span style={{ color: '#D1D5DB', fontSize: 15 }}>/mois</span>
-              </div>
-              <p style={{ color: '#9CA3AF', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les petites entreprises avec plusieurs collaborateurs</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
-                {EQUIPE_FEATURES.map((f, i) => (
-                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: i === 0 ? '#F3F4F6' : '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Check size={11} color={i === 0 ? '#D1D5DB' : '#9CA3AF'} strokeWidth={3} />
-                    </div>
-                    <span style={{ fontSize: 14, color: '#9CA3AF', fontStyle: i === 0 ? 'italic' : 'normal' }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-              <button disabled style={{ width: '100%', background: '#F9FAFB', border: '1px solid #E5E7EB', color: '#9CA3AF', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'not-allowed' }}>
-                Disponible Q4 2026
+              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
+                Commencer — 1 devis gratuit
               </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
+                <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 14 jours</span>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 6 }}>
+                <a href={STRIPE_PRO} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
+              </div>
             </div>
           </div>
 
           <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 14, marginTop: 28 }}>
-            Satisfait ou remboursé 7 jours · Paiement sécurisé par Stripe · Annulation à tout moment
+            Satisfait ou remboursé 14 jours · Paiement sécurisé par Stripe · Annulation à tout moment
           </p>
         </div>
       </section>
@@ -937,13 +961,13 @@ export default function Landing() {
           <h2 className="lp-reveal" style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: 'white', margin: '20px 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
-          <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 40px' }}>
-            À partir de 29,81 €/mois. Paiement sécurisé. Vous arrêtez quand vous voulez.
+          <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
+            Testez l'IA sur 1 devis gratuit, sans carte bancaire. Abonnement à partir de 29,81 €/mois.
           </p>
-          <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s', textDecoration: 'none' }}>
-            Commencer maintenant
-          </a>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 7 jours · Annulation à tout moment</p>
+          <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
+            Démarrer gratuitement
+          </button>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
         </div>
       </section>
 

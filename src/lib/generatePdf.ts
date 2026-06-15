@@ -1,5 +1,4 @@
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
+﻿import type { jsPDF as jsPDFType } from 'jspdf'
 import type { Quote, Profile, Invoice } from '../types'
 
 function fmt(n: number) {
@@ -28,7 +27,9 @@ async function loadImageBase64(url: string): Promise<string | null> {
   } catch { return null }
 }
 
-async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
+async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
+  const { jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const q = quote.quote_json
   const W = 210
@@ -50,7 +51,8 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
   // ── LOGO ──
   let logoLoaded = false
   if (profile.logo_url) {
-    const logoBase64 = await loadImageBase64(profile.logo_url)
+    const logoUrl = profile.logo_url + (profile.logo_url.includes('?') ? '&' : '?') + 'v=' + Date.now()
+    const logoBase64 = await loadImageBase64(logoUrl)
     if (logoBase64) {
       try {
         // Logo en haut à droite, max 40x25 mm
@@ -217,7 +219,12 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
   }
   const tvaRates = Object.keys(tvaByRate).map(Number).sort((a, b) => a - b)
   if (tvaRates.length > 1) {
-    tvaRates.forEach(rate => { totauxBody.push([`TVA ${rate}%`, fmt(tvaByRate[rate])]) })
+    tvaRates.forEach(rate => {
+      const lbl = rate === 0 ? 'TVA non applicable (art. 293B CGI)' : `TVA ${rate}%`
+      totauxBody.push([lbl, rate === 0 ? '—' : fmt(tvaByRate[rate])])
+    })
+  } else if (q.taux_tva === 0) {
+    totauxBody.push(['TVA non applicable (art. 293B CGI)', '—'])
   } else {
     totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
   }
@@ -431,7 +438,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDF> {
   ].filter(Boolean)
   const f2 = f2Parts.join(' • ')
 
-  const tvaLabel = profile.is_micro_entrepreneur
+  const tvaLabel = (profile.is_micro_entrepreneur || q.taux_tva === 0)
     ? 'TVA non applicable art. 293B CGI'
     : (Object.keys(tvaByRate).length > 1 ? 'TVA mixte' : `TVA ${q.taux_tva}%`)
 
@@ -453,6 +460,8 @@ export async function getQuotePdfBase64(quote: Quote, profile: Profile): Promise
 }
 
 export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Promise<void> {
+  const { jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const q = invoice.invoice_json
   const W = 210
@@ -471,7 +480,8 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   // Logo
   let logoLoaded = false
   if (profile.logo_url) {
-    const logoBase64 = await loadImageBase64(profile.logo_url)
+    const logoUrl = profile.logo_url + (profile.logo_url.includes('?') ? '&' : '?') + 'v=' + Date.now()
+    const logoBase64 = await loadImageBase64(logoUrl)
     if (logoBase64) {
       try { doc.addImage(logoBase64, W - MR - 40, 8, 40, 25, undefined, 'FAST'); logoLoaded = true } catch {}
     }
@@ -583,7 +593,12 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
 
   const totauxBody: string[][] = [['Sous-total HT', fmt(sousTotal)]]
   if (tvaRates.length > 1) {
-    tvaRates.forEach(rate => totauxBody.push([`TVA ${rate}%`, fmt(tvaByRate[rate])]))
+    tvaRates.forEach(rate => {
+      const lbl = rate === 0 ? 'TVA non applicable (art. 293B CGI)' : `TVA ${rate}%`
+      totauxBody.push([lbl, rate === 0 ? '—' : fmt(tvaByRate[rate])])
+    })
+  } else if (q.taux_tva === 0) {
+    totauxBody.push(['TVA non applicable (art. 293B CGI)', '—'])
   } else {
     totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
   }
@@ -633,7 +648,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
   doc.text(f1.slice(0, 70), ML, footerY + 5)
   if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
-  doc.text('Généré avec Devisly', W - MR, footerY + 5, { align: 'right' })
+  doc.text('Généré avec Devira', W - MR, footerY + 5, { align: 'right' })
 
   doc.save(`Facture-${invoice.invoice_number}.pdf`)
 }
