@@ -180,3 +180,6 @@ button:active {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
 }
+
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }

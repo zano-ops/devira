@@ -347,7 +347,7 @@ export default function Dashboard() {
       {/* ─── FILTERS + SORT ─── */}
       {quotes.length > 0 && (
         <>
-          <div style={{ display: 'flex', gap: 6, padding: '16px 16px 8px', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
+          <div className="hide-scrollbar" style={{ display: 'flex', gap: 6, padding: '16px 16px 8px', overflowX: 'auto' }}>
             {(Object.keys(filterLabels) as Filter[]).map(f => {
               const count = f !== 'all' ? quotes.filter(q => q.status === f).length : 0
               return (
