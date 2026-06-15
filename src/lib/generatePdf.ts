@@ -471,7 +471,7 @@ export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<
         if ((e as DOMException).name !== 'AbortError') throw e
       }
     } else {
-      window.open(doc.output('bloburl') as string, '_blank')
+      window.open(String(doc.output('bloburl')), '_blank')
     }
     return true
   }
