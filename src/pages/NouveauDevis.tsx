@@ -242,9 +242,9 @@ export default function NouveauDevis() {
     if (!profile?.company_name || !profile?.owner_name || !profile?.siret) {
       const missing = []
       if (!profile?.company_name) missing.push('nom entreprise')
-      if (!profile?.owner_name) missing.push('votre nom')
+      if (!profile?.owner_name) missing.push('ton nom')
       if (!profile?.siret) missing.push('SIRET (obligatoire sur les devis)')
-      showToast(`Profil incomplet : ${missing.join(', ')} manquant${missing.length > 1 ? 's' : ''} — complétez vos réglages`, 'error')
+      showToast(`Profil incomplet : ${missing.join(', ')} manquant${missing.length > 1 ? 's' : ''} — complète tes réglages`, 'error')
       setTimeout(() => navigate('/parametres'), 2500)
       return
     }

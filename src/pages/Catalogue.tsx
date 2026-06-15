@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { useToast } from '../components/Toast'
-import { supabase, SUPABASE_URL } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 import type { CatalogueItem } from '../lib/catalogue'
 import TrialBanner from '../components/TrialBanner'
 import { useAuth } from '../context/AuthContext'
@@ -76,7 +76,7 @@ export default function Catalogue() {
       .order('created_at', { ascending: true })
 
     if (error) {
-      showToast('Erreur de chargement', 'error')
+      showToast('Impossible de charger le catalogue — réessayez', 'error')
       setLoading(false)
       return
     }
@@ -118,7 +118,7 @@ export default function Catalogue() {
       showToast(`${local.length} prestation${local.length > 1 ? 's' : ''} migrée${local.length > 1 ? 's' : ''} ✓`)
       await loadItems()
     } catch {
-      showToast('Erreur lors de la migration', 'error')
+      showToast('Migration impossible — réessayez', 'error')
     } finally {
       setMigrating(false)
     }
@@ -158,7 +158,7 @@ export default function Catalogue() {
         })
         .eq('id', editItem.id)
 
-      if (error) { showToast('Erreur de modification', 'error'); return }
+      if (error) { showToast('Modification impossible — réessayez', 'error'); return }
       setItems(prev => prev.map(i =>
         i.id === editItem.id
           ? { ...i, designation: form.designation, unite: form.unite, prix_unitaire_ht: parseFloat(form.prix_unitaire_ht) || 0, categorie: form.categorie }
@@ -181,7 +181,7 @@ export default function Catalogue() {
         .select('id, designation, unite, prix_unitaire_ht, categorie')
         .single()
 
-      if (error) { showToast("Erreur d'ajout", 'error'); return }
+      if (error) { showToast("Ajout impossible — réessayez", 'error'); return }
       setItems(prev => [...prev, data])
       showToast('Prestation ajoutée ✓')
     }
@@ -191,7 +191,7 @@ export default function Catalogue() {
 
   async function handleDelete(id: string) {
     const { error } = await supabase.from('catalogue_items').delete().eq('id', id)
-    if (error) { showToast('Erreur de suppression', 'error'); return }
+    if (error) { showToast('Suppression impossible — réessayez', 'error'); return }
     setItems(prev => prev.filter(i => i.id !== id))
     showToast('Prestation supprimée')
   }
@@ -229,7 +229,7 @@ export default function Catalogue() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`,
-          'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW',
+          'apikey': SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ file_base64: base64, media_type: file.type }),
       })
@@ -244,7 +244,7 @@ export default function Catalogue() {
       setExtractedItems(data.items.map((item: any) => ({ ...item, selected: true })))
       setShowImportModal(true)
     } catch (err: any) {
-      showToast('Erreur analyse : ' + (err.message || 'Réessaie'), 'error')
+      showToast('Analyse impossible — vérifiez votre connexion et réessayez', 'error')
     }
     setImporting(false)
   }
@@ -274,7 +274,7 @@ export default function Catalogue() {
       setShowImportModal(false)
       setExtractedItems([])
     } catch {
-      showToast('Erreur lors de l\'import', 'error')
+      showToast('Import impossible — réessayez', 'error')
     }
     setImportingSelected(false)
   }
