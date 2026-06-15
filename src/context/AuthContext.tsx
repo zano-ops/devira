@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isTrialExpired = subscriptionStatus === 'expired'
 
-    const ESSENTIEL_LIMIT = 20
+    const ESSENTIEL_LIMIT = 10
     const TRIAL_LIMIT = 1
     const isEssentiel = profile.subscription_plan === 'essentiel'
     const isTrial = subscriptionStatus === 'trial'
