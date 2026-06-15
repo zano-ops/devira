@@ -162,9 +162,11 @@ export default function Onboarding() {
       <ToastContainer />
 
       {/* Progress bar */}
-      <div style={{ height: 4, background: '#E5E7EB' }}>
-        <div style={{ height: '100%', width: `${progress}%`, background: A, transition: 'width 0.4s ease' }} />
-      </div>
+      {progress < 100 && (
+        <div style={{ height: 4, background: '#E5E7EB' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: A, transition: 'width 0.4s ease' }} />
+        </div>
+      )}
 
       {/* Step 1 — Votre entreprise */}
       {step === 1 && (
