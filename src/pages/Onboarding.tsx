@@ -155,7 +155,7 @@ export default function Onboarding() {
     if (file && file.type.startsWith('image/')) handleLogoUpload(file)
   }
 
-  const progress = ((step - 1) / 3) * 100
+  const progress = (step / 3) * 100
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
