@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
@@ -128,21 +128,25 @@ export default function Parametres() {
     if (file.size > 2 * 1024 * 1024) { showToast('Image trop lourde (max 2 Mo)', 'error'); return }
     setUploadingLogo(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `logos/${user.id}.${ext}`
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-      if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      // Cache-bust pour éviter l'image ancienne en mémoire navigateur
-      const bustedUrl = publicUrl + (publicUrl.includes('?') ? '&' : '?') + 't=' + Date.now()
-      // Persister immédiatement en base — ne pas attendre le bouton "Sauvegarder"
-      const { error: updateError } = await supabase.from('profiles').update({ logo_url: bustedUrl }).eq('id', user.id)
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('Session expirée')
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-logo`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      const { error: updateError } = await supabase.from('profiles').update({ logo_url: data.url }).eq('id', user.id)
       if (updateError) throw updateError
-      set('logo_url', bustedUrl)
+      set('logo_url', data.url)
       await refreshProfile()
       showToast('Logo sauvegardé ✓')
     } catch {
-      showToast('Erreur upload logo — vérifie les droits du bucket "avatars"', 'error')
+      showToast('Erreur upload logo', 'error')
     }
     setUploadingLogo(false)
   }
@@ -177,8 +181,16 @@ export default function Parametres() {
       <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
         <TrialBanner />
         <div style={{ padding: '14px 20px 0' }}>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: '0 0 14px', letterSpacing: '-0.02em' }}>Réglages</h1>
-
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Réglages</h1>
+            <button
+              onClick={() => navigate('/home')}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#1E3A5F', fontWeight: 600, background: 'rgba(30,58,95,0.07)', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}
+            >
+              <Globe size={13} strokeWidth={2} />
+              devira.fr
+            </button>
+          </div>
           {/* Logo card */}
           <div style={{ background: '#F8FAFC', borderRadius: 14, padding: '14px 14px', display: 'flex', alignItems: 'center', gap: 14, border: '1.5px solid #E2E8F0', marginBottom: 10 }}>
             <div style={{ position: 'relative', flexShrink: 0 }}>

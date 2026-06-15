@@ -347,27 +347,28 @@ export default function Dashboard() {
       {/* ─── FILTERS + SORT ─── */}
       {quotes.length > 0 && (
         <>
-          <div style={{ display: 'flex', gap: 6, padding: '16px 16px 0', overflowX: 'auto' }}>
-            {(Object.keys(filterLabels) as Filter[]).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                style={{
-                  flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 13,
-                  fontWeight: 600, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  ...(filter === f
-                    ? { background: '#1E3A5F', color: 'white' }
-                    : { background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0' }
-                  ),
-                }}
-              >
-                {filterLabels[f]}
-                {f !== 'all' && quotes.filter(q => q.status === f).length > 0 && (
-                  <span style={{ fontSize: 11, opacity: 0.65 }}>{quotes.filter(q => q.status === f).length}</span>
-                )}
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: 6, padding: '16px 16px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {(Object.keys(filterLabels) as Filter[]).filter(f => f === 'all' || quotes.filter(q => q.status === f).length > 0).map(f => {
+              const count = f !== 'all' ? quotes.filter(q => q.status === f).length : 0
+              return (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  style={{
+                    flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 13,
+                    fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    ...(filter === f
+                      ? { background: '#1E3A5F', color: 'white', border: '1px solid #1E3A5F' }
+                      : { background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0' }
+                    ),
+                  }}
+                >
+                  {filterLabels[f]}
+                  {count > 0 && <span style={{ fontSize: 11, opacity: 0.65 }}>{count}</span>}
+                </button>
+              )
+            })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '8px 16px 10px' }}>
             <span style={{ fontSize: 11, color: '#94A3B8', marginRight: 4 }}>Trier :</span>

@@ -64,6 +64,8 @@ function AppRoutes() {
         <Route path="/cgv" element={<CGV />} />
         <Route path="/confidentialite" element={<PrivacyPolicy />} />
 
+        <Route path="/home" element={<Landing />} />
+
         <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/nouveau-devis" element={<PrivateRoute><NouveauDevis /></PrivateRoute>} />

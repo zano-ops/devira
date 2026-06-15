@@ -297,6 +297,9 @@ export default function Onboarding() {
       {step === 2 && (
         <div>
           <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '40px 24px 32px' }}>
+            <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 14, cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              ← Retour
+            </button>
             <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>Étape 2 sur 3</div>
             <h1 style={{ fontSize: 24, fontWeight: 900, color: 'white', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Votre logo</h1>
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, margin: 0 }}>Apparaît en haut de vos devis PDF</p>
@@ -375,7 +378,10 @@ export default function Onboarding() {
 
       {/* Step 3 — Premier devis (aha moment) */}
       {step === 3 && (
-        <div style={{ minHeight: '100vh', background: P, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center' }}>
+        <div style={{ minHeight: '100vh', background: P, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center', position: 'relative' }}>
+          <button onClick={() => setStep(2)} style={{ position: 'absolute', top: 20, left: 20, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 14, cursor: 'pointer' }}>
+            ← Retour
+          </button>
           <div style={{ marginBottom: 24 }}>
             <span style={{ fontSize: 64 }}>⚡</span>
           </div>
