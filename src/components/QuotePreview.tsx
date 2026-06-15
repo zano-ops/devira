@@ -267,7 +267,6 @@ export function QuotePreview({ quote, profile }: Props) {
               : <div>TVA : {q.taux_tva}%</div>
           }
           <div>Devis valable {validite} jours</div>
-          <div>Généré avec Devira</div>
         </div>
       </div>
 

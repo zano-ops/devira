@@ -26,12 +26,12 @@ const DEMO_ROWS = [
 const DEMO_URLS: Record<number, string> = {
   0: 'devira.fr/nouveau-devis',
   1: 'devira.fr/nouveau-devis',
-  2: 'devira.fr/devis/DEV-2025-089',
-  3: 'devira.fr/devis/DEV-2025-089',
-  4: 'devira.fr/devis/DEV-2025-089',
-  5: 'devira.fr/devis/DEV-2025-089/relances',
-  6: 'devira.fr/signature/DEV-2025-089',
-  7: 'devira.fr/signature/DEV-2025-089',
+  2: 'devira.fr/devis/DEV-2026-042',
+  3: 'devira.fr/devis/DEV-2026-042',
+  4: 'devira.fr/devis/DEV-2026-042',
+  5: 'devira.fr/devis/DEV-2026-042/relances',
+  6: 'devira.fr/signature/DEV-2026-042',
+  7: 'devira.fr/signature/DEV-2026-042',
 }
 
 const DEMO_STEPS = ['Décrire', 'Devis', 'Envoyer', 'Relances', 'Signé']
@@ -159,7 +159,7 @@ function DemoAnimation() {
         {(phase === 2 || phase === 3) && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: P, margin: 0 }}>Devis N° DEV-2025-089</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: P, margin: 0 }}>Devis N° DEV-2026-042</p>
               {phase === 3 && <span style={{ background: '#16A34A', color: 'white', padding: '3px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700 }}>Prêt — 3 232,00 € HT</span>}
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 12 }}>
@@ -289,7 +289,7 @@ function TabIllustration({ index }: { index: number }) {
   if (index === 1) return (
     <div style={{ width: '100%' }}>
       <div style={{ background: P, borderRadius: '8px 8px 0 0', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'white' }}>DEVIS N° DEV-2025-089</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'white' }}>DEVIS N° DEV-2026-042</span>
         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>15/01/2025</span>
       </div>
       <div style={{ background: 'white', border: '1px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 8px 8px', padding: 12 }}>
@@ -342,7 +342,7 @@ function TabIllustration({ index }: { index: number }) {
   // Index 4 — SMS & WhatsApp
   return (
     <div style={{ width: '100%' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Devis DEV-2025-089 · 3 878 € TTC</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Devis DEV-2026-042 · 3 878 € TTC</div>
       {[
         { icon: '📧', label: 'Email envoyé', sub: 'jean.dupont@gmail.com', status: 'Lu', statusColor: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
         { icon: '📱', label: 'SMS envoyé', sub: '+33 6 00 00 00 00', status: 'Livré', statusColor: '#0891B2', bg: '#F0F9FF', border: '#BAE6FD' },
@@ -438,7 +438,7 @@ const TESTIMONIALS = [
   {
     name: 'Stéphane R.',
     job: 'Plomberie & Chauffage',
-    city: 'Paris',
+    city: 'Lyon',
     text: "Honnêtement je cherchais juste à aller plus vite. J'ai testé, le devis est sorti propre, le client a signé. C'est tout ce qu'il me fallait.",
     initials: 'SR',
     bg: '#1E3A5F',
@@ -447,7 +447,7 @@ const TESTIMONIALS = [
   {
     name: 'Marc T.',
     job: 'MT Électricité',
-    city: 'Paris',
+    city: 'Bordeaux',
     text: "Je savais pas trop au début. Maintenant je l'utilise à chaque visite. Mes devis me prennent moins de temps.",
     initials: 'MT',
     bg: '#0F766E',
@@ -456,7 +456,7 @@ const TESTIMONIALS = [
   {
     name: 'Karim B.',
     job: 'KB Rénovations',
-    city: 'Paris',
+    city: 'Marseille',
     text: "Je faisais tout sur Excel avant, c'était long. Cette appli m'a surpris car elle comprend vraiment les termes du bâtiment, les métrés, tout. Et y'a eu un client qui avait pas répondu depuis 12 jours, la relance automatique l'a relancé, il a signé. J'aurais jamais pensé à le rappeler à ce moment-là.",
     initials: 'KB',
     bg: '#7C3AED',

@@ -38,7 +38,7 @@ export default function TrialBanner() {
         }}>
           {blocked
             ? '1 devis gratuit utilisé — abonnez-vous pour continuer'
-            : '1 devis gratuit disponible · Sans carte bancaire'
+            : 'Essai gratuit · 1 devis · Sans carte bancaire'
           }
         </span>
         <div style={{
