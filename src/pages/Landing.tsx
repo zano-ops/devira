@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DevislyIcon } from '../components/DevislyLogo'
+import { DeviraIcon } from '../components/DeviraLogo'
 import {
   Check, ChevronDown, MessageSquare, FileText, PenLine, Bell, ArrowRight,
   ShieldCheck, Lock, Headphones, RotateCcw, Clock, TrendingDown, AlertCircle,
@@ -9,6 +9,8 @@ import {
 
 const P = '#1E3A5F'
 const A = '#E87722'
+const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
+const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
 
 // ── DEMO ANIMATION ──────────────────────────────────────────────────────────
 
@@ -22,14 +24,14 @@ const DEMO_ROWS = [
 ]
 
 const DEMO_URLS: Record<number, string> = {
-  0: 'devisly.com/nouveau-devis',
-  1: 'devisly.com/nouveau-devis',
-  2: 'devisly.com/devis/DEV-2025-089',
-  3: 'devisly.com/devis/DEV-2025-089',
-  4: 'devisly.com/devis/DEV-2025-089',
-  5: 'devisly.com/devis/DEV-2025-089/relances',
-  6: 'devisly.com/signature/DEV-2025-089',
-  7: 'devisly.com/signature/DEV-2025-089',
+  0: 'devira.fr/nouveau-devis',
+  1: 'devira.fr/nouveau-devis',
+  2: 'devira.fr/devis/DEV-2025-089',
+  3: 'devira.fr/devis/DEV-2025-089',
+  4: 'devira.fr/devis/DEV-2025-089',
+  5: 'devira.fr/devis/DEV-2025-089/relances',
+  6: 'devira.fr/signature/DEV-2025-089',
+  7: 'devira.fr/signature/DEV-2025-089',
 }
 
 const DEMO_STEPS = ['Décrire', 'Devis', 'Envoyer', 'Relances', 'Signé']
@@ -210,7 +212,7 @@ function DemoAnimation() {
         {phase === 5 && (
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Relances automatiques</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 14px' }}>Si votre client ne répond pas, Devisly le relance à votre place</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 14px' }}>Si votre client ne répond pas, Devira le relance à votre place</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
                 { label: 'J+7', desc: 'Première relance', date: '22 jan. 2025', color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
@@ -360,35 +362,35 @@ const TABS = [
     icon: Bell,
     label: 'Relances auto',
     title: 'Ne perdez plus de chantiers',
-    desc: 'Devisly envoie automatiquement des relances personnalisées à J+7, J+14 et J+21 après l\'envoi. Récupérez les devis oubliés sans lever le petit doigt.',
+    desc: 'Devira envoie automatiquement des relances personnalisées à J+7, J+14 et J+21 après l\'envoi. Récupérez les devis oubliés sans lever le petit doigt.',
     badge: 'Plus de taux de signature',
   },
 ]
 
 const FAQS = [
-  { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devisly est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devisly. La configuration prend 5 minutes.' },
-  { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devisly inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
-  { q: 'Puis-je essayer gratuitement avant de m\'abonner ?', a: 'Oui. 14 jours d\'essai complet sans carte bancaire. Vous créez vos premiers devis, testez toutes les fonctionnalités, puis vous décidez.' },
+  { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devira est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devira. La configuration prend 5 minutes.' },
+  { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devira inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
+  { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro), payez par carte via Stripe, et accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
   { q: 'Que se passe-t-il si j\'ai un problème ?', a: 'Notre support répond en moins de 2h ouvrées par email. Nous avons aussi une base d\'aide avec des tutoriels pour chaque fonctionnalité.' },
 ]
 
 const ESSENTIEL_FEATURES = [
-  '15 devis par mois',
-  'Génération IA',
+  '20 devis par mois',
+  'Génération IA par voix ou texte',
   'PDF professionnel',
   'Envoi par email',
-  'Relances automatiques',
+  'Signature électronique en ligne',
   'Support email',
 ]
 
 const PRO_FEATURES = [
   'Devis illimités',
-  'Tout Essentiel, plus...',
-  'Signature électronique en ligne',
+  'Relances automatiques (J+7, J+14, J+21)',
   'Catalogue prestations + import IA',
   'Facturation intégrée',
+  'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
   'Support prioritaire < 24h',
 ]
@@ -415,7 +417,7 @@ const TESTIMONIALS = [
     name: 'Marc T.',
     job: 'MT Électricité',
     city: 'Bordeaux',
-    text: "J'utilisais Obat avant. Devisly c'est moins cher et j'ai l'IA en plus. La signature en ligne a changé ma vie — j'avais des devis qui traînaient 3 semaines. Maintenant les clients signent depuis leur téléphone le jour même. Mon taux de signature a dû monter de 40%.",
+    text: "J'utilisais Obat avant. Devira c'est moins cher et j'ai l'IA en plus. La signature en ligne a changé ma vie — j'avais des devis qui traînaient 3 semaines. Maintenant les clients signent depuis leur téléphone le jour même. Mon taux de signature a dû monter de 40%.",
     initials: 'MT',
     bg: '#0F766E',
   },
@@ -467,6 +469,11 @@ export default function Landing() {
       .lp-reveal.lp-d2 { transition-delay: 0.2s }
       .lp-reveal.lp-d3 { transition-delay: 0.3s }
       .lp-reveal.lp-vis { opacity: 1; transform: translateY(0) }
+      @media (max-width: 600px) {
+        .lp-nav-link { display: none !important; }
+        .lp-nav-conn { display: none !important; }
+        .lp-nav-cta { padding: 8px 14px !important; font-size: 13px !important; }
+      }
     `
     document.head.appendChild(style)
     const obs = new IntersectionObserver(entries => {
@@ -485,19 +492,19 @@ export default function Landing() {
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(14px)' : 'none', borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : 'none', transition: 'all 0.3s ease' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', height: 70 }}>
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: 0 }}>
-            <DevislyIcon size={36} />
-            <span style={{ fontWeight: 800, fontSize: 20, color: scrolled ? P : 'white', letterSpacing: '-0.02em', transition: 'color 0.3s' }}>devisly</span>
+            <DeviraIcon size={36} />
+            <span style={{ fontWeight: 800, fontSize: 20, color: scrolled ? P : 'white', letterSpacing: '-0.02em', transition: 'color 0.3s' }}>devira</span>
           </button>
           <div style={{ flex: 1 }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <a href="#tarifs" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Tarifs</a>
-            <a href="#faq" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>FAQ</a>
-            <button onClick={() => goto('/login')} style={{ background: 'none', border: `1.5px solid ${scrolled ? P : 'rgba(255,255,255,0.5)'}`, color: scrolled ? P : 'white', padding: '8px 18px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            <a href="#tarifs" className="lp-nav-link" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Tarifs</a>
+            <a href="#faq" className="lp-nav-link" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>FAQ</a>
+            <button onClick={() => goto('/login')} className="lp-nav-conn" style={{ background: 'none', border: `1.5px solid ${scrolled ? P : 'rgba(255,255,255,0.5)'}`, color: scrolled ? P : 'white', padding: '8px 18px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
               Connexion
             </button>
-            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s' }}>
-              Essai gratuit
-            </button>
+            <a href={STRIPE_ESSENTIEL} className="lp-nav-cta" style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s', textDecoration: 'none' }}>
+              Commencer
+            </a>
           </div>
         </div>
       </nav>
@@ -514,19 +521,19 @@ export default function Landing() {
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, maxWidth: 600, margin: '0 auto 40px' }}>
-            Décrivez vos travaux en langage naturel. Devisly génère un devis professionnel complet en quelques secondes, le met en page, l'envoie à votre client et le relance automatiquement.
+            Décrivez vos travaux en langage naturel. Devira génère un devis professionnel complet en quelques secondes, le met en page, l'envoie à votre client et le relance automatiquement.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 32 }}>
-            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 14, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
-              Créer mon compte gratuitement
-            </button>
+            <a href={STRIPE_ESSENTIEL} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 14, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s', textDecoration: 'none' }}>
+              Commencer maintenant
+            </a>
             <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 14, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
               Voir la démo
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>14 jours gratuits · Aucune carte bancaire · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 29€/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
         </div>
       </section>
 
@@ -582,7 +589,7 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 36 }}>
             {[
-              { Icon: Mic, n: '01', title: 'Décrivez vos travaux', desc: 'En texte libre ou par dictée vocale. Pas besoin d\'être précis — Devisly comprend le jargon du bâtiment.' },
+              { Icon: Mic, n: '01', title: 'Décrivez vos travaux', desc: 'En texte libre ou par dictée vocale. Pas besoin d\'être précis — Devira comprend le jargon du bâtiment.' },
               { Icon: Zap, n: '02', title: 'Le devis se génère', desc: 'En moins de 30 secondes, vous avez un devis complet avec toutes les lignes, les prix et le bon formatage.' },
               { Icon: Send, n: '03', title: 'Envoyez et suivez', desc: 'Envoyez par email ou par lien. Le client signe en ligne. Vous recevez la notification. Le chantier est à vous.' },
             ].map((item, i) => (
@@ -624,9 +631,9 @@ export default function Landing() {
               <span style={{ background: `${P}12`, color: P, padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700 }}>{TABS[tab].badge}</span>
               <h3 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 800, color: P, margin: '16px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{TABS[tab].title}</h3>
               <p style={{ color: '#6B7280', fontSize: 16, lineHeight: 1.72, margin: '0 0 28px' }}>{TABS[tab].desc}</p>
-              <button onClick={() => goto('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)' }}>
-                Essayer gratuitement <ArrowRight size={16} />
-              </button>
+              <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)', textDecoration: 'none' }}>
+                Commencer maintenant <ArrowRight size={16} />
+              </a>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ background: 'white', borderRadius: 16, padding: '28px 24px', boxShadow: '0 8px 36px rgba(30,58,95,0.12)', width: '100%', maxWidth: 300, border: '1px solid #E5E7EB' }}>
@@ -680,6 +687,16 @@ export default function Landing() {
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 800, color: 'white', letterSpacing: '-0.02em', margin: '0 0 52px', lineHeight: 1.2 }}>
             Ce sur quoi vous pouvez compter
           </h2>
+          <div className="lp-reveal" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 32px', border: `1px solid ${A}55`, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <RotateCcw size={26} color="white" strokeWidth={2} />
+            </div>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 14 jours</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 14 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 28 }}>
             {[
               { Icon: ShieldCheck, title: 'Légalement conforme', desc: 'SIRET, TVA, mentions obligatoires — tout est inclus automatiquement dans chaque devis.' },
@@ -707,7 +724,7 @@ export default function Landing() {
             Moins cher que la concurrence.<br />Avec l'IA en plus.
           </h2>
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 52px', maxWidth: 560 }}>
-            Les logiciels BTP coûtent cher et ne génèrent rien. Devisly génère votre devis en 2 minutes.
+            Les logiciels BTP coûtent cher et ne génèrent rien. Devira génère votre devis en 2 minutes.
           </p>
 
           <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 8px 36px rgba(0,0,0,0.08)', marginBottom: 36 }}>
@@ -717,7 +734,7 @@ export default function Landing() {
                   <tr style={{ borderBottom: '2px solid #F3F4F6' }}>
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devisly Pro</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
                       <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79€<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
@@ -734,11 +751,11 @@ export default function Landing() {
                   {([
                     { feature: 'Génération IA vocale', d: true, o: false, b: false },
                     { feature: 'Devis en moins de 2 min', d: true, o: false, b: false },
-                    { feature: 'Relances automatiques', d: true, o: false, b: false },
                     { feature: 'Signature électronique', d: true, o: false, b: true },
+                    { feature: 'Relances automatiques', d: true, o: false, b: false },
                     { feature: 'PDF professionnel', d: true, o: true, b: true },
                     { feature: 'Facturation intégrée', d: true, o: true, b: true },
-                    { feature: 'Export comptable', d: true, o: true, b: true },
+                    { feature: 'Export comptable (FEC)', d: true, o: true, b: true },
                   ] as { feature: string; d: boolean; o: boolean; b: boolean }[]).map((row, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid #F3F4F6', background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
                       <td style={{ padding: '13px 24px', fontSize: 14, color: '#374151', fontWeight: 500 }}>{row.feature}</td>
@@ -816,9 +833,13 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('/signup')} style={{ width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
-                Commencer l'essai gratuit
-              </button>
+              <a href={STRIPE_ESSENTIEL} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
+                Choisir Essentiel — 29€/mois
+              </a>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
+                <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
+                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
+              </div>
             </div>
 
             {/* Pro */}
@@ -840,9 +861,13 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('/signup')} style={{ width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
-                Commencer l'essai gratuit
-              </button>
+              <a href={STRIPE_PRO} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
+                Choisir Pro — 79€/mois
+              </a>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
+                <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 14 jours</span>
+              </div>
             </div>
 
             {/* Équipe */}
@@ -871,7 +896,7 @@ export default function Landing() {
           </div>
 
           <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 14, marginTop: 28 }}>
-            14 jours d'essai gratuit inclus · Aucune carte bancaire requise · Annulation à tout moment
+            Satisfait ou remboursé 14 jours · Paiement sécurisé par Stripe · Annulation à tout moment
           </p>
         </div>
       </section>
@@ -905,17 +930,17 @@ export default function Landing() {
       <section style={{ background: `linear-gradient(140deg, ${P} 0%, #152A47 100%)`, padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: -100, left: '50%', transform: 'translateX(-50%)', width: 600, height: 260, background: `radial-gradient(ellipse, ${A}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 24px', position: 'relative' }}>
-          <DevislyIcon size={60} />
+          <DeviraIcon size={60} />
           <h2 className="lp-reveal" style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: 'white', margin: '20px 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 40px' }}>
-            14 jours gratuits. Aucune carte bancaire. Vous arrêtez quand vous voulez.
+            À partir de 29€/mois. Paiement sécurisé. Vous arrêtez quand vous voulez.
           </p>
-          <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
-            Créer mon compte gratuitement
-          </button>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Aucune carte bancaire requise</p>
+          <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s', textDecoration: 'none' }}>
+            Commencer maintenant
+          </a>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
         </div>
       </section>
 
@@ -925,8 +950,8 @@ export default function Landing() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 40, marginBottom: 48 }}>
             <div style={{ flex: '2 1 240px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <DevislyIcon size={32} />
-                <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>devisly</span>
+                <DeviraIcon size={32} />
+                <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>devira</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, lineHeight: 1.7, maxWidth: 260, margin: 0 }}>
                 L'outil de devis BTP conçu pour les artisans. Rapide, professionnel, automatisé.
@@ -956,10 +981,19 @@ export default function Landing() {
                 </div>
               ))}
             </div>
+            <div style={{ flex: '1 1 140px' }}>
+              <h4 style={{ color: 'white', fontWeight: 700, fontSize: 13, margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact</h4>
+              <div style={{ marginBottom: 10 }}>
+                <a href="tel:0781687598" style={{ color: 'rgba(255,255,255,0.42)', textDecoration: 'none', fontSize: 14 }}>07 81 68 75 98</a>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <a href="mailto:support@devira.fr" style={{ color: 'rgba(255,255,255,0.42)', textDecoration: 'none', fontSize: 14 }}>support@devira.fr</a>
+              </div>
+            </div>
           </div>
 
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 24 }}>
-            <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13 }}>© 2026 Devisly. Tous droits réservés.</span>
+            <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13 }}>© 2026 Devira. Tous droits réservés.</span>
           </div>
         </div>
       </footer>
