@@ -2,7 +2,9 @@
 import type { Quote, Profile, Invoice } from '../types'
 
 function fmt(n: number) {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .replace(/[  ]/g, ' ')
+    + ' €'
 }
 function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR') }
 function addDays(s: string, d: number) {
@@ -84,7 +86,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     profile.email ? `Email : ${profile.email}` : '',
     profile.siret ? `SIRET : ${profile.siret}` : '',
     profile.tva_intra ? `N° TVA : ${profile.tva_intra}` : '',
-    profile.is_micro_entrepreneur ? `TVA non applicable — art. 293B CGI` : '',
+    profile.is_micro_entrepreneur ? `TVA non applicable - art. 293B CGI` : '',
   ].filter(Boolean) as string[]
 
   const maxLines = logoLoaded ? 7 : 10
@@ -124,7 +126,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor('#666666')
-    doc.text(`au Devis N° ${quote.parent_quote_number || '—'}`, ML, y)
+    doc.text(`au Devis N° ${quote.parent_quote_number || '-'}`, ML, y)
   } else {
     doc.text(`DEVIS N° ${quote.quote_number}`, ML, y)
   }
@@ -134,7 +136,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   doc.setFontSize(8.5)
   doc.setTextColor('#666666')
   doc.text(
-    `Date : ${fmtDate(quote.created_at)}   •   Valide jusqu'au : ${addDays(quote.created_at, validite)}   •   Durée : ${q.duree_estimee}`,
+    `Date : ${fmtDate(quote.created_at)}   -   Valide jusqu'au : ${addDays(quote.created_at, validite)}   -   Duree : ${q.duree_estimee}`,
     ML, y
   )
   y += 7
@@ -157,7 +159,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor('#059669')
-    doc.text(`✓ Signé le ${fmtDate(q.signature.signed_at)} par ${q.signature.signed_by}`, ML + 3, y + 0.5)
+    doc.text(`Signe le ${fmtDate(q.signature.signed_at)} par ${q.signature.signed_by}`, ML + 3, y + 0.5)
     y += 11
   }
 
@@ -165,7 +167,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   const tableBody = q.lignes.map(l => {
     if (l.isSection) {
       return [{
-        content: '◆  ' + l.designation.toUpperCase(),
+        content: '>> ' + l.designation.toUpperCase(),
         colSpan: 6,
         styles: {
           fillColor: [239, 246, 255] as [number, number, number],
@@ -221,10 +223,10 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   if (tvaRates.length > 1) {
     tvaRates.forEach(rate => {
       const lbl = rate === 0 ? 'TVA non applicable (art. 293B CGI)' : `TVA ${rate}%`
-      totauxBody.push([lbl, rate === 0 ? '—' : fmt(tvaByRate[rate])])
+      totauxBody.push([lbl, rate === 0 ? '-' : fmt(tvaByRate[rate])])
     })
   } else if (q.taux_tva === 0) {
-    totauxBody.push(['TVA non applicable (art. 293B CGI)', '—'])
+    totauxBody.push(['TVA non applicable (art. 293B CGI)', '-'])
   } else {
     totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
   }
@@ -282,10 +284,16 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(7.5)
     doc.setTextColor(30, 58, 95)
-    doc.text('⚠ TVA réduite applicable : ', ML + 3, y + 5.5)
+    doc.text('TVA réduite applicable : ', ML + 3, y + 5.5)
     doc.setFont('helvetica', 'normal')
-    doc.text('une attestation simplifiée (Cerfa) doit être signée par le client.', ML + 46, y + 5.5)
+    doc.text('une attestation simplifiée (Cerfa) doit être signée par le client.', ML + 40, y + 5.5)
     y += 13
+  }
+
+  // Nouvelle page si le contenu risque de déborder sur le pied de page fixe (y=286)
+  if (y > 190) {
+    doc.addPage()
+    y = 14
   }
 
   // ── CONDITIONS ──
@@ -356,7 +364,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor('#059669')
-    doc.text('✓ Signé électroniquement', sigRX + sigW / 2, y + 6, { align: 'center' })
+    doc.text('Signe electroniquement', sigRX + sigW / 2, y + 6, { align: 'center' })
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor('#065F46')
@@ -366,7 +374,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(7)
     doc.setTextColor('#888888')
-    doc.text('Pour le client — Bon pour accord', sigRX + 3, y + 5)
+    doc.text('Pour le client - Bon pour accord', sigRX + 3, y + 5)
     doc.setFont('helvetica', 'italic')
     doc.setFontSize(7.5)
     doc.setTextColor('#AAAAAA')
@@ -430,13 +438,13 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     profile.company_name,
     profile.address ? profile.address + (profile.city ? ', ' + profile.city : '') : '',
   ].filter(Boolean)
-  const f1 = f1Parts.join(' • ')
+  const f1 = f1Parts.join(' - ')
 
   const f2Parts = [
     profile.siret ? `SIRET : ${profile.siret}` : '',
-    profile.assurance_decennale ? `Déc. : ${profile.assurance_decennale}` : '',
+    profile.assurance_decennale ? `Dec. : ${profile.assurance_decennale}` : '',
   ].filter(Boolean)
-  const f2 = f2Parts.join(' • ')
+  const f2 = f2Parts.join(' - ')
 
   const tvaLabel = (profile.is_micro_entrepreneur || q.taux_tva === 0)
     ? 'TVA non applicable art. 293B CGI'
@@ -449,9 +457,16 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
   return doc
 }
 
-export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<void> {
+export async function downloadQuotePdf(quote: Quote, profile: Profile): Promise<boolean> {
   const doc = await buildDoc(quote, profile)
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  if (isIOS) {
+    const blobUrl = doc.output('bloburl')
+    window.open(blobUrl as string, '_blank')
+    return true
+  }
   doc.save(`Devis-${quote.quote_number}.pdf`)
+  return false
 }
 
 export async function getQuotePdfBase64(quote: Quote, profile: Profile): Promise<string> {
@@ -538,7 +553,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     `Date : ${fmtDate(invoice.created_at)}`,
     invoice.due_date ? `Échéance : ${fmtDate(invoice.due_date)}` : '',
   ].filter(Boolean)
-  doc.text(metaParts.join('   •   '), ML, y)
+  doc.text(metaParts.join('   -   '), ML, y)
   y += 7
 
   // Status badge
@@ -548,7 +563,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor('#059669')
-    doc.text(`✓ Payée le ${fmtDate(invoice.paid_at)}`, ML + 3, y + 0.5)
+    doc.text(`Payee le ${fmtDate(invoice.paid_at)}`, ML + 3, y + 0.5)
     y += 11
   } else if (invoice.status === 'overdue') {
     doc.setFillColor(254, 242, 242)
@@ -556,7 +571,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor('#DC2626')
-    doc.text(`⚠ Échéance dépassée`, ML + 3, y + 0.5)
+    doc.text(`Echeance depassee`, ML + 3, y + 0.5)
     y += 11
   }
 
@@ -595,10 +610,10 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   if (tvaRates.length > 1) {
     tvaRates.forEach(rate => {
       const lbl = rate === 0 ? 'TVA non applicable (art. 293B CGI)' : `TVA ${rate}%`
-      totauxBody.push([lbl, rate === 0 ? '—' : fmt(tvaByRate[rate])])
+      totauxBody.push([lbl, rate === 0 ? '-' : fmt(tvaByRate[rate])])
     })
   } else if (q.taux_tva === 0) {
-    totauxBody.push(['TVA non applicable (art. 293B CGI)', '—'])
+    totauxBody.push(['TVA non applicable (art. 293B CGI)', '-'])
   } else {
     totauxBody.push([`TVA ${q.taux_tva}%`, fmt(totalTva)])
   }
@@ -644,7 +659,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7)
   doc.setTextColor('#777777')
-  const f1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' • ')
+  const f1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' - ')
   const f2 = profile.siret ? `SIRET : ${profile.siret}` : ''
   doc.text(f1.slice(0, 70), ML, footerY + 5)
   if (f2) doc.text(f2, W / 2, footerY + 5, { align: 'center' })
