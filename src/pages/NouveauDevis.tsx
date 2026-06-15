@@ -322,7 +322,7 @@ export default function NouveauDevis() {
       const msg = err.message?.includes('401') || err.message?.includes('Session expirée')
         ? 'Session expirée — déconnecte-toi et reconnecte-toi'
         : err.message?.includes('500')
-        ? 'Erreur serveur — vérifie ta clé ANTHROPIC_API_KEY dans Supabase'
+        ? 'Erreur serveur temporaire — réessaie dans quelques instants'
         : 'Erreur de génération. Vérifie ta connexion.'
       showToast(msg, 'error')
       setGenerating(false)

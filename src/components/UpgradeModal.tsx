@@ -5,16 +5,17 @@ const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
 const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
 
 const ESSENTIEL_FEATURES = [
-  '20 devis par mois',
+  '10 devis par mois',
   'Génération IA par voix ou texte',
   'PDF professionnel',
-  'Envoi par email',
+  'Envoi par email et SMS',
   'Signature électronique en ligne',
   'Support email',
 ]
 
 const PRO_FEATURES = [
   'Devis illimités',
+  'Envoi par email et SMS illimité',
   'Relances automatiques (J+7, J+14, J+21)',
   'Catalogue prestations + import IA',
   'Facturation intégrée',
@@ -36,7 +37,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
 
   const subtitle =
     reason === 'trial_expired' ? 'Continuez à créer des devis en quelques secondes.'
-    : reason === 'limit_reached' ? 'Vous avez atteint vos 20 devis Essentiel ce mois-ci.'
+    : reason === 'limit_reached' ? 'Vous avez atteint vos 10 devis Essentiel ce mois-ci.'
     : 'Activez votre abonnement pour continuer.'
 
   return (

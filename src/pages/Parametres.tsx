@@ -30,7 +30,7 @@ function profileScore(form: any): { score: number; missing: string[] } {
 
 export default function Parametres() {
   const navigate = useNavigate()
-  const { user, profile, refreshProfile } = useAuth()
+  const { user, profile, refreshProfile, isPro } = useAuth()
   const { showToast, ToastContainer } = useToast()
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
@@ -316,41 +316,50 @@ export default function Parametres() {
           </div>
         </Section>
 
-        {/* Relances automatiques */}
+        {/* Relances automatiques — Pro only */}
         <div className="bg-white rounded-2xl p-4 flex flex-col gap-4 border border-gray-100" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Relances automatiques</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-800">Relances email activées</p>
-              <p className="text-xs text-gray-400 mt-0.5">Rappels envoyés automatiquement si pas de réponse</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => set('relance_enabled', !form.relance_enabled)}
-              className={`relative w-12 h-7 rounded-full transition-colors ${form.relance_enabled ? 'bg-primary' : 'bg-gray-200'}`}
-            >
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.relance_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Relances automatiques</p>
+            {!isPro && <span className="text-xs bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">Plan Pro</span>}
           </div>
-          {form.relance_enabled && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Jours de relance</p>
-              <div className="flex gap-2 flex-wrap">
-                {[7, 14, 21, 30].map(day => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => toggleRelanceDay(day)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${form.relance_days.includes(day) ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200'}`}
-                  >
-                    J+{day}
-                  </button>
-                ))}
+          {isPro ? (
+            <>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">Relances email activées</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Rappels envoyés automatiquement si pas de réponse</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => set('relance_enabled', !form.relance_enabled)}
+                  className={`relative w-12 h-7 rounded-full transition-colors ${form.relance_enabled ? 'bg-primary' : 'bg-gray-200'}`}
+                >
+                  <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.relance_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
-                Relances envoyées {form.relance_days.map(d => `J+${d}`).join(', ')} après envoi du devis
-              </p>
-            </div>
+              {form.relance_enabled && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Jours de relance</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {[7, 14, 21, 30].map(day => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => toggleRelanceDay(day)}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${form.relance_days.includes(day) ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200'}`}
+                      >
+                        J+{day}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Relances envoyées {form.relance_days.map(d => `J+${d}`).join(', ')} après envoi du devis
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-gray-400">Activez les relances automatiques J+7, J+14, J+21 avec le plan Pro.</p>
           )}
         </div>
 
@@ -425,9 +434,9 @@ function SubscriptionCard() {
 
   useEffect(() => {
     if (subscriptionStatus === 'trial' && trialDaysLeft > 0) {
-      document.title = `DevisPro · Essai J-${trialDaysLeft}`
+      document.title = `Devira · Essai J-${trialDaysLeft}`
     }
-    return () => { document.title = 'DevisPro' }
+    return () => { document.title = 'Devira' }
   }, [subscriptionStatus, trialDaysLeft])
 
   if (subscriptionStatus === 'active') {
@@ -478,7 +487,7 @@ function SubscriptionCard() {
           onClick={() => setShowModal(true)}
           style={{ width: '100%', padding: '11px 0', borderRadius: 10, background: '#E87722', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
         >
-          Passer à Pro — 79€/mois →
+          Passer à Pro — 79,48 €/mois →
         </button>
       </div>
       {showModal && <UpgradeModal reason="manual" onClose={() => setShowModal(false)} />}

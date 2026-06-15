@@ -408,8 +408,6 @@ export default function Dashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {sorted.map(q => {
               const isOverdue = q.status === 'sent' && daysSince(q.created_at) > 15
-              const clientPhone = (q.quote_json as any)?.client?.phone || ''
-              const waPhone = clientPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
               const stripe = statusStripe[q.status] || '#CBD5E1'
               return (
                 <button
@@ -441,16 +439,6 @@ export default function Dashboard() {
                       )}
                       {q.avenant_number && !isOverdue && q.status !== 'pending_approval' && (
                         <span style={{ fontSize: 11, color: '#7C3AED', fontWeight: 600 }}>Avenant N°{q.avenant_number}</span>
-                      )}
-                      {isOverdue && waPhone && (
-                        <a
-                          href={`https://wa.me/${waPhone}`}
-                          onClick={e => e.stopPropagation()}
-                          style={{ fontSize: 11, background: '#DCFCE7', color: '#15803D', fontWeight: 600, padding: '3px 8px', borderRadius: 8, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}
-                        >
-                          <MessageCircle size={10} strokeWidth={2} />
-                          WA
-                        </a>
                       )}
                     </div>
                   )}
@@ -514,6 +502,8 @@ function PlanUsageCard() {
   const pct = Math.min(100, Math.round((used / LIMIT) * 100))
   const barColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981'
 
+  const LIMIT = 10
+
   if (plan === 'pro' || plan === 'equipe') {
     return (
       <div style={{ margin: '4px 20px 8px', padding: '10px 14px', background: 'linear-gradient(135deg, #F0FDF4, #ECFDF5)', border: '1px solid #BBF7D0', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -537,7 +527,7 @@ function PlanUsageCard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', background: '#EEF2FF', padding: '2px 9px', borderRadius: 99 }}>Essentiel</span>
             <span style={{ fontSize: 12, color: pct >= 90 ? '#DC2626' : '#64748B', fontWeight: pct >= 90 ? 600 : 400 }}>
-              {remaining > 0 ? `${remaining} devis restants` : 'Limite du mois atteinte'}
+              {remaining > 0 ? `${remaining} devis restants` : 'Limite du mois atteinte (10)'}
             </span>
           </div>
           <button
@@ -555,7 +545,7 @@ function PlanUsageCard() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 10, color: '#94A3B8' }}>{used} utilisés</span>
-          <span style={{ fontSize: 10, color: '#94A3B8' }}>{LIMIT} / mois</span>
+          <span style={{ fontSize: 10, color: '#94A3B8' }}>10 / mois</span>
         </div>
       </div>
       {showUpgrade && <UpgradeModal reason="manual" onClose={() => setShowUpgrade(false)} />}
