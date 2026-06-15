@@ -303,6 +303,7 @@ export default function DevisDetail() {
   // ── PHOTOS ──
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
+    if (!isPro) { navigate('/parametres'); return }
     if (!files.length || !user || !quote) return
     const currentPhotos = quote.quote_json.photos || []
     if (currentPhotos.length + files.length > 8) {
@@ -818,10 +819,10 @@ export default function DevisDetail() {
               }
             </div>
             {photos.length === 0 ? (
-              <button onClick={() => photoInputRef.current?.click()} className="w-full py-6 flex flex-col items-center gap-2 text-gray-300 hover:text-gray-400 transition-colors">
-                <span className="text-3xl">📷</span>
-                <span className="text-sm">Ajoute des photos de chantier</span>
-                <span className="text-xs">Avant / Pendant / Après</span>
+              <button onClick={() => isPro ? photoInputRef.current?.click() : navigate('/parametres')} className="w-full py-6 flex flex-col items-center gap-2 text-gray-300 hover:text-gray-400 transition-colors">
+                <span className="text-3xl">{isPro ? '📷' : '🔒'}</span>
+                <span className="text-sm">{isPro ? 'Ajoute des photos de chantier' : 'Photos chantier — Plan Pro'}</span>
+                <span className="text-xs">{isPro ? 'Avant / Pendant / Après' : 'Passer au plan Pro →'}</span>
               </button>
             ) : (
               <div className="p-3 grid grid-cols-3 gap-2">
@@ -868,24 +869,6 @@ export default function DevisDetail() {
             >
               <span>📱</span> Envoyer par SMS
             </button>
-
-            {(quote.quote_json.client as any)?.phone && (
-              <button
-                onClick={() => {
-                  const signUrl = `${window.location.origin}/sign/${quote.id}`
-                  const clientFirst = quote.client_name?.split(' ')[0] || ''
-                  const clientRawPhone = (quote.quote_json.client as any)?.phone || ''
-                  const waPhone = clientRawPhone.replace(/[\s\-().+]/g, '').replace(/^0/, '33')
-                  const msg = encodeURIComponent(
-                    `Bonjour${clientFirst ? ' ' + clientFirst : ''},\n\nVotre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Vous pouvez le consulter et le signer ici :\n${signUrl}\n\nCordialement,\n${profile?.company_name || ''}`
-                  )
-                  window.open(`https://wa.me/${waPhone}?text=${msg}`, '_blank')
-                }}
-                className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50 active:scale-95 transition-transform"
-              >
-                <span>💬</span> Envoyer sur WhatsApp
-              </button>
-            )}
 
             {quote.status === 'sent' && (
               isPro
