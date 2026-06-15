@@ -408,8 +408,8 @@ const TESTIMONIALS = [
   {
     name: 'Stéphane R.',
     job: 'Plomberie & Chauffage',
-    city: 'Nantes',
-    text: "Après la visite j'étais encore dans mon camion. J'ai dicté le devis, mon client l'avait 20 minutes après. Il m'a envoyé un message : « c'est la première fois qu'un artisan me fait ça. » Pour moi ça m'a pris 2 minutes entre deux chantiers.",
+    city: 'Paris',
+    text: "Honnêtement je cherchais juste à aller plus vite. J'ai testé, le devis est sorti propre, le client a signé. C'est tout ce qu'il me fallait.",
     initials: 'SR',
     bg: '#1E3A5F',
     stars: 5,
@@ -417,8 +417,8 @@ const TESTIMONIALS = [
   {
     name: 'Marc T.',
     job: 'MT Électricité',
-    city: 'Bordeaux',
-    text: "J'avais Obat depuis 2 ans. J'ai hésité à changer mais c'est moins cher et y'a l'IA en plus. La vraie différence c'est la signature en ligne. Avant certains clients mettaient 3 semaines — ils oublient, ils rappellent jamais. Maintenant beaucoup signent le soir même. C'est concret.",
+    city: 'Paris',
+    text: "Je savais pas trop au début. Maintenant je l'utilise à chaque visite. Mes devis me prennent plus de temps.",
     initials: 'MT',
     bg: '#0F766E',
     stars: 5,
@@ -426,8 +426,8 @@ const TESTIMONIALS = [
   {
     name: 'Karim B.',
     job: 'KB Rénovations',
-    city: 'Lyon',
-    text: "Honnêtement j'y croyais vraiment pas. L'IA dans le BTP ça me faisait sourire. Et puis j'ai essayé parce qu'un client attendait depuis 2 jours. Le devis était là en 3 minutes, avec les bons termes, les bons métrés. Depuis j'ai pas regardé en arrière. Les relances automatiques m'ont fait récupérer un chantier à 8 000 € que j'aurais laissé tomber faute de temps.",
+    city: 'Paris',
+    text: "Je faisais tout sur Excel avant, c'était long. Un collègue m'a montré l'appli. Ce qui m'a surpris c'est que ça comprend vraiment les termes du bâtiment, les métrés, tout. Et y'a eu un client qui avait pas répondu depuis 12 jours — la relance automatique l'a relancé, il a signé. J'aurais jamais pensé à le rappeler à ce moment-là.",
     initials: 'KB',
     bg: '#7C3AED',
     stars: 4,
