@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { FileEdit, Mic, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { supabase, SUPABASE_URL } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { LoadingOverlay } from '../components/LoadingOverlay'
 import { useToast } from '../components/Toast'
@@ -34,10 +35,10 @@ interface DraftData {
 
 export default function NouveauDevis() {
   const navigate = useNavigate()
-  const { user, profile, isTrialExpired, canCreateQuote, subscriptionStatus } = useAuth()
+  const { user, profile, isTrialExpired, canCreateQuote } = useAuth()
   const { showToast, ToastContainer } = useToast()
 
-  const [step, setStep] = useState<Step>('describe')
+  const [step, setStep] = useState<Step>('client')
   const [description, setDescription] = useState('')
   const [micState, setMicState] = useState<MicState>('idle')
   const [generating, setGenerating] = useState(false)
@@ -265,7 +266,7 @@ export default function NouveauDevis() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'apikey': 'sb_publishable_Nk-S_19lmzsuAj_VXhNMGw_2tIIZsKW',
+          'apikey': SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ description: fullDescription, user_id: user.id }),
       })
@@ -333,7 +334,7 @@ export default function NouveauDevis() {
     )
   }
 
-  if (!canCreateQuote && subscriptionStatus === 'trial') {
+  if (!canCreateQuote) {
     return (
       <UpgradeModal
         reason="limit_reached"
@@ -349,24 +350,24 @@ export default function NouveauDevis() {
 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-12 pb-4 border-b border-gray-100 bg-white sticky top-0 z-20">
-        <button onClick={() => step === 'client' ? setStep('describe') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
+        <button onClick={() => step === 'describe' ? setStep('client') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
         <div className="flex-1">
           <h1 className="text-gray-900 font-bold text-lg leading-none">Nouveau devis</h1>
           <div className="flex items-center gap-1 mt-1.5">
             <div className="h-1.5 w-14 rounded-full bg-primary" />
-            <div className={`h-1.5 w-14 rounded-full transition-all ${step === 'client' ? 'bg-primary' : 'bg-gray-200'}`} />
+            <div className={`h-1.5 w-14 rounded-full transition-all ${step === 'describe' ? 'bg-primary' : 'bg-gray-200'}`} />
           </div>
         </div>
         <div className="text-xs text-gray-400 font-medium">
-          {step === 'describe' ? 'Étape 1/2' : 'Étape 2/2'}
+          {step === 'client' ? 'Étape 1/2' : 'Étape 2/2'}
         </div>
       </div>
 
       {/* Banner de reprise de brouillon */}
-      {draftBanner && step === 'describe' && !description && (
+      {draftBanner && step === 'client' && !description && (
         <div className="mx-4 mt-4 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">📝</span>
+            <FileEdit size={22} className="text-amber-500 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-amber-800 font-semibold text-sm mb-0.5">Brouillon non envoyé</p>
               <p className="text-amber-600 text-xs mb-3 line-clamp-2">{draftBanner.description}</p>
@@ -408,7 +409,7 @@ export default function NouveauDevis() {
             {/* Indicateur auto-save */}
             {description.length > 20 && (
               <span className="absolute bottom-3 right-3 text-xs text-gray-300">
-                💾 Sauvegardé
+                · brouillon local
               </span>
             )}
           </div>
@@ -416,7 +417,7 @@ export default function NouveauDevis() {
           {/* Texte en cours de dictée (temps réel) */}
           {interimText && (
             <div className="mb-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-2">
-              <span className="text-red-400 animate-pulse mt-0.5">🎙️</span>
+              <Mic size={14} className="text-red-400 mt-0.5 shrink-0 animate-pulse" />
               <p className="text-red-600 text-sm italic leading-relaxed">{interimText}<span className="animate-pulse">▌</span></p>
             </div>
           )}
@@ -498,7 +499,7 @@ export default function NouveauDevis() {
           {/* Templates */}
           {!description && !draftBanner && (
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">⚡ Démarrage rapide</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Démarrage rapide</p>
               <div className="grid grid-cols-2 gap-2">
                 {TEMPLATES.map(t => (
                   <button
@@ -517,7 +518,7 @@ export default function NouveauDevis() {
           {/* Conseils */}
           {description && charCount < 80 && (
             <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
-              <p className="text-xs text-amber-700 font-semibold mb-1">💡 Pour un meilleur devis, précise :</p>
+              <p className="text-xs text-amber-700 font-semibold mb-1">Pour un meilleur devis, précise :</p>
               <ul className="text-xs text-amber-600 space-y-0.5">
                 <li>• Surface en m² ou quantité</li>
                 <li>• Type de matériaux souhaités</li>
@@ -539,7 +540,7 @@ export default function NouveauDevis() {
           {savedClients.length > 0 && (
             <div className="mb-5">
               <button onClick={() => setShowClientList(!showClientList)} className="w-full flex items-center justify-between bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-primary text-sm font-semibold">
-                <span className="flex items-center gap-2"><span>👥</span> Choisir un client existant ({savedClients.length})</span>
+                <span className="flex items-center gap-2"><Users size={15} /> Choisir un client existant ({savedClients.length})</span>
                 <span>{showClientList ? '▲' : '▼'}</span>
               </button>
               {showClientList && (
@@ -593,41 +594,30 @@ export default function NouveauDevis() {
             />
           </div>
 
-          {/* Résumé de la description */}
-          <div className="mt-5 bg-gray-50 rounded-xl p-3 border border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Résumé chantier</p>
-            <p className="text-sm text-gray-600 line-clamp-3">{description}</p>
-            <button onClick={() => setStep('describe')} className="text-xs text-primary font-semibold mt-1.5">✏️ Modifier</button>
-          </div>
-
           <div className="mt-4 p-3 bg-blue-50 rounded-xl">
-            <p className="text-xs text-blue-600 font-medium">💾 Le client sera sauvegardé automatiquement dans ton carnet</p>
+            <p className="text-xs text-blue-600 font-medium">Client sauvegardé automatiquement dans ton carnet d'adresses</p>
           </div>
         </div>
       )}
 
       {/* CTA sticky */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-gray-100 px-5 py-4 z-20">
-        {step === 'describe' ? (
-          <div className="flex flex-col gap-2">
-            <button onClick={() => setStep('client')} disabled={!canGenerate} className="btn-primary">
-              {canGenerate ? 'Suivant — Infos client →' : `Encore ${20 - charCount} caractères min`}
-            </button>
-            {charCount >= 50 && (
-              <button
-                onClick={handleGenerate}
-                className="w-full py-3 rounded-2xl border-2 border-primary/20 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
-              >
-                ⚡ Générer directement (sans infos client)
-              </button>
-            )}
-          </div>
+        {step === 'client' ? (
+          <button onClick={() => setStep('describe')} className="btn-primary">
+            Suivant →
+          </button>
         ) : (
-          <button onClick={handleGenerate} className="btn-accent">
-            <span className="flex items-center justify-center gap-2">
-              <span>⚡</span>
-              Générer le devis avec l'IA
-            </span>
+          <button
+            onClick={handleGenerate}
+            disabled={!canGenerate}
+            className="btn-accent"
+            style={!canGenerate ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+          >
+            {canGenerate ? (
+              <span className="flex items-center justify-center gap-2">
+                <span>⚡</span> Créer mon devis →
+              </span>
+            ) : `Encore ${20 - charCount} caractères min`}
           </button>
         )}
       </div>

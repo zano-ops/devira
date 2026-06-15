@@ -533,7 +533,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 30€/mois TTC · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>À partir de 29,81 €/mois · Satisfait ou remboursé 7 jours · Annulation à tout moment</p>
         </div>
       </section>
 
@@ -692,8 +692,8 @@ export default function Landing() {
               <RotateCcw size={26} color="white" strokeWidth={2} />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 14 jours</h3>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 14 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 7 jours</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 7 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
             </div>
           </div>
 
@@ -735,7 +735,7 @@ export default function Landing() {
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>80€<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,48 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Obat</div>
@@ -819,7 +819,7 @@ export default function Landing() {
             <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 48, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>30€</span>
+                <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,81 €</span>
                 <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
@@ -834,11 +834,11 @@ export default function Landing() {
                 ))}
               </div>
               <a href={STRIPE_ESSENTIEL} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Essentiel — 30€/mois
+                Choisir Essentiel — 29,81 €/mois
               </a>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
                 <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
+                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 7 jours</span>
               </div>
             </div>
 
@@ -847,7 +847,7 @@ export default function Landing() {
               <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 48, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>80€</span>
+                <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,48 €</span>
                 <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
@@ -862,11 +862,11 @@ export default function Landing() {
                 ))}
               </div>
               <a href={STRIPE_PRO} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s', textDecoration: 'none', textAlign: 'center' }}>
-                Choisir Pro — 80€/mois
+                Choisir Pro — 79,48 €/mois
               </a>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 12 }}>
                 <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 14 jours</span>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 7 jours</span>
               </div>
             </div>
 
@@ -896,7 +896,7 @@ export default function Landing() {
           </div>
 
           <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 14, marginTop: 28 }}>
-            Satisfait ou remboursé 14 jours · Paiement sécurisé par Stripe · Annulation à tout moment
+            Satisfait ou remboursé 7 jours · Paiement sécurisé par Stripe · Annulation à tout moment
           </p>
         </div>
       </section>
@@ -935,12 +935,12 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 40px' }}>
-            À partir de 30€/mois TTC. Paiement sécurisé. Vous arrêtez quand vous voulez.
+            À partir de 29,81 €/mois. Paiement sécurisé. Vous arrêtez quand vous voulez.
           </p>
           <a href={STRIPE_ESSENTIEL} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s', textDecoration: 'none' }}>
             Commencer maintenant
           </a>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 7 jours · Annulation à tout moment</p>
         </div>
       </section>
 
@@ -973,11 +973,11 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-            <div style={{ flex: '1 1 140px' }}>
+            <div style={{ flex: '1 1 160px' }}>
               <h4 style={{ color: 'white', fontWeight: 700, fontSize: 13, margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Légal</h4>
               {[['CGV & CGU', '/cgv'], ['Politique de confidentialité', '/confidentialite']].map(([l, h]) => (
                 <div key={l} style={{ marginBottom: 10 }}>
-                  <button onClick={() => goto(h)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.42)', cursor: 'pointer', fontSize: 14, padding: 0 }}>{l}</button>
+                  <button onClick={() => goto(h)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.42)', cursor: 'pointer', fontSize: 14, padding: 0, textAlign: 'left', display: 'block', lineHeight: 1.4 }}>{l}</button>
                 </div>
               ))}
             </div>
