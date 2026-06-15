@@ -194,11 +194,10 @@ function DemoAnimation() {
         {/* Phase 4 — Email + SMS envoyés */}
         {phase === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 10, textAlign: 'center' }}>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Devis envoyé sur 3 canaux</p>
+            <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Devis envoyé sur 2 canaux</p>
             {[
               { icon: '📧', label: 'Email', sub: 'jean.dupont@gmail.com', ok: true },
               { icon: '📱', label: 'SMS', sub: '+33 6 12 34 56 78', ok: true },
-              { icon: '💬', label: 'WhatsApp', sub: 'Jean Dupont', ok: true },
             ].map((ch, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: '#F0FDF4', borderRadius: 10, border: '1px solid #BBF7D0', width: '100%', maxWidth: 300, textAlign: 'left' }}>
                 <span style={{ fontSize: 16 }}>{ch.icon}</span>
@@ -398,9 +397,9 @@ const TABS = [
   },
   {
     icon: Smartphone,
-    label: 'SMS & WhatsApp',
+    label: 'Envoi par SMS',
     title: '40% des clients préfèrent le SMS à l\'email',
-    desc: 'Envoyez votre devis par email, SMS ou WhatsApp en un seul clic. Vos clients reçoivent un lien pour consulter et signer depuis leur téléphone. Même sans connexion email.',
+    desc: 'Envoyez votre devis par email et par SMS en un seul clic. Vos clients reçoivent un lien pour consulter et signer depuis leur téléphone. Plus de devis ignorés dans les spams.',
     badge: 'Moins de devis ignorés',
   },
 ]
@@ -416,16 +415,17 @@ const FAQS = [
 ]
 
 const ESSENTIEL_FEATURES = [
-  '20 devis par mois',
+  '10 devis par mois',
   'Génération IA par voix ou texte',
   'PDF professionnel',
-  'Envoi par email',
+  'Envoi par email et par SMS',
   'Signature électronique en ligne',
   'Support email',
 ]
 
 const PRO_FEATURES = [
   'Devis illimités',
+  'Envoi par email et par SMS illimité',
   'Relances automatiques (J+7, J+14, J+21)',
   'Catalogue prestations + import IA',
   'Facturation intégrée',
@@ -567,9 +567,9 @@ export default function Landing() {
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit pour tester l'IA · Sans carte bancaire</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,81 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,81 € TTC/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {['📱 Depuis le chantier', '💬 Envoi SMS & WhatsApp', '✍️ Signature en ligne', '🤖 IA BTP'].map(tag => (
+            {['📱 Depuis le chantier', '📱 Envoi par SMS', '✍️ Signature en ligne', '🤖 IA BTP'].map(tag => (
               <span key={tag} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, padding: '6px 13px', borderRadius: 99 }}>{tag}</span>
             ))}
           </div>
@@ -589,7 +589,7 @@ export default function Landing() {
               { Icon: Clock, color: '#DC2626', bg: '#FEF2F2', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
               { Icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
               { Icon: AlertCircle, color: '#7C3AED', bg: '#F5F3FF', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
-              { Icon: MessageSquare, color: '#0891B2', bg: '#F0F9FF', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS ni WhatsApp, vous perdez des chantiers sans même le savoir.' },
+              { Icon: MessageSquare, color: '#0891B2', bg: '#F0F9FF', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS, vous perdez des chantiers sans même le savoir. Devira envoie sur les deux canaux en un clic.' },
             ].map((item, i) => (
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', borderRadius: 16, padding: '28px 28px 32px', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
@@ -775,7 +775,7 @@ export default function Landing() {
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,48 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,48 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}> TTC/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Obat</div>
@@ -791,8 +791,7 @@ export default function Landing() {
                   {([
                     { feature: 'Génération IA vocale', d: true, o: false, b: false },
                     { feature: 'Devis en moins de 2 min', d: true, o: false, b: false },
-                    { feature: 'Envoi par SMS', d: true, o: false, b: false },
-                    { feature: 'Envoi WhatsApp intégré', d: true, o: false, b: false },
+                    { feature: 'Envoi par SMS intégré', d: true, o: false, b: false },
                     { feature: 'Signature électronique', d: true, o: false, b: true },
                     { feature: 'Relances automatiques', d: true, o: false, b: false },
                     { feature: 'PDF professionnel', d: true, o: true, b: true },
@@ -865,7 +864,7 @@ export default function Landing() {
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
                 <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,81 €</span>
-                <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois</span>
+                <span style={{ color: '#9CA3AF', fontSize: 15 }}> TTC/mois</span>
               </div>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
@@ -896,7 +895,7 @@ export default function Landing() {
               <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
                 <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,48 €</span>
-                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois</span>
+                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}> TTC/mois</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
@@ -962,7 +961,7 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
-            Testez l'IA sur 1 devis gratuit, sans carte bancaire. Abonnement à partir de 29,81 €/mois.
+            Testez l'IA sur 1 devis gratuit, sans carte bancaire. Abonnement à partir de 29,81 € TTC/mois.
           </p>
           <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement
