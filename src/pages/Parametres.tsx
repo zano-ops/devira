@@ -445,7 +445,7 @@ export default function Parametres() {
               icon: <Globe size={18} color="#1E3A5F" strokeWidth={1.8} />,
               label: 'Site Devira',
               sub: 'devira.fr',
-              href: 'https://devira.fr',
+              href: '/home',
             },
           ].map(({ icon, label, sub, href }, i, arr) => (
             <a
