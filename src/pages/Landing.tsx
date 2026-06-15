@@ -409,25 +409,28 @@ const TESTIMONIALS = [
     name: 'Stéphane R.',
     job: 'Plomberie & Chauffage',
     city: 'Nantes',
-    text: "J'ai dicté un devis salle de bain complète depuis mon van après la visite — 14 lignes, tout y était. Avant ça me prenait 1h30 le soir à la maison. Maintenant mon client a le devis dans l'heure. Le premier qui a signé comme ça m'a dit que j'étais le seul artisan à faire ça.",
+    text: "Après la visite j'étais encore dans mon camion. J'ai dicté le devis, mon client l'avait 20 minutes après. Il m'a envoyé un message : « c'est la première fois qu'un artisan me fait ça. » Pour moi ça m'a pris 2 minutes entre deux chantiers.",
     initials: 'SR',
     bg: '#1E3A5F',
+    stars: 5,
   },
   {
     name: 'Marc T.',
     job: 'MT Électricité',
     city: 'Bordeaux',
-    text: "J'utilisais Obat avant. Devira c'est moins cher et j'ai l'IA en plus. La signature en ligne a changé ma vie — j'avais des devis qui traînaient 3 semaines. Maintenant les clients signent depuis leur téléphone le jour même. Mon taux de signature a dû monter de 40%.",
+    text: "J'avais Obat depuis 2 ans. J'ai hésité à changer mais c'est moins cher et y'a l'IA en plus. La vraie différence c'est la signature en ligne. Avant certains clients mettaient 3 semaines — ils oublient, ils rappellent jamais. Maintenant beaucoup signent le soir même. C'est concret.",
     initials: 'MT',
     bg: '#0F766E',
+    stars: 5,
   },
   {
     name: 'Karim B.',
     job: 'KB Rénovations',
     city: 'Lyon',
-    text: "J'étais sceptique sur l'IA pour le BTP. À tort. Ça comprend le jargon, les m², les unités. J'ai fait 11 devis en 2 semaines pendant une période chargée — c'était impossible avant. Les relances automatiques ? J'ai récupéré 2 chantiers que j'aurais perdus.",
+    text: "Honnêtement j'y croyais vraiment pas. L'IA dans le BTP ça me faisait sourire. Et puis j'ai essayé parce qu'un client attendait depuis 2 jours. Le devis était là en 3 minutes, avec les bons termes, les bons métrés. Depuis j'ai pas regardé en arrière. Les relances automatiques m'ont fait récupérer un chantier à 8 000 € que j'aurais laissé tomber faute de temps.",
     initials: 'KB',
     bg: '#7C3AED',
+    stars: 4,
   },
 ]
 
@@ -659,7 +662,7 @@ export default function Landing() {
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', borderRadius: 20, padding: '28px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', gap: 3 }}>
                   {[...Array(5)].map((_, si) => (
-                    <svg key={si} width="16" height="16" viewBox="0 0 24 24" fill={A} xmlns="http://www.w3.org/2000/svg">
+                    <svg key={si} width="16" height="16" viewBox="0 0 24 24" fill={si < t.stars ? A : '#E5E7EB'} xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
                   ))}
