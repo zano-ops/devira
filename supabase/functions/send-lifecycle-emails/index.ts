@@ -1,15 +1,21 @@
 // Supabase Edge Function: send-lifecycle-emails
-// Deploy: supabase functions deploy send-lifecycle-emails
+// Déploiement : coller dans Supabase Dashboard → Edge Functions → send-lifecycle-emails
+// (garder EDGE_FUNCTION_send-lifecycle-emails.ts synchronisé avec ce fichier)
 // Env vars: BREVO_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 //
-// Triggered daily via pg_cron at 9h:
-// SELECT cron.schedule('lifecycle-emails','0 9 * * *',
-//   $$ SELECT net.http_post(url:='https://osvwlgchubgtklyonqpv.supabase.co/functions/v1/send-lifecycle-emails',
-//      headers:='{"Authorization":"Bearer YOUR_SERVICE_ROLE_KEY"}'::jsonb, body:='{}'::jsonb) $$);
+// Deux modes d'appel :
+// 1. POST { user_id } → envoi immédiat de l'email de bienvenue pour CET utilisateur.
+//    Appelé depuis Signup.tsx / AuthCallback.tsx juste après l'inscription.
+// 2. POST {} (corps vide) → sweep quotidien, appelé par le cron Vercel
+//    (api/cron/lifecycle-emails.ts, voir vercel.json) : filet de sécurité bienvenue
+//    + nudge J+3 (pas de devis créé) + alerte J-2 (fin d'essai).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const CORS = { 'Content-Type': 'application/json' }
+
+// Vidéo de présentation Devira, servie directement depuis public/ (pas Loom — pas de compte Loom utilisé)
+const DEMO_VIDEO_URL = 'https://devira.fr/devira-presentation.mp4'
 
 async function sendBrevoEmail(apiKey: string, to: string, subject: string, html: string) {
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -25,64 +31,89 @@ async function sendBrevoEmail(apiKey: string, to: string, subject: string, html:
   return res.ok
 }
 
-Deno.serve(async () => {
+function welcomeEmailHtml(firstName: string) {
+  return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+    <div style="background:#1E3A5F;padding:28px 32px;border-radius:12px 12px 0 0">
+      <h1 style="color:white;margin:0;font-size:22px">Bienvenue sur Devira 👋</h1>
+    </div>
+    <div style="background:#f9f9f9;padding:28px 32px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
+      <p>Bonjour ${firstName},</p>
+      <p>Votre compte est prêt. Vous avez <strong>1 devis gratuit</strong> disponible — sans carte bancaire.</p>
+      <p>Regardez Devira en action :</p>
+      <div style="text-align:center;margin:20px 0">
+        <a href="${DEMO_VIDEO_URL}" style="display:inline-block">
+          <img src="https://devira.fr/devira-thumbnail.png" alt="▶ Voir la vidéo Devira" width="320" style="max-width:100%;border-radius:14px;display:block" />
+        </a>
+      </div>
+      <div style="text-align:center;margin:24px 0">
+        <a href="https://devira.fr/nouveau-devis" style="background:#E87722;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">Créer mon 1er devis →</a>
+      </div>
+      <p style="color:#6B7280;font-size:13px">Ça prend 2 minutes. Décrivez vos travaux en langage naturel, l'IA fait le reste.</p>
+      <p>Bonne création,<br><strong>Mathias — Devira</strong></p>
+    </div>
+  </div>`
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function sendWelcomeForUser(supabase: any, apiKey: string, userId: string): Promise<string | null> {
+  const { data: u } = await supabase
+    .from('profiles')
+    .select('id, email, owner_name, welcome_email_sent')
+    .eq('id', userId)
+    .single()
+  if (!u || !u.email || u.welcome_email_sent) return null
+  const firstName = u.owner_name?.split(' ')[0] || 'vous'
+  const ok = await sendBrevoEmail(apiKey, u.email, 'Bienvenue sur Devira — votre 1er devis gratuit vous attend', welcomeEmailHtml(firstName))
+  if (!ok) return null
+  await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', u.id)
+  return u.email
+}
+
+Deno.serve(async (req) => {
   const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY')
   if (!BREVO_API_KEY) return new Response(JSON.stringify({ error: 'BREVO_API_KEY missing' }), { status: 500, headers: CORS })
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+
+  let body: { user_id?: string } = {}
+  try { body = await req.json() } catch { /* corps vide = mode sweep quotidien */ }
+
+  // ── Mode 1 : envoi immédiat pour un utilisateur précis (déclenché à l'inscription) ──
+  if (body.user_id) {
+    const sent = await sendWelcomeForUser(supabase, BREVO_API_KEY, body.user_id)
+    return new Response(JSON.stringify({ success: true, sent: sent ? [`welcome:${sent}`] : [] }), { headers: CORS })
+  }
+
+  // ── Mode 2 : sweep quotidien (cron Vercel) ──
   const now = new Date()
   const results: string[] = []
 
-  // ── 1. EMAIL DE BIENVENUE (J+0 — créé il y a moins de 1h) ──
-  const welcomeCutoffStart = new Date(now.getTime() - 60 * 60 * 1000)
-  const welcomeCutoffEnd = new Date(now.getTime() - 50 * 60 * 1000)
-  const { data: newUsers } = await supabase
+  // 1. Filet de sécurité BIENVENUE — si le déclenchement à l'inscription a échoué
+  //    (réseau coupé, onglet fermé...). Borné aux 48 dernières heures pour ne pas
+  //    spammer tous les comptes existants au premier déploiement.
+  const safetyNetSince = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+  const { data: missedWelcome } = await supabase
     .from('profiles')
-    .select('id, email, owner_name, company_name, welcome_email_sent')
-    .gte('created_at', welcomeCutoffStart.toISOString())
-    .lte('created_at', welcomeCutoffEnd.toISOString())
+    .select('id')
     .eq('welcome_email_sent', false)
-
-  for (const u of newUsers || []) {
-    if (!u.email) continue
-    const firstName = u.owner_name?.split(' ')[0] || 'vous'
-    const ok = await sendBrevoEmail(BREVO_API_KEY, u.email,
-      'Bienvenue sur Devira — votre 1er devis gratuit vous attend',
-      `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#1E3A5F;padding:28px 32px;border-radius:12px 12px 0 0">
-          <h1 style="color:white;margin:0;font-size:22px">Bienvenue sur Devira 👋</h1>
-        </div>
-        <div style="background:#f9f9f9;padding:28px 32px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
-          <p>Bonjour ${firstName},</p>
-          <p>Votre compte est prêt. Vous avez <strong>1 devis gratuit</strong> disponible — sans carte bancaire.</p>
-          <p>C'est le moment de voir ce que l'IA génère pour votre métier :</p>
-          <div style="text-align:center;margin:28px 0">
-            <a href="https://devira.fr/nouveau-devis" style="background:#E87722;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">Créer mon 1er devis →</a>
-          </div>
-          <p style="color:#6B7280;font-size:13px">Ça prend 2 minutes. Décrivez vos travaux en langage naturel, l'IA fait le reste.</p>
-          <p>Bonne création,<br><strong>Mathias — Devira</strong></p>
-        </div>
-      </div>`
-    )
-    if (ok) {
-      await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', u.id)
-      results.push(`welcome:${u.email}`)
-    }
+    .gte('created_at', safetyNetSince.toISOString())
+    .not('email', 'is', null)
+  for (const u of missedWelcome || []) {
+    const sent = await sendWelcomeForUser(supabase, BREVO_API_KEY, u.id)
+    if (sent) results.push(`welcome:${sent}`)
   }
 
-  // ── 2. NUDGE J+3 (pas encore créé de devis) ──
-  const j3Start = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000 - 30 * 60 * 1000)
-  const j3End = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000)
-  const { data: j3Users } = await supabase
+  // 2. NUDGE J+3 (pas encore créé de devis) — comparaison en jours pleins, pas en
+  //    fenêtre horaire fragile, pour rester correct même si le cron tourne en retard.
+  const { data: j3Candidates } = await supabase
     .from('profiles')
-    .select('id, email, owner_name')
-    .gte('created_at', j3Start.toISOString())
-    .lte('created_at', j3End.toISOString())
+    .select('id, email, owner_name, created_at')
     .eq('quotes_this_month', 0)
     .eq('nudge_j3_sent', false)
-
-  for (const u of j3Users || []) {
-    if (!u.email) continue
+    .not('email', 'is', null)
+  for (const u of j3Candidates || []) {
+    const daysSince = Math.floor((now.getTime() - new Date(u.created_at).getTime()) / 86400000)
+    if (daysSince < 3) continue
     const firstName = u.owner_name?.split(' ')[0] || 'vous'
     const ok = await sendBrevoEmail(BREVO_API_KEY, u.email,
       'Vous n\'avez pas encore testé Devira — votre devis gratuit expire bientôt',
@@ -92,7 +123,7 @@ Deno.serve(async () => {
         </div>
         <div style="background:#f9f9f9;padding:28px 32px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
           <p>Bonjour ${firstName},</p>
-          <p>Vous vous êtes inscrit il y a 3 jours mais n'avez pas encore créé votre devis gratuit.</p>
+          <p>Vous vous êtes inscrit il y a ${daysSince} jours mais n'avez pas encore créé votre devis gratuit.</p>
           <p>Ça prend vraiment <strong>2 minutes</strong>. Décrivez vos travaux, l'IA génère tout le tableau avec les prix, les quantités et les mentions légales.</p>
           <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:16px;margin:20px 0">
             <p style="margin:0;color:#C2410C;font-weight:600">⚡ Votre devis gratuit est toujours disponible — profitez-en maintenant.</p>
@@ -110,19 +141,17 @@ Deno.serve(async () => {
     }
   }
 
-  // ── 3. ALERTE EXPIRATION TRIAL J-2 ──
-  const expirySoon = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
-  const expirySoonEnd = new Date(expirySoon.getTime() + 60 * 60 * 1000)
-  const { data: expiringUsers } = await supabase
+  // 3. ALERTE EXPIRATION TRIAL J-2
+  const { data: expiryCandidates } = await supabase
     .from('profiles')
-    .select('id, email, owner_name, quotes_this_month')
+    .select('id, email, owner_name, quotes_this_month, trial_ends_at')
     .eq('subscription_status', 'trial')
-    .gte('trial_ends_at', expirySoon.toISOString())
-    .lte('trial_ends_at', expirySoonEnd.toISOString())
     .eq('expiry_warning_sent', false)
-
-  for (const u of expiringUsers || []) {
-    if (!u.email) continue
+    .not('trial_ends_at', 'is', null)
+    .not('email', 'is', null)
+  for (const u of expiryCandidates || []) {
+    const daysLeft = Math.ceil((new Date(u.trial_ends_at).getTime() - now.getTime()) / 86400000)
+    if (daysLeft > 2 || daysLeft < 0) continue
     const firstName = u.owner_name?.split(' ')[0] || 'vous'
     const hasUsedTrial = (u.quotes_this_month || 0) >= 1
     const ok = await sendBrevoEmail(BREVO_API_KEY, u.email,

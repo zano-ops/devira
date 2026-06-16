@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, triggerWelcomeEmail } from '../lib/supabase'
 
 export default function AuthCallback() {
   const navigate = useNavigate()
@@ -13,6 +13,7 @@ export default function AuthCallback() {
         .select('company_name')
         .eq('id', session.user.id)
         .single()
+      if (!data?.company_name) triggerWelcomeEmail(session.user.id)
       navigate(data?.company_name ? '/dashboard' : '/onboarding', { replace: true })
     })
   }, [navigate])

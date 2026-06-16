@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, triggerWelcomeEmail } from '../lib/supabase'
 import { useToast } from '../components/Toast'
 import { DeviraIcon } from '../components/DeviraLogo'
 
@@ -59,6 +59,7 @@ export default function Signup() {
       showToast('Un compte existe déjà avec cet email', 'error')
     } else if (data.session) {
       // Pas de confirmation email requise (Supabase config) → direct
+      triggerWelcomeEmail(data.session.user.id)
       navigate('/onboarding')
     } else {
       // Confirmation email envoyée

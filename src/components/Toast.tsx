@@ -10,12 +10,13 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
+    const duration = type === 'error' ? 6000 : 3500
     const t = setTimeout(() => {
       setVisible(false)
       setTimeout(onClose, 300)
-    }, 3500)
+    }, duration)
     return () => clearTimeout(t)
-  }, [onClose])
+  }, [onClose, type])
 
   const colors = {
     success: 'bg-success',

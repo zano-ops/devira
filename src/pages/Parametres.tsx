@@ -144,7 +144,7 @@ export default function Parametres() {
       await refreshProfile()
       showToast('Logo sauvegardé ✓')
     } catch {
-      showToast('Erreur upload logo', 'error')
+      showToast('Erreur upload logo — réessayez ou contactez support@devira.fr', 'error')
     }
     setUploadingLogo(false)
   }
@@ -220,19 +220,21 @@ export default function Parametres() {
             </div>
           </div>
 
-          {/* Completion bar */}
-          <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1.5px solid #E2E8F0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Complétion du profil</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: score === 100 ? '#059669' : '#F59E0B' }}>{score}%</span>
+          {/* Completion bar — hidden once the profile is 100% complete */}
+          {score < 100 && (
+            <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1.5px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Complétion du profil</span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#F59E0B' }}>{score}%</span>
+              </div>
+              <div style={{ height: 6, background: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${score}%`, background: scoreColor }} />
+              </div>
+              {missing.length > 0 && (
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '6px 0 0' }}>Manquant : {missing.join(', ')}</p>
+              )}
             </div>
-            <div style={{ height: 6, background: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: 3, transition: 'width 0.5s ease', width: `${score}%`, background: scoreColor }} />
-            </div>
-            {missing.length > 0 && (
-              <p style={{ fontSize: 11, color: '#94A3B8', margin: '6px 0 0' }}>Manquant : {missing.join(', ')}</p>
-            )}
-          </div>
+          )}
         </div>
       </div>
 

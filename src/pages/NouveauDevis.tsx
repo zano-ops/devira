@@ -329,8 +329,8 @@ export default function NouveauDevis() {
       const msg = err.message?.includes('401') || err.message?.includes('Session expirée')
         ? 'Session expirée — déconnecte-toi et reconnecte-toi'
         : err.message?.includes('500')
-        ? 'Erreur serveur temporaire — réessaie dans quelques instants'
-        : 'Erreur de génération. Vérifie ta connexion.'
+        ? 'Erreur serveur temporaire — réessaie, ou contacte support@devira.fr si ça persiste'
+        : 'Erreur de génération. Vérifie ta connexion, ou contacte support@devira.fr si ça persiste'
       showToast(msg, 'error')
       setGenerating(false)
     }
