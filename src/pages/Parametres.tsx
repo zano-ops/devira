@@ -1,5 +1,4 @@
 ﻿import { useState, useEffect, useRef } from 'react'
-import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -30,11 +29,13 @@ export default function Parametres() {
   const navigate = useNavigate()
   const { user, profile, refreshProfile, isPro } = useAuth()
   const { showToast, ToastContainer } = useToast()
-  const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [siretLoading, setSiretLoading] = useState(false)
   const [siretFound, setSiretFound] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle')
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const lastSavedRef = useRef<typeof form | null>(null)
 
   const [form, setForm] = useState({
     company_name: '',
@@ -62,7 +63,7 @@ export default function Parametres() {
 
   useEffect(() => {
     if (profile) {
-      setForm({
+      const loaded = {
         company_name: profile.company_name || '',
         owner_name: profile.owner_name || '',
         email: profile.email || '',
@@ -81,9 +82,38 @@ export default function Parametres() {
         relance_enabled: profile.relance_enabled || false,
         relance_days: (profile.relance_days as number[]) || [7, 14, 21],
         validation_threshold: profile.validation_threshold || 0,
-      })
+      }
+      lastSavedRef.current = loaded
+      setForm(loaded)
     }
   }, [profile])
+
+  // Auto-save : déclenché 1.5s après la dernière modification
+  useEffect(() => {
+    if (!user || !lastSavedRef.current) return
+    if (JSON.stringify(form) === JSON.stringify(lastSavedRef.current)) return
+    setSaveStatus('pending')
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setSaveStatus('saving')
+      const { error } = await supabase.from('profiles').update(form).eq('id', user.id)
+      if (error) {
+        setSaveStatus('error')
+      } else {
+        lastSavedRef.current = { ...form }
+        setSaveStatus('saved')
+        refreshProfile()
+      }
+    }, 1500)
+    return () => clearTimeout(debounceRef.current)
+  }, [form]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Efface le "Sauvegardé ✓" après 3s
+  useEffect(() => {
+    if (saveStatus !== 'saved') return
+    const t = setTimeout(() => setSaveStatus('idle'), 3000)
+    return () => clearTimeout(t)
+  }, [saveStatus])
 
   const set = (k: string, v: string | number | boolean | number[]) => setForm(f => ({ ...f, [k]: v }))
 
@@ -149,19 +179,6 @@ export default function Parametres() {
     setUploadingLogo(false)
   }
 
-  const handleSave = async (e: FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    const { error } = await supabase.from('profiles').update(form).eq('id', user!.id)
-    if (error) {
-      showToast('Erreur lors de la sauvegarde', 'error')
-    } else {
-      await refreshProfile()
-      showToast('Profil sauvegardé ✓')
-    }
-    setLoading(false)
-  }
-
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/login')
@@ -179,7 +196,17 @@ export default function Parametres() {
       <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
         <div style={{ padding: '14px 20px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Réglages</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>Réglages</h1>
+              {saveStatus === 'pending' && <span style={{ fontSize: 11, color: '#94A3B8' }}>…</span>}
+              {saveStatus === 'saving' && <span style={{ fontSize: 11, color: '#94A3B8' }}>Sauvegarde…</span>}
+              {saveStatus === 'saved' && <span style={{ fontSize: 11, color: '#16A34A', fontWeight: 600 }}>✓ Sauvegardé</span>}
+              {saveStatus === 'error' && (
+                <button onClick={() => setSaveStatus('pending')} style={{ fontSize: 11, color: '#DC2626', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Erreur — réessayer
+                </button>
+              )}
+            </div>
             <button
               onClick={() => navigate('/home')}
               style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#1E3A5F', fontWeight: 600, background: 'rgba(30,58,95,0.07)', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}
@@ -238,7 +265,7 @@ export default function Parametres() {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="px-5 py-5 flex flex-col gap-4">
+      <div className="px-5 py-5 flex flex-col gap-4">
         <Section title="Entreprise">
           <Field label="Nom de l'entreprise *" value={form.company_name} onChange={v => set('company_name', v)} placeholder="Plomberie Dupont" highlight={!form.company_name} />
           <Field label="Votre nom" value={form.owner_name} onChange={v => set('owner_name', v)} placeholder="Jean Dupont" />
@@ -398,10 +425,7 @@ export default function Parametres() {
           </div>
         </div>
 
-        <button type="submit" disabled={loading} className="btn-primary mt-2">
-          {loading ? 'Sauvegarde...' : '✓ Sauvegarder les modifications'}
-        </button>
-      </form>
+      </div>
 
       {/* Catalogue */}
       <button
