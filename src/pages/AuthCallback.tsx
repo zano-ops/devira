@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase, triggerWelcomeEmail } from '../lib/supabase'
 
 export default function AuthCallback() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
+    const redirect = searchParams.get('redirect')
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { navigate('/login', { replace: true }); return }
       const { data } = await supabase
@@ -14,9 +16,10 @@ export default function AuthCallback() {
         .eq('id', session.user.id)
         .single()
       if (!data?.company_name) triggerWelcomeEmail(session.user.id, session.user.email ?? undefined)
+      if (redirect) { navigate(redirect, { replace: true }); return }
       navigate(data?.company_name ? '/dashboard' : '/onboarding', { replace: true })
     })
-  }, [navigate])
+  }, [navigate, searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#1E3A5F' }}>
