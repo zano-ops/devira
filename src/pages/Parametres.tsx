@@ -34,7 +34,7 @@ export default function Parametres() {
   const [siretLoading, setSiretLoading] = useState(false)
   const [siretFound, setSiretFound] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle')
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const [form, setForm] = useState({
     company_name: '',
