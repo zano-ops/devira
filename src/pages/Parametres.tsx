@@ -35,7 +35,6 @@ export default function Parametres() {
   const [siretFound, setSiretFound] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
-  const lastSavedRef = useRef<typeof form | null>(null)
 
   const [form, setForm] = useState({
     company_name: '',
@@ -60,6 +59,7 @@ export default function Parametres() {
     // Validation interne
     validation_threshold: 0,
   })
+  const lastSavedRef = useRef<typeof form | null>(null)
 
   useEffect(() => {
     if (profile) {
