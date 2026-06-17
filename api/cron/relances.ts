@@ -1,6 +1,6 @@
 ﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://osvwlgchubgtklyonqpv.supabase.co'
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || ''
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
 const CRON_SECRET = process.env.CRON_SECRET || ''
 
@@ -33,6 +33,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (!SERVICE_KEY) {
     return res.status(503).json({ error: 'SUPABASE_SERVICE_KEY not configured' })
+  }
+  if (!SUPABASE_URL) {
+    return res.status(503).json({ error: 'VITE_SUPABASE_URL not configured' })
   }
 
   try {

@@ -106,9 +106,24 @@ export default function Onboarding() {
     }
   }
 
+  const isValidSiret = (s: string): boolean => {
+    if (s.length !== 14 || !/^\d{14}$/.test(s)) return false
+    let sum = 0
+    for (let i = 0; i < 14; i++) {
+      let n = parseInt(s[i])
+      if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9 }
+      sum += n
+    }
+    return sum % 10 === 0
+  }
+
   const handleStep1 = async () => {
     if (!form.company_name.trim() || !form.owner_name.trim() || !form.siret.trim()) {
       showToast('Le nom de l\'entreprise, votre nom et le SIRET sont obligatoires', 'error')
+      return
+    }
+    if (!isValidSiret(form.siret)) {
+      showToast('SIRET invalide — vérifie les 14 chiffres', 'error')
       return
     }
     setLoading(true)
@@ -139,6 +154,10 @@ export default function Onboarding() {
   }
 
   const handleLogoUpload = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image trop lourde (max 2 Mo)')
+      return
+    }
     setLogoUploading(true)
     const preview = URL.createObjectURL(file)
     setPreviewLogo(preview)

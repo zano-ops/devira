@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase, SUPABASE_URL } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
@@ -30,6 +30,9 @@ export default function Parametres() {
   const { user, profile, refreshProfile, isPro } = useAuth()
   const { showToast, ToastContainer } = useToast()
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [siretLoading, setSiretLoading] = useState(false)
   const [siretFound, setSiretFound] = useState(false)
@@ -96,7 +99,9 @@ export default function Parametres() {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       setSaveStatus('saving')
-      const { error } = await supabase.from('profiles').update(form).eq('id', user.id)
+      // Exclure email : géré séparément via supabase.auth.updateUser pour rester en sync avec l'auth
+      const { email: _email, ...profileData } = form
+      const { error } = await supabase.from('profiles').update(profileData).eq('id', user.id)
       if (error) {
         setSaveStatus('error')
       } else {
@@ -182,6 +187,33 @@ export default function Parametres() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/login')
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'SUPPRIMER') return
+    setDeletingAccount(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('Session expirée')
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Erreur lors de la suppression')
+      }
+      await supabase.auth.signOut()
+      navigate('/')
+    } catch (err: any) {
+      showToast(err.message || 'Erreur — contacte support@devira.fr', 'error')
+      setDeletingAccount(false)
+    }
   }
 
   const { score, missing } = profileScore(form)
@@ -495,16 +527,57 @@ export default function Parametres() {
         </div>
       </div>
 
-      {/* Déconnexion */}
+      {/* Déconnexion + suppression */}
       <div style={{ margin: '0 20px 32px', border: '1px solid #FEE2E2', borderRadius: 14, overflow: 'hidden' }}>
         <div style={{ padding: '8px 16px', background: '#FEF2F2' }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Compte</p>
         </div>
-        <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', textAlign: 'left', color: '#DC2626', fontWeight: 600, fontSize: 14, background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button onClick={handleLogout} style={{ width: '100%', padding: '14px 16px', textAlign: 'left', color: '#DC2626', fontWeight: 600, fontSize: 14, background: 'white', border: 'none', borderBottom: '1px solid #FEE2E2', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
           <LogOut size={16} strokeWidth={2} />
           Se déconnecter
         </button>
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          style={{ width: '100%', padding: '14px 16px', textAlign: 'left', color: '#9CA3AF', fontWeight: 500, fontSize: 13, background: 'white', border: 'none', cursor: 'pointer' }}
+        >
+          Supprimer mon compte et mes données (RGPD)
+        </button>
       </div>
+
+      {/* Modal confirmation suppression */}
+      {showDeleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowDeleteConfirm(false)}>
+          <div style={{ background: 'white', width: '100%', maxWidth: 430, margin: '0 auto', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: 40, height: 4, background: '#E2E8F0', borderRadius: 2, margin: '0 auto 20px' }} />
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', margin: '0 0 8px' }}>Supprimer mon compte</h3>
+            <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 4px' }}>Cette action est <strong>irréversible</strong>. Tous tes devis, clients et données seront définitivement supprimés.</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 20px' }}>Tape <strong>SUPPRIMER</strong> pour confirmer :</p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="SUPPRIMER"
+              className="input-field"
+              style={{ marginBottom: 16 }}
+            />
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'SUPPRIMER' || deletingAccount}
+              style={{
+                width: '100%', padding: '14px 0', borderRadius: 12,
+                background: deleteConfirmText === 'SUPPRIMER' ? '#DC2626' : '#E5E7EB',
+                color: deleteConfirmText === 'SUPPRIMER' ? 'white' : '#9CA3AF',
+                fontWeight: 700, fontSize: 15, border: 'none', cursor: deleteConfirmText === 'SUPPRIMER' ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {deletingAccount ? 'Suppression…' : 'Supprimer définitivement'}
+            </button>
+            <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }} style={{ width: '100%', padding: '12px 0', background: 'none', border: 'none', color: '#6B7280', fontSize: 14, cursor: 'pointer', marginTop: 8 }}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>

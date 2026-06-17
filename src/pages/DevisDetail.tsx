@@ -1001,11 +1001,11 @@ export default function DevisDetail() {
             </div>
             <div className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2 relative overflow-hidden"
               style={{ background: '#F1F5F9', color: '#94A3B8', cursor: 'default' }}>
-              <span>⚖️</span> Signature légale eIDAS
-              <span className="absolute top-2 right-3 text-[10px] font-bold bg-indigo-100 text-indigo-500 px-2 py-0.5 rounded-full">Bientôt</span>
+              <span>⚖️</span> Yousign — Signature eIDAS
+              <span className="absolute top-2 right-3 text-[10px] font-bold bg-indigo-100 text-indigo-500 px-2 py-0.5 rounded-full">Prochainement</span>
             </div>
             <button onClick={handleCopySignLink} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50">
-              📋 Copier le lien (signature simple)
+              📋 Copier le lien de signature
             </button>
             <button onClick={() => setShowSignModal(false)} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
           </div>

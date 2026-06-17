@@ -49,12 +49,12 @@ body {
     @apply w-full border-2 border-primary text-primary font-semibold py-3.5 rounded-lg text-base transition-all duration-150 active:scale-[0.97] bg-white;
   }
   .input-field {
-    @apply w-full px-4 text-gray-900 text-[15px] transition-all placeholder-gray-400;
+    @apply w-full px-4 text-gray-900 transition-all placeholder-gray-400;
     height: 44px;
     background: #F8FAFC;
     border: 1.5px solid #E2E8F0;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 16px;
     outline: none;
   }
   .input-field:focus {

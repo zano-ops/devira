@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Suspense, lazy } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import { CookieBanner } from './components/CookieBanner'
 
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -44,7 +45,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function SmartHome() {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingScreen />
   if (user) return <Navigate to="/dashboard" replace />
   return <Landing />
 }
@@ -90,6 +91,7 @@ function App() {
       <ErrorBoundary>
         <AuthProvider>
           <AppRoutes />
+          <CookieBanner />
         </AuthProvider>
       </ErrorBoundary>
     </BrowserRouter>

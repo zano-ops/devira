@@ -316,12 +316,6 @@ export default function NouveauDevis() {
         }
       }
 
-      // Incrémenter le compteur mensuel de devis
-      await supabase
-        .from('profiles')
-        .update({ quotes_this_month: (profile?.quotes_this_month ?? 0) + 1 })
-        .eq('id', user.id)
-
       clearDraftOnSuccess()
       navigate(`/devis/${data.quote_id}`, { state: { autoEdit: true } })
     } catch (err: any) {

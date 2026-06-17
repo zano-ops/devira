@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         </td></tr>
 
         <tr><td style="background:#F9FAFB;padding:16px 40px;text-align:center;">
-          <p style="color:#9CA3AF;font-size:12px;margin:0;">Devis généré avec DevisPro BTP</p>
+          <p style="color:#9CA3AF;font-size:12px;margin:0;">Devis généré avec Devira</p>
         </td></tr>
 
       </table>
@@ -112,8 +112,10 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${companyName} <devis@devisprobtp.fr>`,
+        from: `${companyName} <devis@devira.fr>`,
         to: [client_email],
+        reply_to: profile.email || undefined,
+        bcc: profile.email ? [profile.email] : [],
         subject: `Devis ${quote.quote_number} — ${companyName}`,
         html: htmlBody,
         attachments: pdf_base64 ? [{

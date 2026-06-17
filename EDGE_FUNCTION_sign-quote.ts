@@ -27,13 +27,13 @@ async function sendArtisanNotification(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'DevisPro BTP <notifications@devispro-btp.fr>',
+        from: 'Devira <notifications@devira.fr>',
         to: artisanEmail,
         subject: `✅ Devis ${quoteNumber} signé par ${signerName}`,
         html: `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
   <div style="background:#1E3A5F;padding:28px 24px;border-radius:12px 12px 0 0">
-    <h2 style="color:white;margin:0;font-size:20px">DevisPro BTP</h2>
+    <h2 style="color:white;margin:0;font-size:20px">Devira</h2>
   </div>
   <div style="background:#f9fafb;padding:32px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
     <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center">
@@ -56,10 +56,10 @@ async function sendArtisanNotification(
       </tr>
     </table>
     <p style="color:#6b7280;font-size:13px;margin-top:20px">
-      Tu peux maintenant convertir ce devis en facture depuis ton application DevisPro BTP.
+      Tu peux maintenant convertir ce devis en facture depuis ton application Devira.
     </p>
     <p style="color:#9ca3af;font-size:12px;margin-top:16px">
-      DevisPro BTP — ${artisanName}
+      Devira — ${artisanName}
     </p>
   </div>
 </div>`,
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 
       const { data: quote, error } = await supabase
         .from('quotes')
-        .select('id, user_id, quote_number, status, client_name, total_ht, total_ttc, quote_json')
+        .select('id, user_id, quote_number, status, client_name, total_ht, total_ttc, quote_json, created_at')
         .eq('id', quoteId)
         .single()
 
@@ -103,12 +103,17 @@ Deno.serve(async (req) => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_name, owner_name, logo_url, phone, address, city')
+        .select('company_name, owner_name, logo_url, phone, address, city, siret')
         .eq('id', quote.user_id)
         .single()
 
       const q = quote.quote_json
       const isAlreadySigned = !!q.signature
+
+      // Vérifier si le devis a expiré
+      const validiteJours = q.validite_jours || 30
+      const createdAt = new Date(quote.created_at)
+      const isExpired = (Date.now() - createdAt.getTime()) > validiteJours * 24 * 60 * 60 * 1000
 
       return new Response(JSON.stringify({
         success: true,
@@ -120,15 +125,17 @@ Deno.serve(async (req) => {
           owner_name: profile?.owner_name || '',
           logo_url: profile?.logo_url || null,
           phone: profile?.phone || null,
+          siret: profile?.siret || null,
           total_ttc: quote.total_ttc,
           total_ht: quote.total_ht,
           duree_estimee: q.duree_estimee,
           lignes: q.lignes,
           taux_tva: q.taux_tva,
-          validite_jours: q.validite_jours,
+          validite_jours: validiteJours,
           conditions: q.conditions,
           status: quote.status,
           already_signed: isAlreadySigned,
+          is_expired: isExpired && !isAlreadySigned,
           signed_by: q.signature?.signed_by,
           signed_at: q.signature?.signed_at,
         }

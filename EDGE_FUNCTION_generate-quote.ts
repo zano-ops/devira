@@ -46,36 +46,43 @@ Deno.serve(async (req) => {
         'RÈGLE FONDAMENTALE : Pour chaque prestation correspondant au catalogue ci-dessus, utilise EXACTEMENT la désignation et le prix indiqués. Ne les modifie pas. Pour les prestations non listées dans ce catalogue, utilise des prix cohérents avec le marché BTP français 2024-2025.'
       : ''
 
-    // Générer le numéro de devis (en utilisant max pour éviter les doublons en cas de concurrence)
-    const year = new Date().getFullYear()
-    const { data: lastQuote } = await supabase
-      .from('quotes')
-      .select('quote_number')
-      .eq('user_id', user_id)
-      .like('quote_number', `${year}-%`)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    let nextNum = 1
-    if (lastQuote?.quote_number) {
-      const parts = lastQuote.quote_number.split('-')
-      const lastNum = parseInt(parts[parts.length - 1])
-      if (!isNaN(lastNum)) nextNum = lastNum + 1
+    // Numéro de devis — calcul avec helper pour retry en cas de collision
+    const getNextQuoteNumber = async (): Promise<string> => {
+      const year = new Date().getFullYear()
+      const { data: lastQuote } = await supabase
+        .from('quotes')
+        .select('quote_number')
+        .eq('user_id', user_id)
+        .like('quote_number', `${year}-%`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      let nextNum = 1
+      if (lastQuote?.quote_number) {
+        const parts = lastQuote.quote_number.split('-')
+        const lastNum = parseInt(parts[parts.length - 1])
+        if (!isNaN(lastNum)) nextNum = lastNum + 1
+      }
+      return `${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`
     }
-    const quoteNumber = `${year}-${String(nextNum).padStart(4, '0')}`
+    const quoteNumber = await getNextQuoteNumber()
 
-    // Appel Claude
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': Deno.env.get('ANTHROPIC_API_KEY')!,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 2500,
+    // Appel Claude avec timeout 22s
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 22000)
+    let anthropicRes: Response
+    try {
+      anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'x-api-key': Deno.env.get('ANTHROPIC_API_KEY')!,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 4096,
         messages: [{
           role: 'user',
           content: `Tu es un expert en devis BTP français. Génère un devis professionnel basé sur cette description :
@@ -126,6 +133,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans backticks, sa
 
 Règles importantes :
 - ${hasCatalogue ? 'UTILISE EN PRIORITÉ les prix du catalogue de l\'artisan ci-dessus' : 'Prix cohérents avec le marché BTP français en 2024-2025'}
+- TVA par ligne (champ tva_rate obligatoire sur chaque ligne non-section) : 5.5% amélioration énergétique, 10% rénovation/entretien, 20% travaux neufs. Si la description mélange les types, applique le taux correct ligne par ligne.
 - Pour les devis de plus de 3 corps de métier, CRÉE des lignes "isSection" comme en-têtes de lots (Lot 1 — ..., Lot 2 — ...) avant les lignes correspondantes. Pour les petits devis simples (1-2 corps), pas de sections nécessaires.
 - Sépare TOUJOURS main d'œuvre et fournitures en lignes distinctes
 - Minimum 3 lignes de prestation, maximum 15 lignes (hors sections)
@@ -138,8 +146,14 @@ Règles importantes :
         }]
       })
     })
+    } catch (err: any) {
+      clearTimeout(timeoutId)
+      if (err.name === 'AbortError') throw new Error('L\'IA met trop de temps à répondre — réessaie dans quelques secondes')
+      throw err
+    }
+    clearTimeout(timeoutId)
 
-    const anthropicData = await anthropicRes.json()
+    const anthropicData = await anthropicRes!.json()
 
     if (!anthropicRes.ok) {
       console.error('Anthropic error:', JSON.stringify(anthropicData))
@@ -180,29 +194,43 @@ Règles importantes :
     quoteJson.total_ttc = total_ttc
     quoteJson.taux_tva = vatRate
 
-    // Sauvegarder en base
-    const { data: quote, error: insertError } = await supabase
-      .from('quotes')
-      .insert({
-        user_id,
-        quote_number: quoteNumber,
-        status: 'draft',
-        description_raw: description,
-        client_name: quoteJson.client?.nom || '',
-        client_email: quoteJson.client?.email || '',
-        client_address: quoteJson.client?.adresse || '',
-        quote_json: quoteJson,
-        total_ht: sous_total_ht,
-        total_ttc,
-        discount_percent: 0,
-      })
-      .select()
-      .single()
-
-    if (insertError) {
-      console.error('Insert error:', insertError)
-      throw new Error('Erreur sauvegarde: ' + insertError.message)
+    // Sauvegarder en base — retry sur contrainte unique (race condition double-tap)
+    let quote: any = null
+    let quoteNum = quoteNumber
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) quoteNum = await getNextQuoteNumber()
+      const { data, error: insertError } = await supabase
+        .from('quotes')
+        .insert({
+          user_id,
+          quote_number: quoteNum,
+          status: 'draft',
+          description_raw: description,
+          client_name: quoteJson.client?.nom || '',
+          client_email: quoteJson.client?.email || '',
+          client_address: quoteJson.client?.adresse || '',
+          quote_json: quoteJson,
+          total_ht: sous_total_ht,
+          total_ttc,
+          discount_percent: 0,
+        })
+        .select()
+        .single()
+      if (!insertError) { quote = data; break }
+      if (insertError.code !== '23505') {
+        console.error('Insert error:', insertError)
+        throw new Error('Erreur sauvegarde: ' + insertError.message)
+      }
     }
+    if (!quote) throw new Error('Impossible de générer un numéro de devis unique — réessaie')
+
+    // Incrémenter le compteur mensuel côté serveur
+    const { data: currentProfile } = await supabase
+      .from('profiles').select('quotes_this_month').eq('id', user_id).single()
+    await supabase
+      .from('profiles')
+      .update({ quotes_this_month: (currentProfile?.quotes_this_month ?? 0) + 1 })
+      .eq('id', user_id)
 
     return new Response(
       JSON.stringify({ success: true, quote_id: quote.id }),
