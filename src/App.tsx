@@ -21,6 +21,7 @@ const CGV = lazy(() => import('./pages/CGV'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const AuthCallback = lazy(() => import('./pages/AuthCallback'))
+const Admin = lazy(() => import('./pages/Admin'))
 
 function LoadingScreen() {
   return (
@@ -74,6 +75,7 @@ function AppRoutes() {
         <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
         <Route path="/parametres" element={<PrivateRoute><Parametres /></PrivateRoute>} />
         <Route path="/catalogue" element={<PrivateRoute><Catalogue /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
