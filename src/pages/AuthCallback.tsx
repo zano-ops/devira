@@ -13,7 +13,7 @@ export default function AuthCallback() {
         .select('company_name')
         .eq('id', session.user.id)
         .single()
-      if (!data?.company_name) triggerWelcomeEmail(session.user.id)
+      if (!data?.company_name) triggerWelcomeEmail(session.user.id, session.user.email ?? undefined)
       navigate(data?.company_name ? '/dashboard' : '/onboarding', { replace: true })
     })
   }, [navigate])

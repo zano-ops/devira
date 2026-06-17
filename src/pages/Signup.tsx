@@ -59,7 +59,7 @@ export default function Signup() {
       showToast('Un compte existe déjà avec cet email', 'error')
     } else if (data.session) {
       // Pas de confirmation email requise (Supabase config) → direct
-      triggerWelcomeEmail(data.session.user.id)
+      triggerWelcomeEmail(data.session.user.id, data.session.user.email ?? undefined)
       navigate('/onboarding')
     } else {
       // Confirmation email envoyée

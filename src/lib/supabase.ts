@@ -18,7 +18,7 @@ export const SUPABASE_ANON_KEY = supabaseAnonKey
 // L'edge function vérifie elle-même le flag welcome_email_sent, donc
 // un appel en double (ou en échec silencieux) ne fait rien de grave —
 // le sweep quotidien (cron Vercel) rattrape les cas manqués.
-export function triggerWelcomeEmail(userId: string) {
+export function triggerWelcomeEmail(userId: string, email?: string) {
   fetch(`${supabaseUrl}/functions/v1/send-lifecycle-emails`, {
     method: 'POST',
     headers: {
@@ -26,6 +26,6 @@ export function triggerWelcomeEmail(userId: string) {
       'apikey': supabaseAnonKey,
       'Authorization': `Bearer ${supabaseAnonKey}`,
     },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({ user_id: userId, email }),
   }).catch(() => {})
 }

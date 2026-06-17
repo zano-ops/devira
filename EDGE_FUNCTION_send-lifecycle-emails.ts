@@ -55,18 +55,21 @@ function welcomeEmailHtml(firstName: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function sendWelcomeForUser(supabase: any, apiKey: string, userId: string): Promise<string | null> {
+async function sendWelcomeForUser(supabase: any, apiKey: string, userId: string, fallbackEmail?: string): Promise<string | null> {
   const { data: u } = await supabase
     .from('profiles')
     .select('id, email, owner_name, welcome_email_sent')
     .eq('id', userId)
     .single()
-  if (!u || !u.email || u.welcome_email_sent) return null
+  if (!u || u.welcome_email_sent) return null
+  // profiles.email est vide avant la fin de l'onboarding → on utilise l'email de la session
+  const email = u.email || fallbackEmail
+  if (!email) return null
   const firstName = u.owner_name?.split(' ')[0] || 'vous'
-  const ok = await sendBrevoEmail(apiKey, u.email, 'Bienvenue sur Devira — votre 1er devis gratuit vous attend', welcomeEmailHtml(firstName))
+  const ok = await sendBrevoEmail(apiKey, email, 'Bienvenue sur Devira — votre 1er devis gratuit vous attend', welcomeEmailHtml(firstName))
   if (!ok) return null
   await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', u.id)
-  return u.email
+  return email
 }
 
 Deno.serve(async (req) => {
@@ -75,12 +78,12 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-  let body: { user_id?: string } = {}
+  let body: { user_id?: string; email?: string } = {}
   try { body = await req.json() } catch { /* corps vide = mode sweep quotidien */ }
 
   // ── Mode 1 : envoi immédiat pour un utilisateur précis (déclenché à l'inscription) ──
   if (body.user_id) {
-    const sent = await sendWelcomeForUser(supabase, BREVO_API_KEY, body.user_id)
+    const sent = await sendWelcomeForUser(supabase, BREVO_API_KEY, body.user_id, body.email)
     return new Response(JSON.stringify({ success: true, sent: sent ? [`welcome:${sent}`] : [] }), { headers: CORS })
   }
 
