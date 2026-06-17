@@ -76,6 +76,13 @@ export default function DevisDetail() {
 
   useEffect(() => { fetchQuote() }, [id])
 
+  useEffect(() => {
+    if (location.state?.autoEdit) {
+      setEditMode(true)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [])
+
   const fetchQuote = async () => {
     const { data } = await supabase.from('quotes').select('*').eq('id', id).single()
     if (data) {
@@ -95,7 +102,6 @@ export default function DevisDetail() {
         conditions: data.quote_json.conditions,
         validite_jours: data.quote_json.validite_jours,
       })
-      if (location.state?.autoEdit) setEditMode(true)
     }
     setLoading(false)
   }
