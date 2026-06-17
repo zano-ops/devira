@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DeviraIcon } from '../components/DeviraLogo'
+import { useAuth } from '../context/AuthContext'
 import {
   Check, ChevronDown, MessageSquare, FileText, PenLine, Bell, ArrowRight,
   ShieldCheck, Lock, Headphones, RotateCcw, Clock, TrendingDown, AlertCircle,
@@ -480,6 +481,9 @@ const TESTIMONIALS = [
 
 export default function Landing() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const essentielUrl = user ? `${STRIPE_ESSENTIEL}?client_reference_id=${user.id}` : STRIPE_ESSENTIEL
+  const proUrl = user ? `${STRIPE_PRO}?client_reference_id=${user.id}` : STRIPE_PRO
   const [scrolled, setScrolled] = useState(false)
   const [tab, setTab] = useState(0)
   const [faq, setFaq] = useState<number | null>(null)
@@ -901,7 +905,7 @@ export default function Landing() {
                 <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
               </div>
               <div style={{ textAlign: 'center', marginTop: 6 }}>
-                <a href={STRIPE_ESSENTIEL} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
+                <a href={essentielUrl} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
 
@@ -932,7 +936,7 @@ export default function Landing() {
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 14 jours</span>
               </div>
               <div style={{ textAlign: 'center', marginTop: 6 }}>
-                <a href={STRIPE_PRO} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
+                <a href={proUrl} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
           </div>

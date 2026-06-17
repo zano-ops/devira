@@ -1,5 +1,6 @@
 ﻿import { Check, ShieldCheck } from 'lucide-react'
 import { DeviraIcon } from './DeviraLogo'
+import { useAuth } from '../context/AuthContext'
 
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
 const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
@@ -30,6 +31,10 @@ interface Props {
 }
 
 export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
+  const { user } = useAuth()
+  const essentielUrl = user ? `${STRIPE_ESSENTIEL}?client_reference_id=${user.id}` : STRIPE_ESSENTIEL
+  const proUrl = user ? `${STRIPE_PRO}?client_reference_id=${user.id}` : STRIPE_PRO
+
   const title =
     reason === 'trial_expired' ? 'Votre essai est terminé'
     : reason === 'limit_reached' ? 'Limite atteinte'
@@ -97,7 +102,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               ))}
             </div>
             <a
-              href={STRIPE_ESSENTIEL}
+              href={essentielUrl}
               style={{
                 display: 'block', textAlign: 'center', padding: '12px 0',
                 border: '1.5px solid #1E3A5F', borderRadius: 12, color: '#1E3A5F',
@@ -137,7 +142,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               ))}
             </div>
             <a
-              href={STRIPE_PRO}
+              href={proUrl}
               style={{
                 display: 'block', textAlign: 'center', padding: '13px 0',
                 background: '#E87722', borderRadius: 12, color: 'white',
