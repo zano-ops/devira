@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
             </a>
           </div>
           <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;margin:16px 0">
-            <p style="margin:0;color:#15803D;font-size:13px">✓ Satisfait ou remboursé 14 jours · Annulation à tout moment · À partir de 29,81€/mois</p>
+            <p style="margin:0;color:#15803D;font-size:13px">✓ Satisfait ou remboursé 14 jours · Annulation à tout moment · À partir de 29,99€/mois TTC</p>
           </div>
           <p>Mathias — Devira</p>
         </div>
@@ -184,6 +184,85 @@ Deno.serve(async (req) => {
     if (ok) {
       await supabase.from('profiles').update({ expiry_warning_sent: true }).eq('id', u.id)
       results.push(`expiry_warning:${u.email}`)
+    }
+  }
+
+  // 4. RELANCES DEVIS AUTO — artisans Pro avec relance_enabled = true
+  //    Envoie un rappel au CLIENT quand le devis est en attente depuis X jours (J+7/J+14/J+21)
+  const { data: relanceUsers } = await supabase
+    .from('profiles')
+    .select('id, owner_name, company_name, relance_days')
+    .eq('subscription_plan', 'pro')
+    .eq('relance_enabled', true)
+
+  for (const artisan of relanceUsers || []) {
+    const relanceDays: number[] = artisan.relance_days || []
+    if (!relanceDays.length) continue
+    const minDay = Math.min(...relanceDays)
+    const maxDay = Math.max(...relanceDays)
+
+    const { data: sentQuotes } = await supabase
+      .from('quotes')
+      .select('id, client_name, client_email, quote_number, total_ttc, sent_at, relance_count, last_relance_at, quote_json')
+      .eq('user_id', artisan.id)
+      .eq('status', 'sent')
+      .not('client_email', 'is', null)
+      .not('sent_at', 'is', null)
+
+    for (const quote of sentQuotes || []) {
+      if (!quote.client_email || !quote.sent_at) continue
+      const daysSinceSent = Math.floor((now.getTime() - new Date(quote.sent_at).getTime()) / 86400000)
+      if (daysSinceSent < minDay || daysSinceSent > maxDay + 7) continue
+
+      const relanceCount = quote.relance_count || 0
+      const sortedDays = [...relanceDays].sort((a: number, b: number) => a - b)
+      const nextDay = sortedDays[relanceCount]
+      if (!nextDay || daysSinceSent < nextDay) continue
+
+      // Ne pas relancer deux fois dans la même journée
+      if (quote.last_relance_at) {
+        const daysSinceLast = Math.floor((now.getTime() - new Date(quote.last_relance_at).getTime()) / 86400000)
+        if (daysSinceLast < 1) continue
+      }
+
+      const artisanName = artisan.company_name || artisan.owner_name || 'votre artisan'
+      const clientFirstName = (quote.client_name || '').split(' ')[0] || 'Bonjour'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const quoteTitle = (quote.quote_json as any)?.titre || `Devis N°${quote.quote_number}`
+      const totalTtc = (quote.total_ttc || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })
+      const signUrl = `https://devira.fr/sign/${quote.id}`
+
+      const ok = await sendBrevoEmail(
+        BREVO_API_KEY,
+        quote.client_email,
+        `Rappel — ${quoteTitle} en attente de votre réponse`,
+        `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background:#1E3A5F;padding:28px 32px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0;font-size:20px">Rappel pour votre devis</h1>
+          </div>
+          <div style="background:#f9f9f9;padding:28px 32px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
+            <p>Bonjour ${clientFirstName},</p>
+            <p>${artisanName} vous a envoyé un devis il y a ${daysSinceSent} jours et souhaite savoir si vous avez pu en prendre connaissance.</p>
+            <div style="background:white;border:1px solid #E5E7EB;border-radius:10px;padding:20px;margin:20px 0">
+              <p style="margin:0 0 6px;font-weight:700;color:#111827">${quoteTitle}</p>
+              <p style="margin:0;font-size:24px;font-weight:900;color:#1E3A5F">${totalTtc} € TTC</p>
+            </div>
+            <div style="text-align:center;margin:24px 0">
+              <a href="${signUrl}" style="background:#E87722;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">Voir et signer le devis →</a>
+            </div>
+            <p style="color:#6B7280;font-size:13px">Vous pouvez signer en ligne en quelques secondes ou répondre directement à cet email pour poser vos questions.</p>
+            <p>Cordialement,<br><strong>${artisanName}</strong></p>
+          </div>
+        </div>`
+      )
+
+      if (ok) {
+        await supabase.from('quotes').update({
+          relance_count: relanceCount + 1,
+          last_relance_at: now.toISOString(),
+        }).eq('id', quote.id)
+        results.push(`relance_devis:${quote.client_email}`)
+      }
     }
   }
 

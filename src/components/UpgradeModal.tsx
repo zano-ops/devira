@@ -90,7 +90,8 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>29,99 €</p>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 1px' }}>TTC / mois</p>
+                <p style={{ fontSize: 10, color: '#CBD5E1', margin: 0 }}>≈ 24,99 € HT</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>
@@ -130,7 +131,8 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontWeight: 900, fontSize: 22, color: '#E87722', margin: 0, letterSpacing: '-0.03em' }}>79,99 €</p>
-                <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 1px' }}>TTC / mois</p>
+                <p style={{ fontSize: 10, color: '#CBD5E1', margin: 0 }}>≈ 66,66 € HT</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>

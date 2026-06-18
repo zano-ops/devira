@@ -58,6 +58,7 @@ export default function NouveauDevis() {
 
   const [recordingSeconds, setRecordingSeconds] = useState(0)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [tvaRate, setTvaRate] = useState<string>('10')
 
   const recognitionRef = useRef<any>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -238,15 +239,13 @@ export default function NouveauDevis() {
   const handleGenerate = async () => {
     if (!user || !canGenerate) return
 
-    // Bloquer si profil trop incomplet (SIRET obligatoire pour mention légale PDF)
+    // Avertissement non-bloquant si profil incomplet — on génère quand même
     if (!profile?.company_name || !profile?.owner_name || !profile?.siret) {
       const missing = []
       if (!profile?.company_name) missing.push('nom entreprise')
       if (!profile?.owner_name) missing.push('ton nom')
-      if (!profile?.siret) missing.push('SIRET (obligatoire sur les devis)')
-      showToast(`Profil incomplet : ${missing.join(', ')} manquant${missing.length > 1 ? 's' : ''} — complète tes réglages`, 'error')
-      setTimeout(() => navigate('/parametres'), 2500)
-      return
+      if (!profile?.siret) missing.push('SIRET')
+      showToast(`Profil incomplet (${missing.join(', ')}) — pense à le compléter pour un devis légalement conforme`, 'info')
     }
 
     setGenerating(true)
@@ -263,7 +262,9 @@ export default function NouveauDevis() {
         return
       }
 
+      const hasVatMention = /TVA\s*[\d,.]+\s*%/i.test(description)
       const fullDescription = description +
+        (!hasVatMention ? `\n\nTVA applicable : ${tvaRate}%` : '') +
         (clientName ? `\n\nClient : ${clientName}` : '') +
         (clientPhone ? `, tél : ${clientPhone}` : '') +
         (clientEmail ? `, email : ${clientEmail}` : '') +
@@ -468,6 +469,32 @@ export default function NouveauDevis() {
               </div>
             </div>
           )}
+
+          {/* Sélecteur TVA */}
+          <div className="mb-5">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">TVA applicable</p>
+            <div className="flex gap-2">
+              {[
+                { rate: '5.5', label: '5,5%', desc: 'Rénov. énerg.' },
+                { rate: '10',  label: '10%',  desc: 'Rénovation' },
+                { rate: '20',  label: '20%',  desc: 'Neuf / autre' },
+              ].map(t => (
+                <button
+                  key={t.rate}
+                  type="button"
+                  onClick={() => setTvaRate(t.rate)}
+                  className="flex-1 py-2.5 px-2 rounded-xl text-center border-2 transition-all active:scale-95"
+                  style={{
+                    borderColor: tvaRate === t.rate ? '#1E3A5F' : '#E5E7EB',
+                    background: tvaRate === t.rate ? '#1E3A5F' : '#F8FAFC',
+                  }}
+                >
+                  <div className="font-bold text-sm" style={{ color: tvaRate === t.rate ? 'white' : '#111827' }}>{t.label}</div>
+                  <div className="text-xs mt-0.5" style={{ color: tvaRate === t.rate ? 'rgba(255,255,255,0.65)' : '#9CA3AF' }}>{t.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Mic */}
           <div className="flex flex-col items-center my-6 gap-3">

@@ -185,7 +185,7 @@ const TESTIMONIALS = [
   {
     name: 'Luc B.',
     job: 'Plomberie & Chauffage',
-    city: 'Paris',
+    city: 'Lyon',
     text: "Je faisais mes devis le soir sur Excel, parfois 2h pour un chantier standard. Maintenant je dicte depuis la voiture avant de rentrer, le devis est dans la boîte mail du client dans la foulée. La semaine dernière j'en ai sorti 4 dans la journée. C'est du temps récupéré, point.",
     initials: 'LB',
     bg: '#1E3A5F',
@@ -194,7 +194,7 @@ const TESTIMONIALS = [
   {
     name: 'Marie-Hélène C.',
     job: 'Peinture & Décoration',
-    city: 'Paris',
+    city: 'Bordeaux',
     text: "J'avais peur que le rendu fasse cheap. Le premier devis m'a convaincue, mes clients me disent que c'est plus pro qu'avant, une cliente m'a même demandé si j'avais changé de secrétaire. Un artisan du coin m'a demandé quel logiciel j'utilisais. J'ai gardé le secret 😄",
     initials: 'MC',
     bg: '#B45309',
@@ -203,11 +203,11 @@ const TESTIMONIALS = [
   {
     name: 'Tony M.',
     job: 'Carrelage & Faïence',
-    city: 'Paris',
-    text: "Faut être précis dans la description sinon les prix partent un peu. Une fois qu'on a le coup de main c'est nickel. Ce qui m'a convaincu c'est les relances, j'avais 3 devis sans réponse depuis 2 semaines, ils ont relancé tout seuls, 2 ont signé. J'aurais laissé tomber.",
+    city: 'Nantes',
+    text: "J'avais 3 devis sans réponse depuis 2 semaines. Avec les relances automatiques, 2 clients ont signé dans la foulée sans que j'aie eu à décrocher le téléphone. J'aurais laissé tomber. Le gain de temps sur la rédaction des devis, c'est du bonus en plus.",
     initials: 'TM',
     bg: '#0F766E',
-    stars: 4,
+    stars: 5,
   },
 ]
 
@@ -695,10 +695,11 @@ export default function Landing() {
             {/* Essentiel */}
             <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
                 <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,99 €</span>
-                <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois</span>
+                <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois TTC</span>
               </div>
+              <p style={{ color: '#9CA3AF', fontSize: 12, margin: '0 0 12px' }}>≈ 24,99 € HT / mois</p>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
                 {ESSENTIEL_FEATURES.map(f => (
@@ -726,10 +727,11 @@ export default function Landing() {
             <div className="lp-reveal lp-d1" style={{ background: P, borderRadius: 20, padding: '36px 32px', position: 'relative', overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.28)' }}>
               <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
                 <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,99 €</span>
-                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois</span>
+                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois TTC</span>
               </div>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 12px' }}>≈ 66,66 € HT / mois</p>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
                 {PRO_FEATURES.map((f) => (
