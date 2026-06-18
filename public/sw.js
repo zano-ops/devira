@@ -1,7 +1,5 @@
-const CACHE_NAME = 'devispro-v2'
+const CACHE_NAME = 'devira-v3'
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json',
 ]
 
