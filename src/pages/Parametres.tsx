@@ -33,6 +33,7 @@ export default function Parametres() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -188,6 +189,27 @@ export default function Parametres() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/login')
+  }
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('Session expirée')
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-portal-session`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) throw new Error(data.error || 'Erreur portail')
+      window.location.href = data.url
+    } catch (err: any) {
+      showToast(err.message === 'no_customer'
+        ? 'Abonnement introuvable — contacte facturation@devira.fr'
+        : 'Impossible d\'ouvrir le portail — contacte facturation@devira.fr', 'error')
+      setPortalLoading(false)
+    }
   }
 
   const handleDeleteAccount = async () => {
@@ -513,18 +535,20 @@ export default function Parametres() {
 
                   {status === 'active' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <a
-                        href="mailto:facturation@devira.fr?subject=Gérer mon abonnement Devira"
-                        style={{ display: 'block', textAlign: 'center', background: planBg, color: planColor, border: `1.5px solid ${planColor}22`, borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                      <button
+                        onClick={handleManageSubscription}
+                        disabled={portalLoading}
+                        style={{ width: '100%', textAlign: 'center', background: planBg, color: planColor, border: `1.5px solid ${planColor}22`, borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 600, cursor: portalLoading ? 'wait' : 'pointer', opacity: portalLoading ? 0.7 : 1 }}
                       >
-                        Gérer mon abonnement →
-                      </a>
-                      <a
-                        href={`mailto:facturation@devira.fr?subject=Résiliation abonnement ${planLabel} - Devira`}
-                        style={{ display: 'block', textAlign: 'center', color: '#9CA3AF', fontSize: 12, fontWeight: 500, textDecoration: 'none', padding: '4px 0' }}
+                        {portalLoading ? 'Chargement…' : 'Gérer mon abonnement →'}
+                      </button>
+                      <button
+                        onClick={handleManageSubscription}
+                        disabled={portalLoading}
+                        style={{ width: '100%', textAlign: 'center', color: '#EF4444', fontSize: 12, fontWeight: 500, background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', opacity: portalLoading ? 0.5 : 1 }}
                       >
-                        Résilier mon abonnement
-                      </a>
+                        Annuler mon abonnement
+                      </button>
                     </div>
                   )}
 
