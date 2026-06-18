@@ -3,7 +3,7 @@ import type { ReactNode, ErrorInfo } from 'react'
 import { DeviraIcon } from './DeviraLogo'
 
 interface Props { children: ReactNode }
-interface State { hasError: boolean; errorMessage: string }
+interface State { hasError: boolean; errorMessage: string; didAutoReload: boolean }
 
 const CHUNK_ERROR_PATTERNS = [
   'Failed to fetch dynamically imported module',
@@ -15,31 +15,34 @@ function isChunkLoadError(msg: string) {
   return CHUNK_ERROR_PATTERNS.some(p => msg.includes(p))
 }
 
+const RELOAD_KEY = 'devira_chunk_reload'
+
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, errorMessage: '' }
+  state: State = { hasError: false, errorMessage: '', didAutoReload: false }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, errorMessage: error.message }
+    const chunkError = isChunkLoadError(error.message)
+    const alreadyReloaded = !!sessionStorage.getItem(RELOAD_KEY)
+    return {
+      hasError: true,
+      errorMessage: error.message,
+      didAutoReload: chunkError && !alreadyReloaded,
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info)
-    // Stale chunk after new deployment — auto-reload once to get fresh bundle
-    if (isChunkLoadError(error.message)) {
-      const key = 'devira_chunk_reload'
-      if (!sessionStorage.getItem(key)) {
-        sessionStorage.setItem(key, '1')
-        window.location.reload()
-        return
-      }
+    if (isChunkLoadError(error.message) && !sessionStorage.getItem(RELOAD_KEY)) {
+      sessionStorage.setItem(RELOAD_KEY, '1')
+      window.location.reload()
     }
   }
 
   render() {
     if (!this.state.hasError) return this.props.children
 
-    // While reloading for a chunk error, show a spinner instead of the error screen
-    if (isChunkLoadError(this.state.errorMessage)) {
+    // Spinner while the auto-reload is in flight
+    if (this.state.didAutoReload) {
       return (
         <div style={{
           minHeight: '100vh', background: '#1E3A5F',
@@ -67,7 +70,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           Quelque chose s'est mal passé. Rafraîchissez la page pour continuer.
         </p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => { sessionStorage.removeItem(RELOAD_KEY); window.location.reload() }}
           style={{
             background: '#E87722', color: 'white', border: 'none',
             borderRadius: 12, padding: '13px 24px',
@@ -77,7 +80,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           Rafraîchir la page
         </button>
         <button
-          onClick={() => { this.setState({ hasError: false, errorMessage: '' }); window.location.href = '/' }}
+          onClick={() => { sessionStorage.removeItem(RELOAD_KEY); window.location.href = '/' }}
           style={{
             background: 'none', color: 'rgba(255,255,255,0.4)',
             border: 'none', marginTop: 12, fontSize: 13, cursor: 'pointer',
