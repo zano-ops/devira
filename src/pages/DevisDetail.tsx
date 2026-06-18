@@ -65,6 +65,8 @@ export default function DevisDetail() {
   const [sendingSms, setSendingSms] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [showRelanceModal, setShowRelanceModal] = useState(false)
+  const [yousignLoading, setYousignLoading] = useState(false)
+  const [yousignSignerEmail, setYousignSignerEmail] = useState('')
 
   const [editData, setEditData] = useState<any>(null)
   const [discount, setDiscount] = useState(0)
@@ -360,6 +362,46 @@ export default function DevisDetail() {
       navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien de signature copié !'))
     }
     setShowSignModal(false)
+  }
+
+  const handleYousignSign = async () => {
+    if (!quote || !user || yousignLoading) return
+    const email = yousignSignerEmail.trim() || quote.client_email
+    if (!email) {
+      showToast('Email du client requis pour Yousign', 'error')
+      return
+    }
+    setYousignLoading(true)
+    try {
+      const pdf_base64 = await getQuotePdfBase64(quote, profile!)
+      const { data: { session: freshSession } } = await supabase.auth.getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-yousign-signature`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${freshSession?.access_token}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          quote_id: quote.id,
+          pdf_base64,
+          signer_email: email,
+          signer_name: quote.client_name || 'Client',
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error)
+      setShowSignModal(false)
+      showToast('✅ Yousign — lien envoyé au client par email', 'success')
+      if (quote.status === 'draft') {
+        await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', id)
+        fetchQuote()
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Erreur Yousign — vérifie ta clé API dans Supabase', 'error')
+    } finally {
+      setYousignLoading(false)
+    }
   }
 
   const handleCopyLink = () => {
@@ -1005,11 +1047,30 @@ export default function DevisDetail() {
                 </div>
               ))}
             </div>
-            <div className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2 relative overflow-hidden"
-              style={{ background: '#F1F5F9', color: '#94A3B8', cursor: 'default' }}>
-              <span>⚖️</span> Yousign — Signature eIDAS
-              <span className="absolute top-2 right-3 text-[10px] font-bold bg-indigo-100 text-indigo-500 px-2 py-0.5 rounded-full">Prochainement</span>
-            </div>
+            {!quote.client_email && (
+              <input
+                type="email"
+                value={yousignSignerEmail}
+                onChange={e => setYousignSignerEmail(e.target.value)}
+                placeholder="Email du client (requis pour Yousign)"
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm mb-2 focus:outline-none focus:border-indigo-400"
+              />
+            )}
+            <button
+              onClick={handleYousignSign}
+              disabled={yousignLoading || (!quote.client_email && !yousignSignerEmail.trim())}
+              className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2"
+              style={{
+                background: 'linear-gradient(135deg, #4F46E5, #4338CA)',
+                color: 'white',
+                opacity: (yousignLoading || (!quote.client_email && !yousignSignerEmail.trim())) ? 0.5 : 1,
+              }}
+            >
+              {yousignLoading
+                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Envoi en cours…</>
+                : <><span>⚖️</span> Yousign — Signature eIDAS</>
+              }
+            </button>
             <button onClick={handleCopySignLink} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50">
               📋 Copier le lien de signature
             </button>

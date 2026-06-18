@@ -40,7 +40,7 @@ function fmtDate(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-type PageState = 'loading' | 'ready' | 'success' | 'error' | 'already_signed'
+type PageState = 'loading' | 'ready' | 'success' | 'error' | 'already_signed' | 'expired'
 
 // ── Canvas signature — iOS-safe (passive: false) ──
 function SignaturePad({ onChange }: { onChange: (data: string | null) => void }) {
@@ -169,7 +169,9 @@ export default function PublicDevis() {
       if (!data.success) throw new Error(data.error || 'Devis introuvable')
       if (data.quote_id) setResolvedId(data.quote_id)
       setQuoteData(data.quote)
-      setState(data.quote.already_signed ? 'already_signed' : 'ready')
+      if (data.quote.already_signed) setState('already_signed')
+      else if (data.quote.is_expired) setState('expired')
+      else setState('ready')
     } catch (err: any) {
       setState('error')
       setErrorMsg(err.message || 'Impossible de charger le devis')
@@ -222,6 +224,26 @@ export default function PublicDevis() {
         <span className="text-5xl mb-4">❌</span>
         <h2 className="text-gray-900 font-bold text-xl mb-2">Devis introuvable</h2>
         <p className="text-gray-500 text-sm">{errorMsg || 'Ce lien est invalide ou a expiré.'}</p>
+      </div>
+    )
+  }
+
+  // ── EXPIRED ──
+  if (state === 'expired' && quoteData) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-6 text-center">
+        <span className="text-5xl mb-4">⏰</span>
+        <h2 className="text-gray-900 font-bold text-xl mb-2">Ce devis a expiré</h2>
+        <p className="text-gray-500 text-sm mb-4">
+          La validité de ce devis ({quoteData.validite_jours} jours) est dépassée.
+        </p>
+        {quoteData.phone && (
+          <a href={`tel:${quoteData.phone.replace(/\s/g, '')}`}
+            className="py-3 px-6 rounded-2xl font-bold text-white text-sm"
+            style={{ background: 'linear-gradient(135deg, #1E3A5F, #2D5282)' }}>
+            📞 Contacter {quoteData.company_name}
+          </a>
+        )}
       </div>
     )
   }

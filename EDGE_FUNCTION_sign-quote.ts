@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
 
       const { data: quote, error: fetchError } = await supabase
         .from('quotes')
-        .select('id, user_id, status, quote_json, quote_number, total_ttc')
+        .select('id, user_id, status, quote_json, quote_number, total_ttc, created_at')
         .eq('id', quote_id)
         .single()
 
@@ -173,6 +173,14 @@ Deno.serve(async (req) => {
 
       if (quote.quote_json?.signature) {
         return new Response(JSON.stringify({ success: false, error: 'Ce devis est déjà signé' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const validiteJours = quote.quote_json?.validite_jours || 30
+      const isExpired = (Date.now() - new Date(quote.created_at).getTime()) > validiteJours * 24 * 60 * 60 * 1000
+      if (isExpired) {
+        return new Response(JSON.stringify({ success: false, error: 'Ce devis a expiré et ne peut plus être signé. Contactez l\'entreprise pour obtenir un devis actualisé.' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }

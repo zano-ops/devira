@@ -425,7 +425,10 @@ export default function Onboarding() {
             </div>
 
             <button
-              onClick={() => navigate('/nouveau-devis')}
+              onClick={async () => {
+                await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user!.id)
+                navigate('/nouveau-devis')
+              }}
               style={{
                 width: '100%', padding: '18px 0', borderRadius: 16,
                 background: A, color: 'white', border: 'none',
@@ -437,7 +440,10 @@ export default function Onboarding() {
             </button>
 
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={async () => {
+                await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user!.id)
+                navigate('/dashboard')
+              }}
               style={{
                 background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)',
                 fontSize: 14, cursor: 'pointer', padding: '8px 0',

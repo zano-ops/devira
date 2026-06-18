@@ -65,7 +65,7 @@ export default function Dashboard() {
   const rate = quotesWithAction.length > 0 ? Math.round(accepted.length / quotesWithAction.length * 100) : null
 
   // Devis envoyés sans réponse depuis > 15j
-  const overdue = quotes.filter(q => q.status === 'sent' && daysSince(q.created_at) > 15)
+  const overdue = quotes.filter(q => q.status === 'sent' && daysSince(q.sent_at || q.created_at) > 15)
 
   // Pipeline = valeur totale des devis envoyés en attente de réponse
   const sentQuotes = quotes.filter(q => q.status === 'sent')

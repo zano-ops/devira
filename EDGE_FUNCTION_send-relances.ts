@@ -103,7 +103,7 @@ Deno.serve(async (_req) => {
             </p>
           </div>
           <p style="color: #999; font-size: 11px; text-align: center; margin-top: 16px;">
-            Généré par DevisPro BTP • Relance automatique J+${nextPalier}
+            Généré par Devira • Relance automatique J+${nextPalier}
           </p>
         </div>
       `
@@ -115,7 +115,7 @@ Deno.serve(async (_req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: `${profile.company_name} <devis@resend.dev>`,
+          from: `${profile.company_name} <relances@devira.fr>`,
           to: [quote.client_email],
           subject,
           html: htmlBody,

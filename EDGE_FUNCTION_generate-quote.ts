@@ -28,6 +28,36 @@ Deno.serve(async (req) => {
     const validityDays = profile?.quote_validity_days || 30
     const paymentConditions = profile?.payment_conditions || 'Acompte 30% à la commande, solde à réception des travaux.'
 
+    // ── Vérification quota côté serveur ──
+    const subscriptionStatus = profile?.subscription_status ?? 'trial'
+    const quotesThisMonth = profile?.quotes_this_month ?? 0
+    const trialEndsAt = profile?.trial_ends_at
+      ? new Date(profile.trial_ends_at)
+      : new Date(Date.now() + 21 * 86400000)
+    const isTrialExpired = subscriptionStatus !== 'active' && trialEndsAt.getTime() < Date.now()
+
+    if (isTrialExpired) {
+      return new Response(JSON.stringify({ success: false, error: 'trial_expired' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const TRIAL_LIMIT = 1
+    const ESSENTIEL_LIMIT = 10
+    const isTrial = subscriptionStatus === 'trial'
+    const isEssentiel = profile?.subscription_plan === 'essentiel'
+
+    if (isTrial && quotesThisMonth >= TRIAL_LIMIT) {
+      return new Response(JSON.stringify({ success: false, error: 'quota_exceeded' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    if (isEssentiel && quotesThisMonth >= ESSENTIEL_LIMIT) {
+      return new Response(JSON.stringify({ success: false, error: 'quota_exceeded' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // Récupérer le catalogue de prix de l'artisan
     const { data: catalogueItems } = await supabase
       .from('catalogue_items')
@@ -185,7 +215,11 @@ Règles importantes :
       lignes.filter((l: any) => !l.isSection)
         .reduce((s: number, l: any) => s + l.total_ht, 0).toFixed(2)
     )
-    const montant_tva = parseFloat((sous_total_ht * vatRate / 100).toFixed(2))
+    const montant_tva = parseFloat(
+      lignes.filter((l: any) => !l.isSection)
+        .reduce((s: number, l: any) => s + (l.total_ht * (l.tva_rate || vatRate) / 100), 0)
+        .toFixed(2)
+    )
     const total_ttc = parseFloat((sous_total_ht + montant_tva).toFixed(2))
 
     quoteJson.lignes = lignes
