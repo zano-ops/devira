@@ -423,8 +423,20 @@ export default function DevisDetail() {
   }
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-      .then(() => showToast('Lien copié ! (connexion requise)'))
+    const signUrl = `${window.location.origin}/sign/${id}`
+    navigator.clipboard.writeText(signUrl)
+      .then(() => showToast('🔗 Lien public copié — à envoyer à ton client'))
+  }
+
+  const isProfileIncomplete = !profile?.company_name || profile.company_name === 'Nom de votre entreprise' || !profile?.siret
+
+  const warnIfProfileIncomplete = () => {
+    if (isProfileIncomplete) {
+      showToast('⚠️ Profil incomplet — renseigne ton entreprise et ton SIRET dans Réglages avant d\'envoyer', 'error')
+      setTimeout(() => navigate('/parametres'), 1500)
+      return true
+    }
+    return false
   }
 
   const handleSendEmail = async () => {
@@ -721,7 +733,7 @@ export default function DevisDetail() {
                         </button>
                       </div>
                     </div>
-                    <input value={l.designation} onChange={e => updateLine(i, 'designation', e.target.value)} className="input-field mb-2 text-sm" placeholder="Désignation" />
+                    <textarea value={l.designation} onChange={e => updateLine(i, 'designation', e.target.value)} className="input-field mb-2 text-sm resize-none" placeholder="Désignation" rows={2} style={{ lineHeight: '1.4' }} />
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs text-gray-400 font-medium">Qté</label>
@@ -894,13 +906,14 @@ export default function DevisDetail() {
               </button>
             )}
 
-            <button onClick={() => setShowEmailModal(true)} className="btn-accent">
+            <button onClick={() => { if (!warnIfProfileIncomplete()) setShowEmailModal(true) }} className="btn-accent">
               <span className="flex items-center justify-center gap-2"><span>📧</span>Envoyer par email</span>
             </button>
 
             <button
-              onClick={() => { setSendSmsPhone((quote.quote_json.client as any)?.phone || ''); setShowSmsModal(true) }}
-              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-blue-200 text-blue-700 bg-blue-50 active:scale-95 transition-transform"
+              onClick={() => { if (!warnIfProfileIncomplete()) { setSendSmsPhone((quote.quote_json.client as any)?.phone || ''); setShowSmsModal(true) } }}
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)', color: 'white', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
             >
               <span>📱</span> Envoyer par SMS
             </button>
@@ -1065,32 +1078,15 @@ export default function DevisDetail() {
                 </div>
               ))}
             </div>
-            {!quote.client_email && (
-              <input
-                type="email"
-                value={yousignSignerEmail}
-                onChange={e => setYousignSignerEmail(e.target.value)}
-                placeholder="Email du client (requis pour Yousign)"
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm mb-2 focus:outline-none focus:border-indigo-400"
-              />
-            )}
-            <button
-              onClick={handleYousignSign}
-              disabled={yousignLoading || (!quote.client_email && !yousignSignerEmail.trim())}
-              className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2"
-              style={{
-                background: 'linear-gradient(135deg, #4F46E5, #4338CA)',
-                color: 'white',
-                opacity: (yousignLoading || (!quote.client_email && !yousignSignerEmail.trim())) ? 0.5 : 1,
-              }}
-            >
-              {yousignLoading
-                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Envoi en cours…</>
-                : <><span>⚖️</span> Yousign — Signature eIDAS</>
-              }
-            </button>
-            <button onClick={handleCopySignLink} className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-green-200 text-green-700 bg-green-50">
+            <button onClick={handleCopySignLink} className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mb-2"
+              style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
               📋 Copier le lien de signature
+            </button>
+            <button
+              disabled
+              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+            >
+              <span>⚖️</span> Yousign — Signature eIDAS <span className="text-xs font-normal">(Prochainement)</span>
             </button>
             <button onClick={() => setShowSignModal(false)} className="w-full text-gray-400 text-sm py-3 mt-1">Annuler</button>
           </div>
