@@ -10,8 +10,8 @@ import {
 
 const P = '#1E3A5F'
 const A = '#E87722'
-const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
-const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
+const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
+const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
 
 // ── FEATURE TAB ILLUSTRATIONS ────────────────────────────────────────────────
 
@@ -325,7 +325,7 @@ export default function Landing() {
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,81 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             {['📱 Depuis le chantier', '📱 Envoi par SMS', '✍️ Signature en ligne', '⚡ Devis en 2 min'].map(tag => (
               <span key={tag} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, padding: '6px 13px', borderRadius: 99 }}>{tag}</span>
@@ -625,7 +625,7 @@ export default function Landing() {
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,48 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,99 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Obat</div>
@@ -713,7 +713,7 @@ export default function Landing() {
             <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,81 €</span>
+                <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,99 €</span>
                 <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
@@ -744,7 +744,7 @@ export default function Landing() {
               <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,48 €</span>
+                <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,99 €</span>
                 <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour les artisans actifs qui veulent développer leur activité</p>
@@ -811,7 +811,7 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
-            1 devis complet offert, sans carte bancaire. Abonnement à partir de 29,81 €/mois.
+            1 devis complet offert, sans carte bancaire. Abonnement à partir de 29,99 €/mois.
           </p>
           <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement

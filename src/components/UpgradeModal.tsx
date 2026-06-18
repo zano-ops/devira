@@ -2,8 +2,8 @@
 import { DeviraIcon } from './DeviraLogo'
 import { useAuth } from '../context/AuthContext'
 
-const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
-const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
+const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
+const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
 
 const ESSENTIEL_FEATURES = [
   '10 devis par mois',
@@ -89,7 +89,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Pour démarrer</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>29,81 €</p>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>29,99 €</p>
                 <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 fontWeight: 700, fontSize: 14, textDecoration: 'none',
               }}
             >
-              Choisir Essentiel — 29,81 €/mois
+              Choisir Essentiel — 29,99 €/mois
             </a>
           </div>
 
@@ -129,7 +129,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Tout inclus, sans limites</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 900, fontSize: 22, color: '#E87722', margin: 0, letterSpacing: '-0.03em' }}>79,48 €</p>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#E87722', margin: 0, letterSpacing: '-0.03em' }}>79,99 €</p>
                 <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>TTC / mois</p>
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 boxShadow: '0 4px 14px rgba(232,119,34,0.35)',
               }}
             >
-              Choisir Pro — 79,48 €/mois
+              Choisir Pro — 79,99 €/mois
             </a>
           </div>
         </div>

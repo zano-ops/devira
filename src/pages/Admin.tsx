@@ -105,8 +105,8 @@ export default function Admin() {
   const monthQuotes = users.reduce((s, u) => s + Number(u.month_quotes || 0), 0)
 
   const mrr = active.reduce((s, u) => {
-    if (u.subscription_plan === 'pro') return s + 79.48
-    if (u.subscription_plan === 'essentiel') return s + 29.81
+    if (u.subscription_plan === 'pro') return s + 79.99
+    if (u.subscription_plan === 'essentiel') return s + 29.99
     return s
   }, 0)
 
@@ -181,7 +181,7 @@ export default function Admin() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <span style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>{badge.label}</span>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>{u.subscription_plan === 'pro' ? '79,48 €' : '29,81 €'}/mois</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8' }}>{u.subscription_plan === 'pro' ? '79,99 €' : '29,99 €'}/mois</span>
                 </div>
               </div>
             )
