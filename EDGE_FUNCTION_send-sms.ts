@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: false, error: data.message || 'Brevo API error' }), { status: 500, headers: CORS })
     }
 
+    // Incrémenter le compteur SMS pour le tableau de bord admin
+    await supabase.rpc('increment_profile_sms', { uid: user.id })
+
     return new Response(JSON.stringify({ success: true, messageId: data.messageId }), { headers: CORS })
   } catch (err) {
     console.error('send-sms error:', err)

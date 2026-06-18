@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 
 const ADMIN_EMAIL = 'chowmathias@gmail.com'
 const CLAUDE_COST_PER_QUOTE = 0.08
+const BREVO_SMS_COST = 0.065 // €/SMS France
 
 interface AdminUser {
   id: string
@@ -24,6 +25,7 @@ interface AdminUser {
   nudge_j3_sent: boolean
   expiry_warning_sent: boolean
   stripe_customer_id: string | null
+  sms_count: number
 }
 
 function fmtDate(date: string | null) {
@@ -99,8 +101,8 @@ export default function Admin() {
   // ── KPIs ──
   const total = users.length
   const active = users.filter(u => u.subscription_status === 'active')
-  const trial = users.filter(u => !u.subscription_status || u.subscription_status === 'trial')
-  const expired = users.filter(u => u.subscription_status === 'expired' || u.subscription_status === 'cancelled')
+  const trialCount = users.filter(u => !u.subscription_status || u.subscription_status === 'trial').length
+  const expiredCount = users.filter(u => u.subscription_status === 'expired' || u.subscription_status === 'cancelled').length
   const totalQuotes = users.reduce((s, u) => s + Number(u.total_quotes || 0), 0)
   const monthQuotes = users.reduce((s, u) => s + Number(u.month_quotes || 0), 0)
 
@@ -117,6 +119,9 @@ export default function Admin() {
     users.filter(u => u.nudge_j3_sent).length +
     users.filter(u => u.expiry_warning_sent).length
   const brevoFree = emailsTotal < 9000
+  const totalSmsCount = users.reduce((s, u) => s + Number(u.sms_count || 0), 0)
+  const brevoSmsCost = totalSmsCount * BREVO_SMS_COST
+  const totalInfra = claudeCost + brevoSmsCost
 
   return (
     <div style={styles.page}>
@@ -149,21 +154,22 @@ export default function Admin() {
 
       {/* ── KPI Cards ── */}
       <div style={styles.kpiGrid}>
-        <KPICard label="Inscrits" value={total} sub={`${active.length} abonné${active.length > 1 ? 's' : ''}`} />
+        <KPICard label="Inscrits" value={total} sub={`${active.length} abonnés · ${trialCount} trial · ${expiredCount} expirés`} />
         <KPICard label="MRR" value={`${mrr.toFixed(0)} €`} sub={mrr === 0 ? 'Aucun abonné' : `${active.length} abonné${active.length > 1 ? 's' : ''}`} accent />
-        <KPICard label="Trial" value={trial.length} sub={`${expired.length} expiré${expired.length > 1 ? 's' : ''}`} />
         <KPICard label="Devis ce mois" value={monthQuotes} sub={`${totalQuotes} total`} />
+        <KPICard label="SMS envoyés" value={totalSmsCount} sub={`~${brevoSmsCost.toFixed(2)} € Brevo`} warn={brevoSmsCost > 5} />
       </div>
 
       {/* ── Coûts ── */}
       <div style={styles.card}>
         <p style={styles.sectionLabel}>Coûts estimés — {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
         <CostRow label="Claude API" detail={`${monthQuotes} devis × ${CLAUDE_COST_PER_QUOTE} €`} value={`~${claudeCost.toFixed(2)} €`} color="#0F172A" />
-        <CostRow label="Brevo (emails lifecycle)" detail={`${emailsTotal} emails cumulés`} value={brevoFree ? 'Gratuit' : '~25 €'} color={brevoFree ? '#16A34A' : '#E87722'} />
-        <CostRow label="Resend (devis PDF/email)" detail="< 3 000/mois (free tier)" value="Gratuit" color="#16A34A" />
+        <CostRow label="Brevo — emails lifecycle" detail={`${emailsTotal} emails cumulés`} value={brevoFree ? 'Gratuit' : '~25 €'} color={brevoFree ? '#16A34A' : '#E87722'} />
+        <CostRow label="Brevo — SMS transactionnels" detail={`${totalSmsCount} SMS × ${BREVO_SMS_COST} €`} value={totalSmsCount === 0 ? '—' : `~${brevoSmsCost.toFixed(2)} €`} color={totalSmsCount === 0 ? '#94A3B8' : '#E87722'} />
+        <CostRow label="Resend — devis PDF/email" detail="< 3 000/mois (free tier)" value="Gratuit" color="#16A34A" />
         <div style={{ borderTop: '1px solid #F1F5F9', marginTop: 10, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Total infra estimé</span>
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#1E3A5F' }}>~{claudeCost.toFixed(2)} €/mois</span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#1E3A5F' }}>~{totalInfra.toFixed(2)} €/mois</span>
         </div>
       </div>
 
@@ -225,16 +231,13 @@ export default function Admin() {
 
 // ── Sub-components ──
 
-function KPICard({ label, value, sub, accent }: { label: string; value: string | number; sub: string; accent?: boolean }) {
+function KPICard({ label, value, sub, accent, warn }: { label: string; value: string | number; sub: string; accent?: boolean; warn?: boolean }) {
+  const border = accent ? '1.5px solid #E87722' : warn ? '1.5px solid #F59E0B' : '1px solid #E2E8F0'
+  const valueColor = accent ? '#E87722' : warn ? '#D97706' : '#0F172A'
   return (
-    <div style={{
-      background: 'white',
-      borderRadius: 12,
-      border: accent ? '1.5px solid #E87722' : '1px solid #E2E8F0',
-      padding: '14px 16px',
-    }}>
+    <div style={{ background: 'white', borderRadius: 12, border, padding: '14px 16px' }}>
       <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 4px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
-      <p style={{ fontSize: 24, fontWeight: 800, color: accent ? '#E87722' : '#0F172A', margin: '0 0 2px', letterSpacing: '-0.03em' }}>{value}</p>
+      <p style={{ fontSize: 24, fontWeight: 800, color: valueColor, margin: '0 0 2px', letterSpacing: '-0.03em' }}>{value}</p>
       <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>{sub}</p>
     </div>
   )
@@ -290,6 +293,7 @@ function UserRow({ u, last }: { u: AdminUser; last: boolean }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginBottom: 6 }}>
         <MetaItem label="Tel" value={u.phone || '—'} />
         <MetaItem label="Devis" value={`${totalQ} total · ${monthQ} ce mois`} />
+        <MetaItem label="SMS" value={u.sms_count ? `${u.sms_count} (≈${(u.sms_count * BREVO_SMS_COST).toFixed(2)} €)` : '0'} />
         <MetaItem label="Inscrit" value={fmtDateFull(u.signup_at)} />
         <MetaItem label="Dernière co." value={fmtDate(u.last_sign_in_at)} />
         {u.trial_ends_at && (u.subscription_status === 'trial' || !u.subscription_status) && (
