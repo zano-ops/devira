@@ -207,7 +207,14 @@ export default function DevisDetail() {
       if (!data.success) throw new Error(data.error)
       showToast(`SMS envoyé à ${phone} ✓`)
       setShowSmsModal(false)
-    } catch { showToast('Erreur envoi SMS — vérifiez votre numéro', 'error') }
+    } catch (err: any) {
+      const msg = err?.message || ''
+      if (msg.includes('credit') || msg.includes('Credit') || msg.includes('insufficient') || msg.includes('balance')) {
+        showToast('Crédits SMS insuffisants — rechargez votre compte Brevo', 'error')
+      } else {
+        showToast(`Erreur SMS : ${msg || 'erreur inconnue'}`, 'error')
+      }
+    }
     setSendingSms(false)
   }
 
