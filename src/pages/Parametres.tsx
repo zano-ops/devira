@@ -109,7 +109,6 @@ export default function Parametres() {
       } else {
         lastSavedRef.current = { ...form }
         setSaveStatus('saved')
-        refreshProfile()
       }
     }, 1500)
     return () => clearTimeout(debounceRef.current)
