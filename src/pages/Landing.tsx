@@ -425,37 +425,20 @@ export default function Landing() {
             </a>
           </div>
 
-          {/* ── Mobile : carte de téléchargement ── */}
+          {/* ── Mobile : aperçu image du devis ── */}
           <div className="lp-reveal lp-pdf-mobile" style={{ flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: '100%', maxWidth: 380, background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', boxShadow: '0 8px 32px rgba(30,58,95,0.10)', overflow: 'hidden' }}>
-              {/* Header coloré simulant un document */}
-              <div style={{ background: P, padding: '24px 20px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <div>
-                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 4px' }}>Devira</p>
-                  <p style={{ color: 'white', fontSize: 16, fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>Devis N° 2026-0014</p>
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '6px 10px' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                </div>
-              </div>
-              {/* Lignes du devis simulées */}
-              <div style={{ padding: '16px 20px' }}>
-                {[
-                  { label: 'Peinture murs (2 couches)', montant: '480 €' },
-                  { label: 'Sous-couche & préparation', montant: '240 €' },
-                  { label: 'Plafonds (1 pièce)', montant: '320 €' },
-                ].map((line, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #F3F4F6' }}>
-                    <span style={{ fontSize: 13, color: '#374151' }}>{line.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: P }}>{line.montant}</span>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, padding: '10px 0' }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Total TTC</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: P }}>1 248,00 €</span>
-                </div>
-              </div>
-            </div>
+            <a
+              href="/devis-exemple.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'block', width: '100%', maxWidth: 380 }}
+            >
+              <img
+                src="/devis-apercu.jpg"
+                alt="Exemple de devis PDF généré par Devira"
+                style={{ width: '100%', borderRadius: 16, boxShadow: '0 12px 40px rgba(30,58,95,0.18)', display: 'block' }}
+              />
+            </a>
             <a
               href="/devis-exemple.pdf"
               target="_blank"
