@@ -13,274 +13,6 @@ const A = '#E87722'
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/5kQ8wO82s2CM5X1dI64Ni01'
 const STRIPE_PRO = 'https://buy.stripe.com/cNi4gy6Yob9ietxfQe4Ni00'
 
-// ── DEMO ANIMATION ──────────────────────────────────────────────────────────
-
-const DEMO_TEXT = "Pose de 40m² de carrelage salle de bain, joint époxy compris, dépose ancien carrelage incluse..."
-
-const DEMO_ROWS = [
-  { label: 'Dépose ancien carrelage', qty: '40 m²', pu: '12,00 €', total: '480,00 €' },
-  { label: 'Fourniture carrelage 60×60', qty: '44 m²', pu: '28,00 €', total: '1 232,00 €' },
-  { label: 'Pose carrelage + joints époxy', qty: '40 m²', pu: '35,00 €', total: '1 400,00 €' },
-  { label: 'Produits joints & finitions', qty: '1 forfait', pu: '120,00 €', total: '120,00 €' },
-]
-
-const DEMO_URLS: Record<number, string> = {
-  0: 'devira.fr/nouveau-devis',
-  1: 'devira.fr/nouveau-devis',
-  2: 'devira.fr/devis/DEV-2026-042',
-  3: 'devira.fr/devis/DEV-2026-042',
-  4: 'devira.fr/devis/DEV-2026-042',
-  5: 'devira.fr/devis/DEV-2026-042/relances',
-  6: 'devira.fr/signature/DEV-2026-042',
-  7: 'devira.fr/signature/DEV-2026-042',
-}
-
-const DEMO_STEPS = ['Décrire', 'Devis', 'Envoyer', 'Relances', 'Signé']
-
-const DEMO_WORDS = DEMO_TEXT.split(' ')
-
-const CHECK_STEPS = ['Description analysée', 'Lignes calculées', 'Devis mis en page']
-
-function DemoAnimation() {
-  const [phase, setPhase] = useState<0|1|2|3|4|5|6|7>(0)
-  const [wordCount, setWordCount] = useState(0)
-  const [checkStep, setCheckStep] = useState(0)
-  const [rowCount, setRowCount] = useState(0)
-
-  const activeStep = phase <= 1 ? 0 : phase <= 3 ? 1 : phase === 4 ? 2 : phase === 5 ? 3 : 4
-
-  useEffect(() => {
-    let t: ReturnType<typeof setTimeout>
-    if (phase === 0) {
-      if (wordCount < DEMO_WORDS.length) {
-        t = setTimeout(() => setWordCount(w => w + 1), 170)
-      } else {
-        t = setTimeout(() => { setPhase(1); setCheckStep(0) }, 700)
-      }
-    } else if (phase === 1) {
-      if (checkStep < CHECK_STEPS.length) {
-        t = setTimeout(() => setCheckStep(s => s + 1), 520)
-      } else {
-        t = setTimeout(() => { setPhase(2); setRowCount(0) }, 300)
-      }
-    } else if (phase === 2) {
-      if (rowCount < DEMO_ROWS.length) {
-        t = setTimeout(() => setRowCount(r => r + 1), 360)
-      } else {
-        t = setTimeout(() => setPhase(3), 700)
-      }
-    } else if (phase === 3) {
-      t = setTimeout(() => setPhase(4), 2600)
-    } else if (phase === 4) {
-      t = setTimeout(() => setPhase(5), 2200)
-    } else if (phase === 5) {
-      t = setTimeout(() => setPhase(6), 2800)
-    } else if (phase === 6) {
-      t = setTimeout(() => setPhase(7), 3200)
-    } else {
-      t = setTimeout(() => { setPhase(0); setWordCount(0); setCheckStep(0); setRowCount(0) }, 2200)
-    }
-    return () => clearTimeout(t)
-  }, [phase, wordCount, checkStep, rowCount])
-
-  return (
-    <div style={{ background: '#F8FAFC', borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 80px rgba(30,58,95,0.22)', border: '1px solid #E2E6EA', width: '100%', maxWidth: 760 }}>
-
-      {/* Browser chrome */}
-      <div style={{ background: '#F1F3F4', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #E2E6EA' }}>
-        {['#FF5F57', '#FEBC2E', '#28C840'].map((c, i) => (
-          <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: c, flexShrink: 0 }} />
-        ))}
-        <div style={{ flex: 1, background: 'white', borderRadius: 8, padding: '4px 12px', marginLeft: 8, fontSize: 12, color: '#6B7280', fontFamily: 'monospace', transition: 'all 0.4s' }}>
-          {DEMO_URLS[phase]}
-        </div>
-      </div>
-
-      {/* Step progress bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #F0F0F0', padding: '12px 24px', display: 'flex', alignItems: 'flex-start' }}>
-        {DEMO_STEPS.map((label, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < DEMO_STEPS.length - 1 ? 1 : 'initial' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', background: i < activeStep ? '#16A34A' : i === activeStep ? P : '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.4s', flexShrink: 0 }}>
-                {i < activeStep
-                  ? <Check size={12} color="white" strokeWidth={3} />
-                  : <div style={{ width: 8, height: 8, borderRadius: '50%', background: i === activeStep ? 'white' : '#9CA3AF' }} />
-                }
-              </div>
-              <span style={{ fontSize: 9, fontWeight: 700, color: i < activeStep ? '#16A34A' : i === activeStep ? P : '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{label}</span>
-            </div>
-            {i < DEMO_STEPS.length - 1 && (
-              <div style={{ flex: 1, height: 2, background: i < activeStep ? '#16A34A' : '#E5E7EB', margin: '0 8px', marginTop: -10, transition: 'background 0.4s' }} />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Screen content */}
-      <div style={{ padding: '20px 24px', minHeight: 290 }}>
-
-        {/* Phase 0 — Saisie vocale */}
-        {phase === 0 && (
-          <div>
-            {/* Barre dictée */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, padding: '8px 14px', background: `${A}0f`, borderRadius: 10, border: `1px solid ${A}30` }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: 'lp-pulse 1.4s ease-in-out infinite' }}>
-                <Mic size={13} color="white" />
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: A, flex: 1 }}>Dictée en cours</span>
-              <div style={{ display: 'flex', gap: 2, alignItems: 'center', height: 20 }}>
-                {[5, 10, 7, 14, 8, 11, 5, 9, 13, 6].map((h, i) => (
-                  <div key={i} style={{ width: 3, borderRadius: 99, background: A, height: h, opacity: 0.55 + (i % 3) * 0.15, animation: `lp-wave ${0.5 + (i % 4) * 0.13}s ease-in-out infinite alternate` }} />
-                ))}
-              </div>
-            </div>
-            {/* Zone de texte transcrit */}
-            <div style={{ background: 'white', border: `1.5px solid #E2E8F0`, borderRadius: 12, padding: '14px 16px', minHeight: 80, fontSize: 14, color: '#111827', lineHeight: 1.65 }}>
-              {wordCount > 0 ? DEMO_WORDS.slice(0, wordCount).join(' ') : <span style={{ color: '#C4C9D4' }}>Transcription...</span>}
-            </div>
-            {/* Bouton valider qui apparaît quand le texte est complet */}
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', opacity: wordCount >= DEMO_WORDS.length ? 1 : 0, transition: 'opacity 0.4s' }}>
-              <div style={{ background: A, color: 'white', padding: '9px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Zap size={13} /> Créer le devis
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Phase 1 — Checklist création */}
-        {phase === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 230, padding: '8px 4px', gap: 0 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 20px', textAlign: 'center' }}>Préparation de votre devis</p>
-            {CHECK_STEPS.map((label, i) => {
-              const done = checkStep > i
-              const active = checkStep === i
-              return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderRadius: 12, marginBottom: 10, background: done ? '#F0FDF4' : active ? '#F8FAFC' : 'transparent', border: `1px solid ${done ? '#BBF7D0' : active ? '#E2E8F0' : 'transparent'}`, opacity: checkStep < i ? 0.3 : 1, transition: 'all 0.35s ease' }}>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, background: done ? '#16A34A' : active ? P : '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.35s' }}>
-                    {done
-                      ? <Check size={13} color="white" strokeWidth={3} />
-                      : active
-                        ? <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white', animation: 'lp-pulse 1s ease-in-out infinite' }} />
-                        : null}
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: done ? 600 : 400, color: done ? '#15803D' : active ? '#111827' : '#9CA3AF', transition: 'color 0.35s' }}>{label}</span>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Phase 2-3 — Devis généré */}
-        {(phase === 2 || phase === 3) && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: P, margin: 0 }}>Devis N° DEV-2026-042</p>
-              {phase === 3 && <span style={{ background: '#16A34A', color: 'white', padding: '3px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700 }}>Prêt — 3 232,00 € HT</span>}
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 12 }}>
-              <thead>
-                <tr style={{ background: '#F4F5F7' }}>
-                  {['Prestation', 'Qté', 'P.U.', 'Total HT'].map(h => (
-                    <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 600, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {DEMO_ROWS.slice(0, rowCount).map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                    <td style={{ padding: '7px 10px', color: '#111827' }}>{row.label}</td>
-                    <td style={{ padding: '7px 10px', color: '#6B7280' }}>{row.qty}</td>
-                    <td style={{ padding: '7px 10px', color: '#6B7280' }}>{row.pu}</td>
-                    <td style={{ padding: '7px 10px', fontWeight: 600, color: P }}>{row.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {phase === 3 && (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button style={{ flex: 1, padding: '8px 6px', background: A, color: 'white', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Envoyer par email</button>
-                <button style={{ flex: 1, padding: '8px 6px', background: `${P}12`, color: P, border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Signature en ligne</button>
-                <button style={{ flex: 1, padding: '8px 6px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Exporter PDF</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Phase 4 — Email + SMS envoyés */}
-        {phase === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 10, textAlign: 'center' }}>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Devis envoyé sur 2 canaux</p>
-            {[
-              { icon: '📧', label: 'Email', sub: 'jean.dupont@gmail.com', ok: true },
-              { icon: '📱', label: 'SMS', sub: '+33 6 12 34 56 78', ok: true },
-            ].map((ch, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: '#F0FDF4', borderRadius: 10, border: '1px solid #BBF7D0', width: '100%', maxWidth: 300, textAlign: 'left' }}>
-                <span style={{ fontSize: 16 }}>{ch.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{ch.label} </span>
-                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{ch.sub}</span>
-                </div>
-                <Check size={14} color="#16A34A" strokeWidth={3} />
-              </div>
-            ))}
-            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '8px 18px', marginTop: 2 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#15803D', margin: 0 }}>Relances automatiques activées · J+7, J+14, J+21</p>
-            </div>
-          </div>
-        )}
-
-        {/* Phase 5 — Relances */}
-        {phase === 5 && (
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Relances automatiques</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 14px' }}>Si votre client ne répond pas, Devira le relance à votre place</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { label: 'J+7', desc: 'Première relance', date: '22 jan. 2025', color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
-                { label: 'J+14', desc: 'Deuxième relance', date: '29 jan. 2025', color: A, bg: '#FFF7ED', border: `${A}40` },
-                { label: 'J+21', desc: 'Relance finale', date: '05 fév. 2025', color: '#6B7280', bg: '#F9FAFB', border: '#E5E7EB' },
-              ].map((item) => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: item.bg, borderRadius: 10, border: `1px solid ${item.border}` }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'white', border: `1px solid ${item.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: item.color }}>{item.label}</span>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{item.desc}</div>
-                    <div style={{ fontSize: 11, color: '#9CA3AF' }}>{item.date}</div>
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: item.color, background: 'white', padding: '2px 8px', borderRadius: 99, border: `1px solid ${item.border}` }}>Programmée</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Phase 6-7 — Signé */}
-        {(phase === 6 || phase === 7) && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 230, gap: 14, textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Check size={30} color="#16A34A" strokeWidth={2.5} />
-            </div>
-            <div>
-              <p style={{ fontSize: 17, fontWeight: 900, color: '#111827', margin: '0 0 4px' }}>Devis accepté et signé</p>
-              <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>Jean Dupont · depuis son téléphone · 22 jan. à 18h47</p>
-            </div>
-            <div style={{ border: '1px solid #D1D5DB', borderRadius: 10, padding: '12px 28px', background: '#FAFAFA' }}>
-              <div style={{ fontSize: 22, fontStyle: 'italic', color: P, fontFamily: 'Georgia, serif' }}>Jean Dupont</div>
-              <div style={{ height: 1.5, background: '#374151', margin: '6px 0' }} />
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <span style={{ background: '#DCFCE7', color: '#16A34A', padding: '4px 12px', borderRadius: 99, fontSize: 12, fontWeight: 700 }}>Chantier confirmé</span>
-              <span style={{ background: `${P}12`, color: P, padding: '4px 12px', borderRadius: 99, fontSize: 12, fontWeight: 600 }}>Facture disponible</span>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
-  )
-}
-
 // ── FEATURE TAB ILLUSTRATIONS ────────────────────────────────────────────────
 
 function TabIllustration({ index }: { index: number }) {
@@ -634,7 +366,45 @@ export default function Landing() {
             Décrivez vos travaux. Le devis se génère. C'est tout.
           </p>
           <div className="lp-reveal" style={{ display: 'flex', justifyContent: 'center' }}>
-            <DemoAnimation />
+            <div style={{ width: '100%', maxWidth: 860, borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 80px rgba(30,58,95,0.22)', border: '1px solid rgba(30,58,95,0.12)', background: '#000' }}>
+              <video
+                src="/devira-demo.mp4"
+                controls
+                playsInline
+                poster="/devira-thumbnail.png"
+                style={{ width: '100%', display: 'block' }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════ PDF EXAMPLE */}
+      <section style={{ padding: '88px 0', background: '#F9FAFB' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
+          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Résultat réel</p>
+          <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
+            Voilà ce que reçoit votre client
+          </h2>
+          <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 44px', maxWidth: 520 }}>
+            Un PDF professionnel, lisible, avec toutes les mentions légales. Généré en 2 minutes.
+          </p>
+          <div className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            <div style={{ width: '100%', maxWidth: 780, borderRadius: 20, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', background: 'white' }}>
+              <iframe
+                src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0"
+                title="Exemple de devis généré par Devira"
+                style={{ width: '100%', height: 680, border: 'none', display: 'block' }}
+              />
+            </div>
+            <a
+              href="/devis-exemple.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: P, fontSize: 14, fontWeight: 600, textDecoration: 'none', opacity: 0.65 }}
+            >
+              Ouvrir en plein écran ↗
+            </a>
           </div>
         </div>
       </section>

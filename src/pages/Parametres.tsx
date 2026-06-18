@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
 import { BottomNav } from '../components/BottomNav'
 import { BookOpen, LogOut, Camera, Mail, Phone, Globe } from 'lucide-react'
+import UpgradeModal from '../components/UpgradeModal'
 
 const vatOptions = [
   { value: 5.5,  label: '5,5% — Amélioration énergétique' },
@@ -31,6 +32,7 @@ export default function Parametres() {
   const { showToast, ToastContainer } = useToast()
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -223,6 +225,7 @@ export default function Parametres() {
   return (
     <div style={{ minHeight: '100vh', paddingBottom: 96, background: '#F8FAFC' }}>
       <ToastContainer />
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
 
       {/* Header */}
       <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
@@ -477,6 +480,69 @@ export default function Parametres() {
       </button>
 
       {/* Info abonnement */}
+      <div style={{ margin: '0 20px 16px' }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 4px' }}>Mon abonnement</p>
+        <div style={{ background: 'white', border: '1px solid #F1F5F9', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ padding: '16px' }}>
+            {/* Plan badge */}
+            {(() => {
+              const status = profile?.subscription_status ?? 'trial'
+              const plan = profile?.subscription_plan
+              const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
+              const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86400000)) : 0
+
+              const planLabel = plan === 'pro' ? 'Pro' : plan === 'essentiel' ? 'Essentiel' : 'Essai gratuit'
+              const planColor = status === 'active' ? '#1E3A5F' : status === 'trial' ? '#D97706' : '#6B7280'
+              const planBg = status === 'active' ? 'rgba(30,58,95,0.08)' : status === 'trial' ? '#FFFBEB' : '#F3F4F6'
+              const badgeColor = status === 'active' ? '#1E3A5F' : status === 'trial' ? '#92400E' : '#6B7280'
+              const badgeBg = status === 'active' ? 'rgba(30,58,95,0.1)' : status === 'trial' ? '#FEF3C7' : '#F3F4F6'
+              const badgeLabel = status === 'active' ? 'Actif' : status === 'trial' ? `${trialDaysLeft}j restants` : 'Inactif'
+
+              return (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div>
+                      <p style={{ fontSize: 16, fontWeight: 800, color: planColor, margin: '0 0 2px' }}>{planLabel}</p>
+                      <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
+                        {status === 'active' && (plan === 'pro' ? '79,48 €/mois' : plan === 'essentiel' ? '29,81 €/mois' : '')}
+                        {status === 'trial' && (trialEndsAt ? `Essai jusqu'au ${trialEndsAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : 'Essai gratuit')}
+                        {(status === 'expired' || status === 'cancelled') && 'Abonnement terminé'}
+                      </p>
+                    </div>
+                    <span style={{ background: badgeBg, color: badgeColor, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 99 }}>{badgeLabel}</span>
+                  </div>
+
+                  {status === 'active' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <a
+                        href="mailto:facturation@devira.fr?subject=Gérer mon abonnement Devira"
+                        style={{ display: 'block', textAlign: 'center', background: planBg, color: planColor, border: `1.5px solid ${planColor}22`, borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        Gérer mon abonnement →
+                      </a>
+                      <a
+                        href={`mailto:facturation@devira.fr?subject=Résiliation abonnement ${planLabel} - Devira`}
+                        style={{ display: 'block', textAlign: 'center', color: '#9CA3AF', fontSize: 12, fontWeight: 500, textDecoration: 'none', padding: '4px 0' }}
+                      >
+                        Résilier mon abonnement
+                      </a>
+                    </div>
+                  )}
+
+                  {(status === 'trial' || status === 'expired' || status === 'cancelled') && (
+                    <button
+                      onClick={() => setShowUpgrade(true)}
+                      style={{ width: '100%', background: '#E87722', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 10px rgba(232,119,34,0.3)' }}
+                    >
+                      Passer à un plan payant →
+                    </button>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      </div>
 
       {/* Besoin d'aide */}
       <div style={{ margin: '0 20px 16px' }}>

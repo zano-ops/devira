@@ -66,7 +66,7 @@ export default function NouveauDevis() {
   const isRecordingRef = useRef(false)
   const baseTextRef = useRef('')
 
-  const canGenerate = description.length >= 20
+  const canGenerate = description.length >= 10
 
   // Auto-resize textarea
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function NouveauDevis() {
       try {
         const draft: DraftData = JSON.parse(saved)
         // Only restore if less than 24h old and has content
-        if (Date.now() - draft.savedAt < 24 * 60 * 60 * 1000 && draft.description?.length > 20) {
+        if (Date.now() - draft.savedAt < 24 * 60 * 60 * 1000 && draft.description?.length > 10) {
           setDraftBanner(draft)
         } else {
           localStorage.removeItem(DRAFT_KEY)
@@ -441,7 +441,7 @@ export default function NouveauDevis() {
               className="w-full min-h-36 px-4 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 text-gray-900 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all resize-none leading-relaxed placeholder-gray-400"
             />
             {/* Indicateur auto-save */}
-            {description.length > 20 && (
+            {description.length > 10 && (
               <span className="absolute bottom-3 right-3 text-xs text-gray-300">
                 · enregistré
               </span>

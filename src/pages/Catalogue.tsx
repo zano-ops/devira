@@ -29,7 +29,26 @@ function fmt(n: number) {
 export default function Catalogue() {
   const navigate = useNavigate()
   const { showToast, ToastContainer } = useToast()
-  const { isPro } = useAuth()
+  const { isPro, user } = useAuth()
+
+  const [items, setItems] = useState<CatalogueItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editItem, setEditItem] = useState<CatalogueItem | null>(null)
+  const [search, setSearch] = useState('')
+  const [catFilter, setCatFilter] = useState('Tous')
+  const [form, setForm] = useState({ designation: '', unite: 'm²', prix_unitaire_ht: '', categorie: 'Autre' })
+  const [showMigrationBanner, setShowMigrationBanner] = useState(false)
+  const [migrating, setMigrating] = useState(false)
+
+  // Import PDF/photo
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState(false)
+  const [extractedItems, setExtractedItems] = useState<ExtractedItem[]>([])
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [importingSelected, setImportingSelected] = useState(false)
+
+  useEffect(() => { if (isPro && user) loadItems() }, [isPro, user?.id])
 
   if (!isPro) return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
@@ -49,30 +68,14 @@ export default function Catalogue() {
       <BottomNav />
     </div>
   )
-  const [items, setItems] = useState<CatalogueItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editItem, setEditItem] = useState<CatalogueItem | null>(null)
-  const [search, setSearch] = useState('')
-  const [catFilter, setCatFilter] = useState('Tous')
-  const [form, setForm] = useState({ designation: '', unite: 'm²', prix_unitaire_ht: '', categorie: 'Autre' })
-  const [showMigrationBanner, setShowMigrationBanner] = useState(false)
-  const [migrating, setMigrating] = useState(false)
-
-  // Import PDF/photo
-  const importInputRef = useRef<HTMLInputElement>(null)
-  const [importing, setImporting] = useState(false)
-  const [extractedItems, setExtractedItems] = useState<ExtractedItem[]>([])
-  const [showImportModal, setShowImportModal] = useState(false)
-  const [importingSelected, setImportingSelected] = useState(false)
-
-  useEffect(() => { loadItems() }, [])
 
   async function loadItems() {
+    if (!user) return
     setLoading(true)
     const { data, error } = await supabase
       .from('catalogue_items')
       .select('id, designation, unite, prix_unitaire_ht, categorie')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: true })
 
     if (error) {

@@ -163,7 +163,7 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '14px 20px' }}>
-          <StatCard label="Ce mois" value={`${quotesThisMonth.length}`} sub="devis créés" />
+          <StatCard label="Ce mois" value={`${profile?.quotes_this_month ?? quotesThisMonth.length}`} sub="devis créés" />
           <StatCard
             label="CA accepté"
             value={caMois >= 1000 ? `${(caMois / 1000).toFixed(1)}k` : Math.round(caMois).toString()}
