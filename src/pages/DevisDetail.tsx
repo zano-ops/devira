@@ -65,8 +65,6 @@ export default function DevisDetail() {
   const [sendingSms, setSendingSms] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [showRelanceModal, setShowRelanceModal] = useState(false)
-  const [yousignLoading, setYousignLoading] = useState(false)
-  const [yousignSignerEmail, setYousignSignerEmail] = useState('')
 
   const [editData, setEditData] = useState<any>(null)
   const [discount, setDiscount] = useState(0)
@@ -380,46 +378,6 @@ export default function DevisDetail() {
       navigator.clipboard.writeText(signUrl).then(() => showToast('🔏 Lien de signature copié !'))
     }
     setShowSignModal(false)
-  }
-
-  const handleYousignSign = async () => {
-    if (!quote || !user || yousignLoading) return
-    const email = yousignSignerEmail.trim() || quote.client_email
-    if (!email) {
-      showToast('Email du client requis pour Yousign', 'error')
-      return
-    }
-    setYousignLoading(true)
-    try {
-      const pdf_base64 = await getQuotePdfBase64(quote, profile!)
-      const { data: { session: freshSession } } = await supabase.auth.getSession()
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-yousign-signature`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${freshSession?.access_token}`,
-          'apikey': SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          quote_id: quote.id,
-          pdf_base64,
-          signer_email: email,
-          signer_name: quote.client_name || 'Client',
-        }),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-      setShowSignModal(false)
-      showToast('✅ Yousign — lien envoyé au client par email', 'success')
-      if (quote.status === 'draft') {
-        await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', id)
-        fetchQuote()
-      }
-    } catch (err: any) {
-      showToast(err.message || 'Erreur Yousign — vérifie ta clé API dans Supabase', 'error')
-    } finally {
-      setYousignLoading(false)
-    }
   }
 
   const handleCopyLink = () => {
