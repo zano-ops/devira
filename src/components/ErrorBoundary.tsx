@@ -1,9 +1,19 @@
-﻿import { Component } from 'react'
+import { Component } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
 import { DeviraIcon } from './DeviraLogo'
 
 interface Props { children: ReactNode }
 interface State { hasError: boolean; errorMessage: string }
+
+const CHUNK_ERROR_PATTERNS = [
+  'Failed to fetch dynamically imported module',
+  'Importing a module script failed',
+  'Unable to preload CSS for',
+]
+
+function isChunkLoadError(msg: string) {
+  return CHUNK_ERROR_PATTERNS.some(p => msg.includes(p))
+}
 
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, errorMessage: '' }
@@ -14,10 +24,31 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info)
+    // Stale chunk after new deployment — auto-reload once to get fresh bundle
+    if (isChunkLoadError(error.message)) {
+      const key = 'devira_chunk_reload'
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1')
+        window.location.reload()
+        return
+      }
+    }
   }
 
   render() {
     if (!this.state.hasError) return this.props.children
+
+    // While reloading for a chunk error, show a spinner instead of the error screen
+    if (isChunkLoadError(this.state.errorMessage)) {
+      return (
+        <div style={{
+          minHeight: '100vh', background: '#1E3A5F',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', border: '4px solid rgba(255,255,255,0.25)', borderTopColor: 'white' }} />
+        </div>
+      )
+    }
 
     return (
       <div style={{
