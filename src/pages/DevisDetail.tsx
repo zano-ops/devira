@@ -193,13 +193,21 @@ export default function DevisDetail() {
     if (!quote || !sendSmsPhone) return
     setSendingSms(true)
     try {
-      const phone = sendSmsPhone.replace(/\s/g, '').replace(/^0/, '+33')
+      // Validation numéro FR : 06/07 + 8 chiffres ou +336/+337 + 8 chiffres
+      const cleaned = sendSmsPhone.replace(/[\s\-().]/g, '')
+      if (!/^(\+33[67]|0[67])\d{8}$/.test(cleaned)) {
+        showToast('Numéro invalide — format attendu : 06 ou 07 + 8 chiffres', 'error')
+        setSendingSms(false)
+        return
+      }
+      const phone = cleaned.startsWith('0') ? '+33' + cleaned.slice(1) : cleaned
       const signUrl = `${window.location.origin}/sign/${quote.id}`
       const clientFirst = quote.client_name?.split(' ')[0] || ''
       // SMS : évite les espaces insécables (fr-FR toLocaleString →   → "?" en GSM-7)
       const totalSms = (quote.total_ttc || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
       const companyForSms = profile?.company_name || 'Devira'
-      const msg = `Bonjour${clientFirst ? ' ' + clientFirst : ''}, votre devis ${quote.quote_number} de ${totalSms} EUR TTC est disponible. Signez-le en ligne :\n${signUrl}\n\nCordialement,\n${companyForSms}`
+      // Message court (<160 chars) — "Signez-le en ligne :\nURL\n\nCordialement,\nCompany" depassait 160
+      const msg = `Bonjour${clientFirst ? ' ' + clientFirst : ''}, votre devis ${quote.quote_number} de ${totalSms} EUR est pret.\n${signUrl}\n- ${companyForSms}`
       const { data: { session: freshSession } } = await supabase.auth.getSession()
       const res = await fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
         method: 'POST',
