@@ -196,7 +196,10 @@ export default function DevisDetail() {
       const phone = sendSmsPhone.replace(/\s/g, '').replace(/^0/, '+33')
       const signUrl = `${window.location.origin}/sign/${quote.id}`
       const clientFirst = quote.client_name?.split(' ')[0] || ''
-      const msg = `Bonjour${clientFirst ? ' ' + clientFirst : ''}, votre devis ${quote.quote_number} de ${fmt(quote.total_ttc)} TTC est prêt. Consultez-le ici : ${signUrl}\n\nCordialement, ${profile?.company_name || ''}`
+      // SMS : évite les espaces insécables (fr-FR toLocaleString →   → "?" en GSM-7)
+      const totalSms = (quote.total_ttc || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+      const companyForSms = profile?.company_name || 'Devira'
+      const msg = `Bonjour${clientFirst ? ' ' + clientFirst : ''}, votre devis ${quote.quote_number} de ${totalSms} EUR TTC est disponible. Signez-le en ligne :\n${signUrl}\n\nCordialement,\n${companyForSms}`
       const { data: { session: freshSession } } = await supabase.auth.getSession()
       const res = await fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
         method: 'POST',
