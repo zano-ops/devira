@@ -312,7 +312,7 @@ export default function Landing() {
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, maxWidth: 600, margin: '0 auto 40px' }}>
-            Décrivez votre chantier en quelques mots. En 2 minutes, votre devis est prêt, mis en page, envoyé et relancé automatiquement.
+            Décrivez votre chantier en quelques mots. En 2 minutes, votre devis est prêt, mis en page et envoyé par email et SMS. Votre client signe en ligne.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>

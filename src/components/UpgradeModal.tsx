@@ -22,7 +22,7 @@ const PRO_FEATURES = [
   'Facturation intégrée',
   'Photos chantier dans les devis PDF',
   'Export comptable (FEC)',
-  'Support prioritaire < 24h',
+  'Support prioritaire < 2h ouvrées',
 ]
 
 interface Props {
@@ -171,7 +171,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 fontSize: 14, cursor: 'pointer', padding: '8px 0',
               }}
             >
-              {reason === 'manual' ? 'Fermer' : 'Continuer en lecture seule'}
+              {reason === 'manual' ? 'Fermer' : 'Revenir au tableau de bord'}
             </button>
           </div>
         )}
