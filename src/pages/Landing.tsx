@@ -259,6 +259,12 @@ export default function Landing() {
         .lp-nav-conn { display: none !important; }
         .lp-nav-cta { padding: 8px 14px !important; font-size: 13px !important; }
       }
+      .lp-pdf-desktop { display: flex; }
+      .lp-pdf-mobile  { display: none; }
+      @media (max-width: 768px) {
+        .lp-pdf-desktop { display: none; }
+        .lp-pdf-mobile  { display: flex; }
+      }
     `
     document.head.appendChild(style)
     const obs = new IntersectionObserver(entries => {
@@ -366,14 +372,25 @@ export default function Landing() {
             Décrivez vos travaux. Le devis se génère. C'est tout.
           </p>
           <div className="lp-reveal" style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '100%', maxWidth: 860, borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 80px rgba(30,58,95,0.22)', border: '1px solid rgba(30,58,95,0.12)', background: '#000' }}>
-              <video
-                src="/devira-demo.mp4"
-                controls
-                playsInline
-                poster="/devira-thumbnail.png"
-                style={{ width: '100%', display: 'block' }}
-              />
+            {/* Phone-frame : 420px max sur desktop, plein écran sur mobile */}
+            <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
+              {/* Device chrome */}
+              <div style={{ background: '#1a1a2e', borderRadius: 40, padding: '14px 10px', boxShadow: '0 32px 80px rgba(0,0,0,0.45), 0 0 0 2px rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                {/* Notch */}
+                <div style={{ width: 90, height: 8, background: '#0d0d1a', borderRadius: 99, margin: '0 auto 10px' }} />
+                {/* Screen */}
+                <div style={{ borderRadius: 28, overflow: 'hidden', background: '#000' }}>
+                  <video
+                    src="/devira-demo.mp4"
+                    controls
+                    playsInline
+                    poster="/devira-thumbnail.png"
+                    style={{ width: '100%', display: 'block' }}
+                  />
+                </div>
+                {/* Home indicator */}
+                <div style={{ width: 100, height: 4, background: 'rgba(255,255,255,0.25)', borderRadius: 99, margin: '10px auto 0' }} />
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +406,8 @@ export default function Landing() {
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 44px', maxWidth: 520 }}>
             Un PDF professionnel, lisible, avec toutes les mentions légales. Généré en 2 minutes.
           </p>
-          <div className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          {/* ── Desktop : iframe PDF ── */}
+          <div className="lp-reveal lp-pdf-desktop" style={{ flexDirection: 'column', alignItems: 'center', gap: 20 }}>
             <div style={{ width: '100%', maxWidth: 780, borderRadius: 20, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', background: 'white' }}>
               <iframe
                 src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0"
@@ -404,6 +422,48 @@ export default function Landing() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: P, fontSize: 14, fontWeight: 600, textDecoration: 'none', opacity: 0.65 }}
             >
               Ouvrir en plein écran ↗
+            </a>
+          </div>
+
+          {/* ── Mobile : carte de téléchargement ── */}
+          <div className="lp-reveal lp-pdf-mobile" style={{ flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: '100%', maxWidth: 380, background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', boxShadow: '0 8px 32px rgba(30,58,95,0.10)', overflow: 'hidden' }}>
+              {/* Header coloré simulant un document */}
+              <div style={{ background: P, padding: '24px 20px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 4px' }}>Devira</p>
+                  <p style={{ color: 'white', fontSize: 16, fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>Devis N° 2026-0014</p>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '6px 10px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+              </div>
+              {/* Lignes du devis simulées */}
+              <div style={{ padding: '16px 20px' }}>
+                {[
+                  { label: 'Peinture murs (2 couches)', montant: '480 €' },
+                  { label: 'Sous-couche & préparation', montant: '240 €' },
+                  { label: 'Plafonds (1 pièce)', montant: '320 €' },
+                ].map((line, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #F3F4F6' }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{line.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: P }}>{line.montant}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, padding: '10px 0' }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Total TTC</span>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: P }}>1 248,00 €</span>
+                </div>
+              </div>
+            </div>
+            <a
+              href="/devis-exemple.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: P, color: 'white', padding: '14px 28px', borderRadius: 14, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 16px rgba(30,58,95,0.28)' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Voir l'exemple de devis PDF
             </a>
           </div>
         </div>
