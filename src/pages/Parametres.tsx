@@ -205,9 +205,7 @@ export default function Parametres() {
       if (!res.ok || !data.url) throw new Error(data.error || 'Erreur portail')
       window.open(data.url, '_blank', 'noopener')
     } catch (err: any) {
-      showToast(err.message === 'no_customer'
-        ? 'Abonnement introuvable — contacte facturation@devira.fr'
-        : 'Impossible d\'ouvrir le portail — contacte facturation@devira.fr', 'error')
+      showToast('Impossible d\'ouvrir le portail — contacte contact@devira.fr', 'error')
       setPortalLoading(false)
     }
   }
