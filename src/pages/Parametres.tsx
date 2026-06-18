@@ -203,7 +203,7 @@ export default function Parametres() {
       })
       const data = await res.json()
       if (!res.ok || !data.url) throw new Error(data.error || 'Erreur portail')
-      window.location.href = data.url
+      window.open(data.url, '_blank', 'noopener')
     } catch (err: any) {
       showToast(err.message === 'no_customer'
         ? 'Abonnement introuvable — contacte facturation@devira.fr'
