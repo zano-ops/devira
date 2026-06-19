@@ -230,9 +230,9 @@ export default function Landing() {
         .lp-nav-conn { display: none !important; }
         .lp-nav-cta { padding: 8px 14px !important; font-size: 13px !important; }
       }
-      .lp-pdf-h { height: 680px; }
+      .lp-pdf-pages { display: flex; flex-direction: row; gap: 20px; justify-content: center; align-items: flex-start; }
       @media (max-width: 768px) {
-        .lp-pdf-h { height: 85vw; min-height: 460px; max-height: 600px; }
+        .lp-pdf-pages { flex-direction: column; align-items: center; }
       }
     `
     document.head.appendChild(style)
@@ -375,15 +375,19 @@ export default function Landing() {
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 44px', maxWidth: 520 }}>
             Un PDF professionnel, lisible, avec toutes les mentions légales. Généré en 2 minutes.
           </p>
-          {/* ── iframe PDF unique desktop + mobile ── */}
-          <div className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: '100%', maxWidth: 780, borderRadius: 20, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', background: 'white' }}>
-              <iframe
-                src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
-                title="Exemple de devis généré par Devira"
-                className="lp-pdf-h"
-                style={{ width: '100%', border: 'none', display: 'block' }}
-              />
+          {/* ── 2 pages du devis en images ── */}
+          <div className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            <div className="lp-pdf-pages">
+              {[1, 2].map(n => (
+                <a key={n} href="/devis-exemple.pdf" target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'block', width: '100%', maxWidth: 480, borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', flexShrink: 0 }}>
+                  <img
+                    src={`/devis-apercu-p${n}.png`}
+                    alt={`Devis exemple page ${n}`}
+                    style={{ width: '100%', display: 'block' }}
+                  />
+                </a>
+              ))}
             </div>
             <a
               href="/devis-exemple.pdf"
@@ -391,7 +395,7 @@ export default function Landing() {
               rel="noopener noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: P, fontSize: 14, fontWeight: 600, textDecoration: 'none', opacity: 0.65 }}
             >
-              Ouvrir en plein écran ↗
+              Télécharger l'exemple PDF ↗
             </a>
           </div>
         </div>
