@@ -199,10 +199,10 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     styles: {
       fontSize: 9,
       cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
-      lineColor: [235, 235, 235],
-      lineWidth: 0.3,
+      lineColor: [190, 190, 190],
+      lineWidth: 0.4,
     },
-    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, lineColor: [30, 58, 95], lineWidth: 0.4 },
     alternateRowStyles: { fillColor: [249, 249, 249] },
     columnStyles: {
       0: { cellWidth: 'auto' },
@@ -627,8 +627,8 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     startY: y,
     head: [['Désignation / Description', 'Qté', 'Unité', 'P.U. HT', 'Total HT', 'TVA']],
     body: tableBody,
-    styles: { fontSize: 9, cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 }, lineColor: [235, 235, 235], lineWidth: 0.3 },
-    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+    styles: { fontSize: 9, cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 }, lineColor: [190, 190, 190], lineWidth: 0.4 },
+    headStyles: { fillColor: [30, 58, 95], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, lineColor: [30, 58, 95], lineWidth: 0.4 },
     alternateRowStyles: { fillColor: [249, 249, 249] },
     columnStyles: {
       0: { cellWidth: 'auto' },
