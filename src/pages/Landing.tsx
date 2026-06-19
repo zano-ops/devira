@@ -425,20 +425,15 @@ export default function Landing() {
             </a>
           </div>
 
-          {/* ── Mobile : aperçu image du devis ── */}
+          {/* ── Mobile : iframe PDF (même que desktop) ── */}
           <div className="lp-reveal lp-pdf-mobile" style={{ flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <a
-              href="/devis-exemple.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'block', width: '100%', maxWidth: 380 }}
-            >
-              <img
-                src="/devis-apercu.jpg"
-                alt="Exemple de devis PDF généré par Devira"
-                style={{ width: '100%', borderRadius: 16, boxShadow: '0 12px 40px rgba(30,58,95,0.18)', display: 'block' }}
+            <div style={{ width: '100%', maxWidth: 380, borderRadius: 16, overflow: 'hidden', boxShadow: '0 12px 40px rgba(30,58,95,0.18)', border: '1px solid #E5E7EB', background: 'white' }}>
+              <iframe
+                src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0"
+                title="Exemple de devis généré par Devira"
+                style={{ width: '100%', height: 520, border: 'none', display: 'block' }}
               />
-            </a>
+            </div>
             <a
               href="/devis-exemple.pdf"
               target="_blank"
