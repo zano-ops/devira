@@ -181,35 +181,6 @@ const PRO_FEATURES = [
   'Support prioritaire < 2h ouvrées',
 ]
 
-const TESTIMONIALS = [
-  {
-    name: 'Luc B.',
-    job: 'Plomberie & Chauffage',
-    city: 'Lyon',
-    text: "Je faisais mes devis le soir sur Excel, parfois 2h pour un chantier standard. Maintenant je dicte depuis la voiture avant de rentrer, le devis est dans la boîte mail du client dans la foulée. La semaine dernière j'en ai sorti 4 dans la journée. C'est du temps récupéré, point.",
-    initials: 'LB',
-    bg: '#1E3A5F',
-    stars: 5,
-  },
-  {
-    name: 'Marie-Hélène C.',
-    job: 'Peinture & Décoration',
-    city: 'Bordeaux',
-    text: "J'avais peur que le rendu fasse cheap. Le premier devis m'a convaincue, mes clients me disent que c'est plus pro qu'avant, une cliente m'a même demandé si j'avais changé de secrétaire. Un artisan du coin m'a demandé quel logiciel j'utilisais. J'ai gardé le secret 😄",
-    initials: 'MC',
-    bg: '#B45309',
-    stars: 5,
-  },
-  {
-    name: 'Tony M.',
-    job: 'Carrelage & Faïence',
-    city: 'Nantes',
-    text: "J'avais 3 devis sans réponse depuis 2 semaines. Avec les relances automatiques, 2 clients ont signé dans la foulée sans que j'aie eu à décrocher le téléphone. J'aurais laissé tomber. Le gain de temps sur la rédaction des devis, c'est du bonus en plus.",
-    initials: 'TM',
-    bg: '#0F766E',
-    stars: 5,
-  },
-]
 
 export default function Landing() {
   const navigate = useNavigate()
