@@ -512,42 +512,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════ TESTIMONIALS */}
-      <section style={{ padding: '88px 0' }}>
-        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Ce qu'ils en disent</p>
-          <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
-            Des artisans, pas des acteurs
-          </h2>
-          <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 52px', maxWidth: 520 }}>
-            Leurs mots, pas les nôtres.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 24 }}>
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', borderRadius: 20, padding: '28px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div style={{ display: 'flex', gap: 3 }}>
-                  {[...Array(5)].map((_, si) => (
-                    <svg key={si} width="16" height="16" viewBox="0 0 24 24" fill={si < t.stars ? A : '#E5E7EB'} xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  ))}
-                </div>
-                <p style={{ color: '#374151', fontSize: 15, lineHeight: 1.72, margin: 0, flex: 1 }}>"{t.text}"</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ color: 'white', fontSize: 13, fontWeight: 800 }}>{t.initials}</span>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: 0 }}>{t.name}</p>
-                    <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{t.job} · {t.city}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══════════════════════════════════════ GUARANTEES */}
       <section style={{ background: P, padding: '80px 0' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
