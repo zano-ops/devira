@@ -230,11 +230,9 @@ export default function Landing() {
         .lp-nav-conn { display: none !important; }
         .lp-nav-cta { padding: 8px 14px !important; font-size: 13px !important; }
       }
-      .lp-pdf-desktop { display: flex; }
-      .lp-pdf-mobile  { display: none; }
+      .lp-pdf-h { height: 680px; }
       @media (max-width: 768px) {
-        .lp-pdf-desktop { display: none; }
-        .lp-pdf-mobile  { display: flex; }
+        .lp-pdf-h { height: 85vw; min-height: 460px; max-height: 600px; }
       }
     `
     document.head.appendChild(style)
@@ -377,13 +375,14 @@ export default function Landing() {
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 44px', maxWidth: 520 }}>
             Un PDF professionnel, lisible, avec toutes les mentions légales. Généré en 2 minutes.
           </p>
-          {/* ── Desktop : iframe PDF ── */}
-          <div className="lp-reveal lp-pdf-desktop" style={{ flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          {/* ── iframe PDF unique desktop + mobile ── */}
+          <div className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ width: '100%', maxWidth: 780, borderRadius: 20, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', background: 'white' }}>
               <iframe
-                src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0"
+                src="/devis-exemple.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
                 title="Exemple de devis généré par Devira"
-                style={{ width: '100%', height: 680, border: 'none', display: 'block' }}
+                className="lp-pdf-h"
+                style={{ width: '100%', border: 'none', display: 'block' }}
               />
             </div>
             <a
@@ -393,92 +392,6 @@ export default function Landing() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: P, fontSize: 14, fontWeight: 600, textDecoration: 'none', opacity: 0.65 }}
             >
               Ouvrir en plein écran ↗
-            </a>
-          </div>
-
-          {/* ── Mobile : aperçu visuel du devis ── */}
-          <div className="lp-reveal lp-pdf-mobile" style={{ flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <a href="/devis-exemple.pdf" target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: 380, textDecoration: 'none' }}>
-              <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 12px 40px rgba(30,58,95,0.18)', border: '1px solid #E5E7EB', overflow: 'hidden', fontFamily: 'helvetica, sans-serif' }}>
-                {/* En-tête */}
-                <div style={{ padding: '16px 18px 12px', borderBottom: '3px solid #1E3A5F', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: '#1E3A5F', marginBottom: 3 }}>Nom de votre entreprise</div>
-                    <div style={{ fontSize: 9, color: '#777', lineHeight: 1.5 }}>12 rue des Acacias<br/>33000 Bordeaux<br/>SIRET : 12345678955555</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#1a1a1a' }}>M. Dupont</div>
-                    <div style={{ fontSize: 9, color: '#777', lineHeight: 1.5 }}>14 rue des Lilas<br/>client@exemple.com</div>
-                  </div>
-                </div>
-                {/* Titre devis */}
-                <div style={{ padding: '10px 18px 8px' }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#1E3A5F', marginBottom: 2 }}>DEVIS N° 2026-0015</div>
-                  <div style={{ fontSize: 9, color: '#888', marginBottom: 6 }}>Date : 19/06/2026 · Valide jusqu'au : 19/07/2026</div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#1E3A5F', background: '#EFF6FF', display: 'inline-block', padding: '2px 8px', borderRadius: 4 }}>Réfection complète salle de bain 6m²</div>
-                </div>
-                {/* Tableau */}
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 8.5 }}>
-                  <thead>
-                    <tr style={{ background: '#1E3A5F', color: 'white' }}>
-                      <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 700 }}>Désignation</th>
-                      <th style={{ padding: '5px 4px', textAlign: 'center', width: 24 }}>Qté</th>
-                      <th style={{ padding: '5px 4px', textAlign: 'center', width: 28 }}>Unité</th>
-                      <th style={{ padding: '5px 4px', textAlign: 'right', width: 44 }}>P.U. HT</th>
-                      <th style={{ padding: '5px 8px', textAlign: 'right', width: 44 }}>Total HT</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ background: '#EFF6FF' }}>
-                      <td colSpan={5} style={{ padding: '4px 8px', fontWeight: 700, color: '#1E3A5F', fontSize: 8 }}>{'>> LOT 1 — DÉMOLITION ET ÉVACUATION'}</td>
-                    </tr>
-                    {[
-                      ['Dépose carrelage mural existant', '12', 'm²', '18,50 €', '222,00 €'],
-                      ['Dépose carrelage sol existant', '6', 'm²', '22,00 €', '132,00 €'],
-                      ['Évacuation gravats déchetterie', '1', 'forfait', '180,00 €', '180,00 €'],
-                    ].map(([d, q, u, pu, t], i) => (
-                      <tr key={i} style={{ background: i % 2 === 1 ? '#F9F9F9' : 'white', borderBottom: '1px solid #EBEBEB' }}>
-                        <td style={{ padding: '4px 8px', color: '#333' }}>{d}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'center', color: '#555' }}>{q}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'center', color: '#555' }}>{u}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'right', color: '#555' }}>{pu}</td>
-                        <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 700, color: '#1a1a1a' }}>{t}</td>
-                      </tr>
-                    ))}
-                    <tr style={{ background: '#EFF6FF' }}>
-                      <td colSpan={5} style={{ padding: '4px 8px', fontWeight: 700, color: '#1E3A5F', fontSize: 8 }}>{'>> LOT 2 — REVÊTEMENTS SOLS ET MURS'}</td>
-                    </tr>
-                    {[
-                      ['Fourniture carrelage grès cérame 60x60', '18', 'm²', '32,00 €', '576,00 €'],
-                      ['Pose carrelage mural avec ragréage', '12', 'm²', '45,00 €', '540,00 €'],
-                    ].map(([d, q, u, pu, t], i) => (
-                      <tr key={i} style={{ background: i % 2 === 1 ? '#F9F9F9' : 'white', borderBottom: '1px solid #EBEBEB' }}>
-                        <td style={{ padding: '4px 8px', color: '#333' }}>{d}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'center', color: '#555' }}>{q}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'center', color: '#555' }}>{u}</td>
-                        <td style={{ padding: '4px 4px', textAlign: 'right', color: '#555' }}>{pu}</td>
-                        <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 700, color: '#1a1a1a' }}>{t}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {/* Total */}
-                <div style={{ padding: '10px 18px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <div style={{ background: '#1E3A5F', borderRadius: 8, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 20 }}>
-                    <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>Total TTC</span>
-                    <span style={{ color: '#F59E0B', fontSize: 14, fontWeight: 800 }}>3 878,00 €</span>
-                  </div>
-                </div>
-              </div>
-            </a>
-            <a
-              href="/devis-exemple.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: P, color: 'white', padding: '14px 28px', borderRadius: 14, fontSize: 15, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 16px rgba(30,58,95,0.28)' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Voir l'exemple de devis PDF
             </a>
           </div>
         </div>
