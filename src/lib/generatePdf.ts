@@ -10,6 +10,16 @@ function fmtDate(s: string) { return new Date(s).toLocaleDateString('fr-FR') }
 function addDays(s: string, d: number) {
   const dt = new Date(s); dt.setDate(dt.getDate() + d); return fmtDate(dt.toISOString())
 }
+// Tronque au pixel près (et non au nombre de caractères) pour éviter tout chevauchement entre zones du pied de page.
+function truncateToWidth(doc: jsPDFType, text: string, maxWidth: number): string {
+  if (!text) return text
+  if (doc.getTextWidth(text) <= maxWidth) return text
+  let t = text
+  while (t.length > 0 && doc.getTextWidth(t + '…') > maxWidth) {
+    t = t.slice(0, -1)
+  }
+  return t + '…'
+}
 
 const BLUE = '#1E3A5F'
 const ML = 14
@@ -469,6 +479,7 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     : (Object.keys(tvaByRate).length > 1 ? 'TVA mixte' : `TVA ${q.taux_tva}%`)
 
   const totalPages = doc.getNumberOfPages()
+  const footerZoneW = CW / 3
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
     doc.setFillColor(30, 58, 95)
@@ -476,9 +487,9 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor('#777777')
-    doc.text(f1.trim().slice(0, 70), ML, footerY + 5)
-    if (f2) doc.text(f2.slice(0, 60), W / 2, footerY + 5, { align: 'center' })
-    doc.text(tvaLabel, W - MR, footerY + 5, { align: 'right' })
+    doc.text(truncateToWidth(doc, f1.trim(), footerZoneW - 4), ML, footerY + 5)
+    if (f2) doc.text(truncateToWidth(doc, f2, footerZoneW - 8), W / 2, footerY + 5, { align: 'center' })
+    doc.text(truncateToWidth(doc, tvaLabel, footerZoneW - 4), W - MR, footerY + 5, { align: 'right' })
   }
 
   return doc
@@ -701,6 +712,7 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
   const invoiceF1 = [profile.company_name, profile.address, profile.city].filter(Boolean).join(' - ')
   const invoiceF2 = profile.siret ? `SIRET : ${profile.siret}` : ''
   const invoiceTotalPages = doc.getNumberOfPages()
+  const invoiceFooterZoneW = (W - ML - MR) / 3
   for (let p = 1; p <= invoiceTotalPages; p++) {
     doc.setPage(p)
     doc.setFillColor(30, 58, 95)
@@ -708,9 +720,9 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor('#777777')
-    doc.text(invoiceF1.slice(0, 70), ML, footerY + 5)
-    if (invoiceF2) doc.text(invoiceF2, W / 2, footerY + 5, { align: 'center' })
-    doc.text('Genere avec Devira', W - MR, footerY + 5, { align: 'right' })
+    doc.text(truncateToWidth(doc, invoiceF1, invoiceFooterZoneW - 4), ML, footerY + 5)
+    if (invoiceF2) doc.text(truncateToWidth(doc, invoiceF2, invoiceFooterZoneW - 8), W / 2, footerY + 5, { align: 'center' })
+    doc.text(truncateToWidth(doc, 'Genere avec Devira', invoiceFooterZoneW - 4), W - MR, footerY + 5, { align: 'right' })
   }
 
   doc.save(`Facture-${invoice.invoice_number}.pdf`)
