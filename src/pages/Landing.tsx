@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+﻿import { useState, useEffect, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DeviraIcon } from '../components/DeviraLogo'
 import { useAuth } from '../context/AuthContext'
@@ -10,8 +10,47 @@ import {
 
 const P = '#1E3A5F'
 const A = '#E87722'
+const MONO = "'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace"
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
 const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
+
+// ── MOTIFS "PLAN TECHNIQUE" ───────────────────────────────────────────────────
+// Petits reperes d'angle façon plan/cotation, pour remplacer les cards SaaS génériques.
+function Corners({ color = P, size = 11, inset = -1 }: { color?: string; size?: number; inset?: number }) {
+  const base: CSSProperties = { position: 'absolute', width: size, height: size, pointerEvents: 'none' }
+  return (
+    <>
+      <span style={{ ...base, top: inset, left: inset, borderTop: `2px solid ${color}`, borderLeft: `2px solid ${color}` }} />
+      <span style={{ ...base, top: inset, right: inset, borderTop: `2px solid ${color}`, borderRight: `2px solid ${color}` }} />
+      <span style={{ ...base, bottom: inset, left: inset, borderBottom: `2px solid ${color}`, borderLeft: `2px solid ${color}` }} />
+      <span style={{ ...base, bottom: inset, right: inset, borderBottom: `2px solid ${color}`, borderRight: `2px solid ${color}` }} />
+    </>
+  )
+}
+
+// Grille fine façon papier millimétré, en fond de section.
+function gridBg(color = P, opacity = 0.05): CSSProperties {
+  return {
+    backgroundImage: `linear-gradient(rgba(${hexToRgb(color)},${opacity}) 1px, transparent 1px), linear-gradient(90deg, rgba(${hexToRgb(color)},${opacity}) 1px, transparent 1px)`,
+    backgroundSize: '34px 34px',
+  }
+}
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '')
+  const n = parseInt(h, 16)
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`
+}
+
+// En-tête de section : repère "§ index" + libellé mono, au lieu du eyebrow centré générique.
+function Kicker({ index, label, align = 'center', light = false }: { index: string; label: string; align?: 'center' | 'left'; light?: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: align === 'center' ? 'center' : 'flex-start', gap: 10, marginBottom: 16 }}>
+      <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: A, letterSpacing: '0.02em' }}>§{index}</span>
+      <span style={{ width: 28, height: 1, background: light ? 'rgba(255,255,255,0.25)' : `${P}30` }} />
+      <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 600, color: light ? 'rgba(255,255,255,0.5)' : '#6B7280', textTransform: 'uppercase', letterSpacing: '0.13em' }}>{label}</span>
+    </div>
+  )
+}
 
 // ── FEATURE TAB ILLUSTRATIONS ────────────────────────────────────────────────
 
@@ -259,10 +298,10 @@ export default function Landing() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <a href="#tarifs" className="lp-nav-link" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>Tarifs</a>
             <a href="#faq" className="lp-nav-link" style={{ color: scrolled ? '#4B5563' : 'rgba(255,255,255,0.82)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>FAQ</a>
-            <button onClick={() => goto('/login')} className="lp-nav-conn" style={{ background: 'none', border: `1.5px solid ${scrolled ? P : 'rgba(255,255,255,0.5)'}`, color: scrolled ? P : 'white', padding: '8px 18px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            <button onClick={() => goto('/login')} className="lp-nav-conn" style={{ background: 'none', border: `1.5px solid ${scrolled ? P : 'rgba(255,255,255,0.5)'}`, color: scrolled ? P : 'white', padding: '8px 18px', borderRadius: 4, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
               Connexion
             </button>
-            <button onClick={() => goto('/signup')} className="lp-nav-cta" style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s' }}>
+            <button onClick={() => goto('/signup')} className="lp-nav-cta" style={{ background: A, border: 'none', color: 'white', padding: '9px 20px', borderRadius: 4, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.4)', transition: 'transform 0.15s' }}>
               Essai gratuit
             </button>
           </div>
@@ -272,7 +311,13 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ HERO */}
       <section style={{ background: `linear-gradient(160deg, ${P} 0%, #152A47 65%, #0f1e35 100%)`, paddingTop: 148, paddingBottom: 104, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -120, right: -80, width: 560, height: 560, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,119,34,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, ...gridBg('#ffffff', 0.035), maskImage: 'linear-gradient(to bottom, black, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)', pointerEvents: 'none' } as CSSProperties} />
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
+
+          <div style={{ position: 'relative', display: 'inline-block', padding: '7px 18px', marginBottom: 28 }}>
+            <Corners color={A} size={9} />
+            <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Devis BTP — Generation IA</span>
+          </div>
 
           <h1 style={{ fontSize: 'clamp(38px, 5.5vw, 72px)', fontWeight: 900, color: 'white', lineHeight: 1.06, letterSpacing: '-0.03em', margin: '0 0 24px' }}>
             Votre devis BTP<br />
@@ -285,19 +330,19 @@ export default function Landing() {
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
-            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 14, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
+            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 4, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
               Démarrer gratuitement
             </button>
-            <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 14, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
+            <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 4, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
               Voir la démo
             </a>
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 20px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {['📱 Depuis le chantier', '📱 Envoi par SMS', '✍️ Signature en ligne', '⚡ Devis en 2 min'].map(tag => (
-              <span key={tag} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, padding: '6px 13px', borderRadius: 99 }}>{tag}</span>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <div style={{ display: 'inline-flex', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, flexWrap: 'wrap' }}>
+            {['Depuis le chantier', 'Envoi par SMS', 'Signature en ligne', 'Devis en 2 min'].map((tag, i) => (
+              <span key={tag} style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontFamily: MONO, fontWeight: 500, padding: '9px 16px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>{tag}</span>
             ))}
           </div>
         </div>
@@ -306,21 +351,23 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ PROBLEM */}
       <section style={{ padding: '88px 0', background: '#F9FAFB' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>La réalité du terrain</p>
+          <Kicker index="01" label="La réalité du terrain" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 52px', lineHeight: 1.18 }}>
             Combien d'heures perdez-vous<br />chaque semaine sur vos devis ?
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
             {[
-              { Icon: Clock, color: '#DC2626', bg: '#FEF2F2', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
-              { Icon: TrendingDown, color: '#D97706', bg: '#FFFBEB', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
-              { Icon: AlertCircle, color: '#7C3AED', bg: '#F5F3FF', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
-              { Icon: MessageSquare, color: '#0891B2', bg: '#F0F9FF', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS, vous perdez des chantiers sans même le savoir. Devira envoie sur les deux canaux en un clic.' },
+              { Icon: Clock, color: '#DC2626', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
+              { Icon: TrendingDown, color: '#D97706', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
+              { Icon: AlertCircle, color: '#7C3AED', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
+              { Icon: MessageSquare, color: '#0891B2', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS, vous perdez des chantiers sans même le savoir. Devira envoie sur les deux canaux en un clic.' },
             ].map((item, i) => (
-              <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', borderRadius: 16, padding: '28px 28px 32px', border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                  <item.Icon size={22} color={item.color} strokeWidth={1.8} />
+              <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ position: 'relative', background: 'white', padding: '28px 28px 32px', border: '1px solid #E5E7EB' }}>
+                <Corners />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                  <item.Icon size={20} color={item.color} strokeWidth={1.8} />
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: '#C4C9D1', fontWeight: 600 }}>0{i + 1}</span>
                 </div>
                 <h3 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: '0 0 10px', lineHeight: 1.3 }}>{item.title}</h3>
                 <p style={{ color: '#6B7280', lineHeight: 1.65, fontSize: 14, margin: 0 }}>{item.desc}</p>
@@ -333,7 +380,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ DEMO */}
       <section id="demo" style={{ padding: '88px 0' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>En action</p>
+          <Kicker index="02" label="En action" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
             Regardez comment ça marche
           </h2>
@@ -368,7 +415,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ PDF EXAMPLE */}
       <section style={{ padding: '88px 0', background: '#F9FAFB' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Résultat réel</p>
+          <Kicker index="03" label="Résultat réel" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
             Voilà ce que reçoit votre client
           </h2>
@@ -380,7 +427,8 @@ export default function Landing() {
             <div className="lp-pdf-pages">
               {[1, 2].map(n => (
                 <a key={n} href="/devis-exemple.pdf" target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', width: '100%', maxWidth: 480, borderRadius: 16, overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', flexShrink: 0 }}>
+                  style={{ position: 'relative', display: 'block', width: '100%', maxWidth: 480, boxShadow: '0 16px 52px rgba(30,58,95,0.14)', border: '1px solid #E5E7EB', flexShrink: 0 }}>
+                  <Corners color={A} size={16} inset={-8} />
                   <img
                     src={`/devis-apercu-p${n}.png`}
                     alt={`Devis exemple page ${n}`}
@@ -404,7 +452,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ HOW IT WORKS */}
       <section style={{ padding: '88px 0', background: '#F9FAFB' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Simple comme bonjour</p>
+          <Kicker index="04" label="Simple comme bonjour" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 56px', lineHeight: 1.18 }}>
             3 étapes, un devis signé
           </h2>
@@ -416,10 +464,11 @@ export default function Landing() {
               { Icon: Send, n: '03', title: 'Envoyez et suivez', desc: 'Envoyez par email ou par lien. Le client signe en ligne. Vous recevez la notification. Le chantier est à vous.' },
             ].map((item, i) => (
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ textAlign: 'center', padding: '0 8px' }}>
-                <div style={{ width: 76, height: 76, borderRadius: '50%', background: `${P}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                  <item.Icon size={30} color={P} strokeWidth={1.6} />
+                <div style={{ position: 'relative', width: 72, height: 72, background: `${P}0A`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                  <Corners />
+                  <item.Icon size={28} color={P} strokeWidth={1.6} />
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: A, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 10 }}>Étape {item.n}</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: A, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 10 }}>Étape {item.n}</div>
                 <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: '0 0 10px' }}>{item.title}</h3>
                 <p style={{ color: '#6B7280', lineHeight: 1.65, fontSize: 15, margin: 0 }}>{item.desc}</p>
               </div>
@@ -431,34 +480,35 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ FEATURES TABS */}
       <section style={{ padding: '88px 0' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Tout-en-un</p>
+          <Kicker index="05" label="Tout-en-un" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 44px', lineHeight: 1.18 }}>
             Tout ce qu'il vous faut, rien de superflu
           </h2>
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 44 }}>
+          <div style={{ display: 'flex', gap: 0, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 44, border: '1px solid #E5E7EB' }}>
             {TABS.map((t, i) => {
               const Icon = t.icon
               return (
-                <button key={i} onClick={() => setTab(i)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, border: `2px solid ${tab === i ? P : '#E5E7EB'}`, background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s' }}>
-                  <Icon size={15} />
+                <button key={i} onClick={() => setTab(i)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', borderTop: 'none', borderBottom: 'none', borderLeft: i > 0 ? '1px solid #E5E7EB' : 'none', borderRight: 'none', background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 13, fontFamily: MONO, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  <Icon size={14} />
                   {t.label}
                 </button>
               )
             })}
           </div>
 
-          <div className="lp-reveal" style={{ background: '#F9FAFB', borderRadius: 20, padding: 'clamp(24px, 4vw, 44px)', border: '1px solid #E5E7EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 48, alignItems: 'center' }}>
+          <div className="lp-reveal" style={{ position: 'relative', background: '#F9FAFB', padding: 'clamp(24px, 4vw, 44px)', border: '1px solid #E5E7EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 48, alignItems: 'center' }}>
+            <Corners color={A} size={14} />
             <div>
-              <span style={{ background: `${P}12`, color: P, padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700 }}>{TABS[tab].badge}</span>
+              <span style={{ fontFamily: MONO, color: P, padding: '5px 0', fontSize: 12, fontWeight: 700, borderBottom: `2px solid ${A}` }}>{TABS[tab].badge}</span>
               <h3 style={{ fontSize: 'clamp(22px, 3vw, 30px)', fontWeight: 800, color: P, margin: '16px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{TABS[tab].title}</h3>
               <p style={{ color: '#6B7280', fontSize: 16, lineHeight: 1.72, margin: '0 0 28px' }}>{TABS[tab].desc}</p>
-              <button onClick={() => goto('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)' }}>
+              <button onClick={() => goto('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: A, border: 'none', color: 'white', padding: '12px 24px', borderRadius: 4, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,119,34,0.35)' }}>
                 Démarrer gratuitement <ArrowRight size={16} />
               </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ background: 'white', borderRadius: 16, padding: '28px 24px', boxShadow: '0 8px 36px rgba(30,58,95,0.12)', width: '100%', maxWidth: 300, border: '1px solid #E5E7EB' }}>
+              <div style={{ background: 'white', padding: '28px 24px', boxShadow: '0 8px 36px rgba(30,58,95,0.12)', width: '100%', maxWidth: 300, border: '1px solid #E5E7EB' }}>
                 <TabIllustration index={tab} />
               </div>
             </div>
@@ -469,13 +519,14 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ GUARANTEES */}
       <section style={{ background: P, padding: '80px 0' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Nos engagements</p>
+          <Kicker index="06" label="Nos engagements" light />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 800, color: 'white', letterSpacing: '-0.02em', margin: '0 0 52px', lineHeight: 1.2 }}>
             Ce sur quoi vous pouvez compter
           </h2>
-          <div className="lp-reveal" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 32px', border: `1px solid ${A}55`, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <RotateCcw size={26} color="white" strokeWidth={2} />
+          <div className="lp-reveal" style={{ position: 'relative', background: 'rgba(255,255,255,0.06)', padding: '24px 32px', border: `1px solid ${A}55`, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <Corners color={A} />
+            <div style={{ width: 52, height: 52, background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <RotateCcw size={24} color="white" strokeWidth={2} />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 14 jours</h3>
@@ -491,8 +542,9 @@ export default function Landing() {
               { Icon: RotateCcw, title: 'Sans engagement', desc: 'Résiliez quand vous voulez. Aucune période de préavis, aucuns frais cachés.' },
             ].map((item, i) => (
               <div key={i} className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <item.Icon size={22} color={A} strokeWidth={1.8} />
+                <div style={{ position: 'relative', width: 44, height: 44, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Corners color="rgba(255,255,255,0.3)" size={8} />
+                  <item.Icon size={20} color={A} strokeWidth={1.8} />
                 </div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'white', margin: 0 }}>{item.title}</h3>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>{item.desc}</p>
@@ -505,7 +557,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ COMPARISON */}
       <section style={{ padding: '88px 0' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Comparatif</p>
+          <Kicker index="07" label="Comparatif" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
             Moins cher que la concurrence.<br />Et bien plus efficace.
           </h2>
@@ -513,7 +565,7 @@ export default function Landing() {
             Les logiciels BTP coûtent cher et restent compliqués. Avec Devira, votre devis est prêt en 2 minutes.
           </p>
 
-          <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 8px 36px rgba(0,0,0,0.08)', marginBottom: 36 }}>
+          <div className="lp-reveal" style={{ background: 'white', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 8px 36px rgba(0,0,0,0.08)', marginBottom: 36 }}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                 <thead>
@@ -521,15 +573,15 @@ export default function Landing() {
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
                     <th style={{ padding: '20px 16px', textAlign: 'center', background: `${P}06` }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: P }}>Devira Pro</div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: P, lineHeight: 1.2 }}>79,99 €<span style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontFamily: MONO, fontSize: 22, fontWeight: 700, color: P, lineHeight: 1.2 }}>79,99€<span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Obat</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: '#6B7280', lineHeight: 1.2 }}>99€<span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: '#6B7280', lineHeight: 1.2 }}>99€<span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                     <th style={{ padding: '20px 16px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Batigest</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: '#6B7280', lineHeight: 1.2 }}>100€+<span style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
+                      <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: '#6B7280', lineHeight: 1.2 }}>100€+<span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>/mois</span></div>
                     </th>
                   </tr>
                 </thead>
@@ -548,17 +600,17 @@ export default function Landing() {
                       <td style={{ padding: '13px 24px', fontSize: 14, color: '#374151', fontWeight: 500 }}>{row.feature}</td>
                       <td style={{ padding: '13px 16px', textAlign: 'center', background: i % 2 === 0 ? `${P}04` : `${P}06` }}>
                         {row.d
-                          ? <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#16A34A" strokeWidth={3} /></span>
+                          ? <span style={{ display: 'inline-flex', width: 22, height: 22, background: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#16A34A" strokeWidth={3} /></span>
                           : <span style={{ color: '#D1D5DB', fontSize: 18 }}>—</span>}
                       </td>
                       <td style={{ padding: '13px 16px', textAlign: 'center' }}>
                         {row.o
-                          ? <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#9CA3AF" strokeWidth={3} /></span>
+                          ? <span style={{ display: 'inline-flex', width: 22, height: 22, background: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#9CA3AF" strokeWidth={3} /></span>
                           : <span style={{ color: '#D1D5DB', fontSize: 18 }}>—</span>}
                       </td>
                       <td style={{ padding: '13px 16px', textAlign: 'center' }}>
                         {row.b
-                          ? <span style={{ display: 'inline-flex', width: 24, height: 24, borderRadius: '50%', background: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#9CA3AF" strokeWidth={3} /></span>
+                          ? <span style={{ display: 'inline-flex', width: 22, height: 22, background: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}><Check size={13} color="#9CA3AF" strokeWidth={3} /></span>
                           : <span style={{ color: '#D1D5DB', fontSize: 18 }}>—</span>}
                       </td>
                     </tr>
@@ -571,21 +623,22 @@ export default function Landing() {
             * Le devis vocal, le PDF professionnel et la signature électronique sont inclus dans tous les plans, dès Essentiel.
           </p>
 
-          <div className="lp-reveal" style={{ background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, borderRadius: 20, padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', marginTop: 36 }}>
+          <div className="lp-reveal" style={{ position: 'relative', background: `linear-gradient(135deg, ${P} 0%, #152A47 100%)`, padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)', display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', marginTop: 36 }}>
+            <Corners color={A} />
             <div style={{ flex: '1 1 260px' }}>
-              <p style={{ color: A, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>Le calcul est simple</p>
+              <p style={{ fontFamily: MONO, color: A, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>Le calcul est simple</p>
               <h3 style={{ color: 'white', fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>2h économisées par devis.</h3>
               <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 15, margin: 0, lineHeight: 1.6 }}>À 45€/h, votre abonnement est rentabilisé <strong style={{ color: 'white' }}>dès le premier devis du mois.</strong></p>
             </div>
-            <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 0 }}>
               {[
                 { n: '2h', label: 'économisées\npar devis' },
                 { n: '200h', label: 'récupérées\npar an' },
                 { n: '9 000€', label: 'de valeur\ncréée/an' },
               ].map((stat, i) => (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 30, fontWeight: 900, color: A, lineHeight: 1 }}>{stat.n}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginTop: 4, whiteSpace: 'pre-line', lineHeight: 1.4 }}>{stat.label}</div>
+                <div key={i} style={{ textAlign: 'center', padding: '0 24px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: A, lineHeight: 1 }}>{stat.n}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginTop: 6, whiteSpace: 'pre-line', lineHeight: 1.4 }}>{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -596,7 +649,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ PRICING */}
       <section id="tarifs" style={{ padding: '88px 0', background: '#F9FAFB' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>Tarifs</p>
+          <Kicker index="08" label="Tarifs" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 14px', lineHeight: 1.18 }}>
             Un investissement, pas une dépense
           </h2>
@@ -606,10 +659,10 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 24, maxWidth: 1060, margin: '0 auto' }}>
             {/* Essentiel */}
-            <div className="lp-reveal" style={{ background: 'white', borderRadius: 20, padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
+            <div className="lp-reveal" style={{ background: 'white', padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
-                <span style={{ fontSize: 40, fontWeight: 900, color: P, letterSpacing: '-0.03em', lineHeight: 1 }}>29,99 €</span>
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: P, letterSpacing: '-0.01em', lineHeight: 1 }}>29,99€</span>
                 <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois TTC</span>
               </div>
               <p style={{ color: '#9CA3AF', fontSize: 12, margin: '0 0 12px' }}>≈ 24,99 € HT / mois</p>
@@ -617,14 +670,14 @@ export default function Landing() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
                 {ESSENTIEL_FEATURES.map(f => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Check size={11} color="#16A34A" strokeWidth={3} />
+                    <div style={{ width: 16, height: 16, background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={10} color="#16A34A" strokeWidth={3} />
                     </div>
                     <span style={{ fontSize: 14, color: '#374151' }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 4, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                 Commencer — 1 devis gratuit
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
@@ -637,11 +690,12 @@ export default function Landing() {
             </div>
 
             {/* Pro */}
-            <div className="lp-reveal lp-d1" style={{ background: P, borderRadius: 20, padding: '36px 32px', position: 'relative', overflow: 'hidden', boxShadow: '0 16px 52px rgba(30,58,95,0.28)' }}>
-              <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
+            <div className="lp-reveal lp-d1" style={{ background: P, padding: '36px 32px', position: 'relative', boxShadow: '0 16px 52px rgba(30,58,95,0.28)' }}>
+              <Corners color={A} />
+              <div style={{ position: 'absolute', top: 16, right: 16, background: A, color: 'white', fontFamily: MONO, fontSize: 11, fontWeight: 700, padding: '4px 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recommandé</div>
+              <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
-                <span style={{ fontSize: 40, fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1 }}>79,99 €</span>
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: 'white', letterSpacing: '-0.01em', lineHeight: 1 }}>79,99€</span>
                 <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15 }}>/mois TTC</span>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 12px' }}>≈ 66,66 € HT / mois</p>
@@ -649,14 +703,14 @@ export default function Landing() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
                 {PRO_FEATURES.map((f) => (
                   <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${A}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Check size={11} color={A} strokeWidth={3} />
+                    <div style={{ width: 16, height: 16, background: `${A}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={10} color={A} strokeWidth={3} />
                     </div>
                     <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
+              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 4, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
                 Commencer — 1 devis gratuit
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
@@ -678,19 +732,20 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ FAQ */}
       <section id="faq" style={{ padding: '88px 0' }}>
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px' }}>
-          <p style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: A, textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 0 12px' }}>FAQ</p>
+          <Kicker index="09" label="FAQ" />
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 48px', lineHeight: 1.18 }}>
             Questions fréquentes
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {FAQS.map((item, i) => (
-              <div key={i} className="lp-reveal" style={{ background: 'white', borderRadius: 14, border: `1px solid ${faq === i ? `${P}30` : '#E5E7EB'}`, overflow: 'hidden', boxShadow: faq === i ? '0 4px 20px rgba(30,58,95,0.1)' : 'none', transition: 'all 0.2s' }}>
+              <div key={i} className="lp-reveal" style={{ background: 'white', border: `1px solid ${faq === i ? `${P}30` : '#E5E7EB'}`, overflow: 'hidden', boxShadow: faq === i ? '0 4px 20px rgba(30,58,95,0.1)' : 'none', transition: 'all 0.2s' }}>
                 <button onClick={() => setFaq(faq === i ? null : i)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', gap: 16 }}>
+                  <span style={{ fontFamily: MONO, color: '#C4C9D1', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>Q{String(i + 1).padStart(2, '0')}</span>
                   <span style={{ fontWeight: 600, color: '#111827', fontSize: 15, flex: 1 }}>{item.q}</span>
                   <ChevronDown size={18} color="#6B7280" style={{ flexShrink: 0, transform: faq === i ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }} />
                 </button>
                 {faq === i && (
-                  <div style={{ padding: '0 22px 20px', color: '#6B7280', fontSize: 14, lineHeight: 1.72 }}>
+                  <div style={{ padding: '0 22px 20px 54px', color: '#6B7280', fontSize: 14, lineHeight: 1.72 }}>
                     {item.a}
                   </div>
                 )}
@@ -703,6 +758,7 @@ export default function Landing() {
       {/* ═══════════════════════════════════════ CTA FINAL */}
       <section style={{ background: `linear-gradient(140deg, ${P} 0%, #152A47 100%)`, padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: -100, left: '50%', transform: 'translateX(-50%)', width: 600, height: 260, background: `radial-gradient(ellipse, ${A}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, ...gridBg('#ffffff', 0.03), pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 24px', position: 'relative' }}>
           <DeviraIcon size={60} />
           <h2 className="lp-reveal" style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: 'white', margin: '20px 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
@@ -711,7 +767,7 @@ export default function Landing() {
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
             1 devis complet offert, sans carte bancaire. Abonnement à partir de 29,99 €/mois.
           </p>
-          <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
+          <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 4, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement
           </button>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
