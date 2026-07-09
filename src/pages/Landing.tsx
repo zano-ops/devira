@@ -332,7 +332,7 @@ export default function Landing() {
               <div style={{ position: 'relative', maxWidth: 400, width: '100%' }}>
                 <img
                   src="/hero-artisan.jpg"
-                  alt="Artisan du bâtiment"
+                  alt="Outils et plans de chantier BTP"
                   style={{ width: '100%', display: 'block', borderRadius: 20, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}
                 />
                 <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'white', borderRadius: 14, padding: '12px 18px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
