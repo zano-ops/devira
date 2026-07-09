@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, type CSSProperties } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DeviraIcon } from '../components/DeviraLogo'
 import { useAuth } from '../context/AuthContext'
@@ -19,11 +19,6 @@ const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
 // gardé en no-op pour ne pas toucher tous les appels existants dans le fichier.
 function Corners(_props: { color?: string; size?: number; inset?: number }) {
   return null
-}
-
-// Ancien quadrillage "papier millimétré" retiré (même raison) : no-op partagé.
-function gridBg(_color?: string, _opacity?: number): CSSProperties {
-  return {}
 }
 
 // En-tête de section : simple repère coloré + libellé, sans mono/§ technique.
@@ -356,9 +351,17 @@ export default function Landing() {
       <section style={{ padding: '88px 0', background: '#F9FAFB' }}>
         <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px' }}>
           <Kicker index="01" label="La réalité du terrain" />
-          <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 52px', lineHeight: 1.18 }}>
+          <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(26px, 3.5vw, 44px)', fontWeight: 800, color: P, letterSpacing: '-0.02em', margin: '0 0 32px', lineHeight: 1.18 }}>
             Combien d'heures perdez-vous<br />chaque semaine sur vos devis ?
           </h2>
+
+          <div className="lp-reveal" style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', marginBottom: 40, maxWidth: 780, margin: '0 auto 40px' }}>
+            <img src="/problem-artisan.jpg" alt="Devis calculé à la main sur un carnet" style={{ width: '100%', height: 220, objectFit: 'cover', objectPosition: 'center 25%', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(15,30,53,0.75) 0%, transparent 55%)' }} />
+            <p style={{ position: 'absolute', bottom: 16, left: 20, right: 20, color: 'white', fontSize: 14, fontWeight: 600, margin: 0 }}>
+              Le réflexe d'hier : tout recalculer à la main, le soir, sur un carnet.
+            </p>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
             {[
@@ -763,9 +766,8 @@ export default function Landing() {
       </section>
 
       {/* ═══════════════════════════════════════ CTA FINAL */}
-      <section style={{ background: `linear-gradient(140deg, ${P} 0%, #152A47 100%)`, padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: `linear-gradient(140deg, rgba(30,58,95,0.82) 0%, rgba(15,30,53,0.86) 100%), url(/cta-artisan.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 30%', padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: -100, left: '50%', transform: 'translateX(-50%)', width: 600, height: 260, background: `radial-gradient(ellipse, ${A}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', inset: 0, ...gridBg('#ffffff', 0.03), pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 24px', position: 'relative' }}>
           <DeviraIcon size={60} />
           <h2 className="lp-reveal" style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: 'white', margin: '20px 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
