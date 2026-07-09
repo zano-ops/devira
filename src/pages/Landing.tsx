@@ -288,61 +288,36 @@ export default function Landing() {
       </nav>
 
       {/* ═══════════════════════════════════════ HERO */}
-      <section style={{ background: `linear-gradient(160deg, ${P} 0%, #152A47 65%, #0f1e35 100%)`, paddingTop: 148, paddingBottom: 104, position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: `linear-gradient(160deg, rgba(30,58,95,0.82) 0%, rgba(21,42,71,0.85) 65%, rgba(15,30,53,0.9) 100%), url(/hero-bg.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 35%', paddingTop: 148, paddingBottom: 104, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -120, right: -80, width: 560, height: 560, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,119,34,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 24px', position: 'relative' }}>
-          <div style={{ display: 'flex', gap: 48, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 480px', minWidth: 300 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: A, letterSpacing: '0.04em', textTransform: 'uppercase', margin: '0 0 18px' }}>Devis BTP</p>
+        <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center', position: 'relative' }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: A, letterSpacing: '0.04em', textTransform: 'uppercase', margin: '0 0 18px' }}>Devis BTP</p>
 
-              <h1 style={{ fontSize: 'clamp(36px, 4.8vw, 62px)', fontWeight: 900, color: 'white', lineHeight: 1.1, letterSpacing: '-0.02em', margin: '0 0 22px' }}>
-                Votre devis BTP<br />
-                <span style={{ color: A }}>en 1 minute.</span><br />
-                Pas 2 heures.
-              </h1>
+          <h1 style={{ fontSize: 'clamp(36px, 5.5vw, 68px)', fontWeight: 900, color: 'white', lineHeight: 1.1, letterSpacing: '-0.02em', margin: '0 0 22px' }}>
+            Votre devis BTP<br />
+            <span style={{ color: A }}>en 1 minute.</span><br />
+            Pas 2 heures.
+          </h1>
 
-              <p style={{ fontSize: 'clamp(16px, 1.6vw, 19px)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, maxWidth: 520, margin: '0 0 36px' }}>
-                Décrivez votre chantier en quelques mots. En 1 minute, votre devis est prêt, mis en page et envoyé par email et SMS. Votre client signe en ligne.
-              </p>
+          <p style={{ fontSize: 'clamp(16px, 1.6vw, 19px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.65, maxWidth: 560, margin: '0 auto 36px' }}>
+            Décrivez votre chantier en quelques mots. En 1 minute, votre devis est prêt, mis en page et envoyé par email et SMS. Votre client signe en ligne.
+          </p>
 
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-                <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 10, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
-                  Démarrer gratuitement
-                </button>
-                <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 10, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
-                  Voir la démo
-                </a>
-              </div>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
+            <button onClick={() => goto('/signup')} style={{ background: A, border: 'none', color: 'white', padding: '16px 38px', borderRadius: 10, fontSize: 17, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 32px rgba(232,119,34,0.48)', transition: 'transform 0.15s' }}>
+              Démarrer gratuitement
+            </button>
+            <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.28)', color: 'white', padding: '16px 32px', borderRadius: 10, fontSize: 16, fontWeight: 600, textDecoration: 'none' }}>
+              Voir la démo
+            </a>
+          </div>
 
-              <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                {['Depuis le chantier', 'Envoi par SMS', 'Signature en ligne', 'Devis en 30 secondes'].map((tag) => (
-                  <span key={tag} style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12.5, fontWeight: 600, padding: '8px 14px', background: 'rgba(255,255,255,0.08)', borderRadius: 99 }}>{tag}</span>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ flex: '1 1 380px', minWidth: 300, display: 'flex', justifyContent: 'center' }}>
-              <div style={{ position: 'relative', maxWidth: 440, width: '100%' }}>
-                <div style={{ aspectRatio: '4 / 5', borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-                  <img
-                    src="/hero-artisan.jpg"
-                    alt="Artisan qui prend les mesures d'un chantier de rénovation"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 30%', display: 'block' }}
-                  />
-                </div>
-                <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'white', borderRadius: 14, padding: '12px 18px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Check size={16} color="#16A34A" strokeWidth={3} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: P, lineHeight: 1.2 }}>Devis prêt</div>
-                    <div style={{ fontSize: 11.5, color: '#6B7280' }}>en moins d'1 minute</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {['Depuis le chantier', 'Envoi par SMS', 'Signature en ligne', 'Devis en 30 secondes'].map((tag) => (
+              <span key={tag} style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12.5, fontWeight: 600, padding: '8px 14px', background: 'rgba(255,255,255,0.1)', borderRadius: 99 }}>{tag}</span>
+            ))}
           </div>
         </div>
       </section>
@@ -766,7 +741,7 @@ export default function Landing() {
       </section>
 
       {/* ═══════════════════════════════════════ CTA FINAL */}
-      <section style={{ background: `linear-gradient(140deg, rgba(30,58,95,0.82) 0%, rgba(15,30,53,0.86) 100%), url(/cta-artisan.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 30%', padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: `linear-gradient(140deg, rgba(30,58,95,0.85) 0%, rgba(15,30,53,0.88) 100%), url(/cta-bg.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center 20%', padding: '108px 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: -100, left: '50%', transform: 'translateX(-50%)', width: 600, height: 260, background: `radial-gradient(ellipse, ${A}18 0%, transparent 70%)`, pointerEvents: 'none' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 24px', position: 'relative' }}>
           <DeviraIcon size={60} />
