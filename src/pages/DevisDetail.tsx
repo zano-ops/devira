@@ -519,7 +519,7 @@ export default function DevisDetail() {
       <input ref={photoInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
 
       {/* ── HEADER ── */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-3 flex items-center justify-between sticky top-0 z-30">
+      <div className="bg-white border-b border-gray-100 px-4 pb-3 flex items-center justify-between sticky top-0 z-30" style={{ paddingTop: 'max(3rem, calc(env(safe-area-inset-top) + 0.75rem))' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/dashboard')} aria-label="Retour au tableau de bord" className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
           <div className="min-w-0">

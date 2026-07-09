@@ -361,7 +361,7 @@ export default function NouveauDevis() {
       <TrialBanner />
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 pt-12 pb-4 border-b border-gray-100 bg-white sticky top-0 z-20">
+      <div className="flex items-center gap-3 px-5 pb-4 border-b border-gray-100 bg-white sticky top-0 z-20" style={{ paddingTop: 'max(3rem, calc(env(safe-area-inset-top) + 0.75rem))' }}>
         <button onClick={() => step === 'client' ? setStep('describe') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-lg">←</button>
         <div className="flex-1">
           <h1 className="text-gray-900 font-bold text-lg leading-none">Nouveau devis</h1>

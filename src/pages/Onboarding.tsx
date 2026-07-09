@@ -209,7 +209,7 @@ export default function Onboarding() {
       {/* Step 1 — Votre entreprise */}
       {step === 1 && (
         <div>
-          <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '40px 24px 32px' }}>
+          <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '24px 24px 32px', paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <DeviraIcon size={32} />
               <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>devira</span>
@@ -315,7 +315,7 @@ export default function Onboarding() {
       {/* Step 2 — Votre logo */}
       {step === 2 && (
         <div>
-          <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '40px 24px 32px' }}>
+          <div style={{ background: `linear-gradient(135deg, ${P} 0%, #2D5282 100%)`, padding: '24px 24px 32px', paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}>
             <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 14, cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
               ← Retour
             </button>
@@ -398,7 +398,7 @@ export default function Onboarding() {
       {/* Step 3 — Premier devis (aha moment) */}
       {step === 3 && (
         <div style={{ minHeight: '100vh', background: P, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center', position: 'relative' }}>
-          <button onClick={() => setStep(2)} style={{ position: 'absolute', top: 20, left: 20, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={() => setStep(2)} style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 20px)', left: 20, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 14, cursor: 'pointer' }}>
             ← Retour
           </button>
           <div style={{ marginBottom: 24 }}>

@@ -375,11 +375,6 @@ export default function Landing() {
           <p className="lp-reveal" style={{ textAlign: 'center', color: '#6B7280', fontSize: 17, margin: '0 auto 20px', maxWidth: 520 }}>
             Décrivez vos travaux. Le devis se génère. C'est tout.
           </p>
-          <p className="lp-reveal" style={{ textAlign: 'center', margin: '0 auto 52px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: `${P}0A`, border: `1px solid ${P}20`, borderRadius: 99, padding: '7px 16px', fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: P }}>
-              ⏱ Le chrono s'affiche à l'écran pendant la génération — pas juste une promesse marketing
-            </span>
-          </p>
           <div className="lp-reveal" style={{ display: 'flex', justifyContent: 'center' }}>
             {/* Phone-frame : 420px max sur desktop, plein écran sur mobile */}
             <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
