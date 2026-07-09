@@ -252,6 +252,9 @@ export default function Landing() {
       @media (max-width: 768px) {
         .lp-pdf-pages { flex-direction: column; align-items: center; }
       }
+      .lp-page h1, .lp-page h2 { font-family: 'Fraunces', Georgia, serif; }
+      .lp-underline { position: relative; white-space: nowrap; }
+      .lp-underline svg { position: absolute; left: -2%; right: -2%; bottom: -0.14em; width: 104%; height: 0.3em; }
     `
     document.head.appendChild(style)
     const obs = new IntersectionObserver(entries => {
@@ -264,7 +267,7 @@ export default function Landing() {
   const goto = (path: string) => navigate(path)
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', color: '#111827', background: 'white', overflowX: 'hidden' }}>
+    <div className="lp-page" style={{ fontFamily: 'Inter, system-ui, sans-serif', color: '#111827', background: 'white', overflowX: 'hidden' }}>
 
       {/* ═══════════════════════════════════════ NAVBAR */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent', backdropFilter: scrolled ? 'blur(14px)' : 'none', borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : 'none', transition: 'all 0.3s ease' }}>
@@ -295,7 +298,12 @@ export default function Landing() {
 
           <h1 style={{ fontSize: 'clamp(36px, 5.5vw, 68px)', fontWeight: 900, color: 'white', lineHeight: 1.1, letterSpacing: '-0.02em', margin: '0 0 22px' }}>
             Votre devis BTP<br />
-            <span style={{ color: A }}>en 1 minute.</span><br />
+            <span className="lp-underline" style={{ color: A }}>
+              en 1 minute.
+              <svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M2 14 Q 50 20, 100 12 T 198 10" fill="none" stroke={A} strokeWidth="5" strokeLinecap="round" opacity="0.55" />
+              </svg>
+            </span><br />
             Pas 2 heures.
           </h1>
 

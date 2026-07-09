@@ -925,7 +925,7 @@ export default function DevisDetail() {
 
       {/* ── OVERLAY PDF PROGRESS ── */}
       {pdfStep && (
-        <div className="fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center" style={{ backdropFilter: 'blur(4px)' }}>
+        <div className="app-overlay fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center" style={{ backdropFilter: 'blur(4px)' }}>
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-5" />
           <p className="text-primary font-bold text-base">{pdfStep}</p>
           <p className="text-gray-400 text-xs mt-1.5">Quelques secondes…</p>
@@ -934,7 +934,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL ACOMPTE ── */}
       {showAcompteModal && quote && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAcompteModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAcompteModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-1">Créer une facture</h3>
@@ -972,7 +972,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL EMAIL ── */}
       {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowEmailModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowEmailModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-1">Envoyer par email</h3>
@@ -989,7 +989,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL RELANCE PREVIEW ── */}
       {showRelanceModal && quote && profile && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowRelanceModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowRelanceModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-1">Aperçu de la relance</h3>
@@ -1020,7 +1020,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL SIGNATURE ── */}
       {showSignModal && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSignModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSignModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <div className="text-center mb-5">
@@ -1053,7 +1053,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL SMS ── */}
       {showSmsModal && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSmsModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSmsModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-1">📱 Envoyer par SMS</h3>
@@ -1078,7 +1078,7 @@ export default function DevisDetail() {
 
       {/* ── MODAL AVENANT ── */}
       {showAvenantModal && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAvenantModal(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAvenantModal(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <div className="text-center mb-5">

@@ -254,7 +254,7 @@ export default function Clients() {
 
       {/* ── MODAL FORMULAIRE ── */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowForm(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowForm(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-5">{editClient ? 'Modifier le client' : 'Nouveau client'}</h3>

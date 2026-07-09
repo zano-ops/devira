@@ -33,7 +33,7 @@ export function LoadingOverlay() {
   }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-8"
+    <div className="app-overlay fixed inset-0 z-50 flex flex-col items-center justify-center px-8"
       style={{ background: 'linear-gradient(160deg, #1E3A5F 0%, #0f2240 100%)' }}>
 
       {/* Icône centrale animée */}

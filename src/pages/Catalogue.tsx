@@ -454,7 +454,7 @@ export default function Catalogue() {
 
       {/* Form modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowForm(false)}>
+        <div className="app-overlay fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowForm(false)}>
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="text-gray-900 font-bold text-lg mb-5">{editItem ? 'Modifier la prestation' : 'Nouvelle prestation'}</h3>
@@ -506,7 +506,7 @@ export default function Catalogue() {
 
       {/* Modal import PDF/photo */}
       {showImportModal && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.6)' }}>
+        <div className="app-overlay fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.6)' }}>
           <div className="mt-auto bg-white rounded-t-3xl max-h-[90vh] flex flex-col">
             <div className="px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
