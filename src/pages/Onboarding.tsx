@@ -411,12 +411,12 @@ export default function Onboarding() {
             Créez votre premier devis maintenant.
           </p>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', margin: '0 0 36px' }}>
-            Décrivez vos travaux en 10 secondes — l'IA fait le reste.
+            Décrivez vos travaux en 10 secondes — le devis se génère seul.
           </p>
 
           <div style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.1)', borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-              {['Décrire', 'IA génère', 'Envoyer'].map((label, i) => (
+              {['Décrire', 'Devis généré', 'Envoyer'].map((label, i) => (
                 <div key={label} style={{ flex: 1, padding: '14px 8px', textAlign: 'center' }}>
                   <div style={{ fontSize: 20, marginBottom: 4 }}>{['🎙️', '✨', '📤'][i]}</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{label}</div>

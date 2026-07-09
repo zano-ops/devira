@@ -320,12 +320,12 @@ export default function Dashboard() {
               Bienvenue sur Devira !
             </p>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '0 0 20px' }}>
-              Créez votre premier devis professionnel en 2 minutes
+              Créez votre premier devis professionnel en 1 minute
             </p>
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
               {[
                 { icon: <FileText size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'Décrire' },
-                { icon: <Zap size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'IA génère' },
+                { icon: <Zap size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'Devis généré' },
                 { icon: <MessageCircle size={18} color="rgba(255,255,255,0.85)" strokeWidth={1.8} />, label: 'Envoyer' },
               ].map(({ icon, label }, i) => (
                 <div key={label} style={{ flex: 1, padding: '12px 4px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>

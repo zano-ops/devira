@@ -77,7 +77,7 @@ export default function Signup() {
           <DeviraIcon size={80} />
         </div>
         <h1 className="text-white text-2xl font-bold">devira</h1>
-        <p className="text-blue-200 text-sm mt-1">Créez vos devis BTP en 2 minutes</p>
+        <p className="text-blue-200 text-sm mt-1">Créez vos devis BTP en 1 minute</p>
         <div className="mt-4 flex gap-3 flex-wrap justify-center">
           <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">1 devis gratuit</span>
           <span className="bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full">Sans carte bancaire</span>
