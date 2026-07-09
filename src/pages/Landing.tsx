@@ -328,13 +328,15 @@ export default function Landing() {
               </div>
             </div>
 
-            <div style={{ flex: '1 1 340px', minWidth: 280, display: 'flex', justifyContent: 'center' }}>
-              <div style={{ position: 'relative', maxWidth: 400, width: '100%' }}>
-                <img
-                  src="/hero-artisan.jpg"
-                  alt="Outils et plans de chantier BTP"
-                  style={{ width: '100%', display: 'block', borderRadius: 20, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}
-                />
+            <div style={{ flex: '1 1 380px', minWidth: 300, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ position: 'relative', maxWidth: 440, width: '100%' }}>
+                <div style={{ aspectRatio: '4 / 5', borderRadius: 20, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
+                  <img
+                    src="/hero-artisan.jpg"
+                    alt="Artisan qui prend les mesures d'un chantier de rénovation"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 30%', display: 'block' }}
+                  />
+                </div>
                 <div style={{ position: 'absolute', bottom: -18, left: -18, background: 'white', borderRadius: 14, padding: '12px 18px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Check size={16} color="#16A34A" strokeWidth={3} />
