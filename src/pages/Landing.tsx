@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { DeviraIcon } from '../components/DeviraLogo'
 import { useAuth } from '../context/AuthContext'
 import { TRIAL_LIMIT, ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
-import {
-  Check, ChevronDown, MessageSquare, FileText, PenLine, Bell, ArrowRight,
-  ShieldCheck, Lock, Headphones, RotateCcw, Clock, TrendingDown, AlertCircle,
-  Mic, Zap, Send, Smartphone,
-} from 'lucide-react'
+import { Check, ChevronDown, ArrowRight } from 'lucide-react'
 
 const P = '#1E3A5F'
 const A = '#E87722'
@@ -135,35 +131,35 @@ function TabIllustration({ index }: { index: number }) {
 
 const TABS = [
   {
-    icon: MessageSquare,
+    icon: '🎙️',
     label: 'Voix & texte',
     title: 'Dictez, le devis se rédige',
     desc: 'Plus besoin de taper au clavier. Décrivez votre chantier en quelques mots ou par dictée vocale. Toutes les lignes, les quantités et les prix apparaissent en moins de 30 secondes.',
     badge: 'Moins de 30 secondes',
   },
   {
-    icon: FileText,
+    icon: '📄',
     label: 'PDF professionnel',
     title: 'Un devis qui inspire confiance',
     desc: 'Chaque devis est exporté en PDF impeccable avec votre logo, vos coordonnées, les mentions légales et un tableau détaillé. Vos clients voient la différence immédiatement.',
     badge: 'Votre image de marque',
   },
   {
-    icon: PenLine,
+    icon: '✍️',
     label: 'Signature en ligne',
     title: 'Signez sans se déplacer',
     desc: 'Envoyez un lien sécurisé à votre client. Il consulte et signe depuis son téléphone en 30 secondes. Vous recevez la notification en temps réel.',
     badge: 'Zéro déplacement',
   },
   {
-    icon: Bell,
+    icon: '🔔',
     label: 'Relances auto',
     title: 'Ne perdez plus de chantiers',
     desc: 'Devira envoie automatiquement des relances personnalisées à J+7, J+14 et J+21 après l\'envoi. Récupérez les devis oubliés sans lever le petit doigt.',
     badge: 'Plus de taux de signature',
   },
   {
-    icon: Smartphone,
+    icon: '📲',
     label: 'Envoi par SMS',
     title: '40% des clients préfèrent le SMS à l\'email',
     desc: 'Envoyez votre devis par email et par SMS en un seul clic. Vos clients reçoivent un lien pour consulter et signer depuis leur téléphone. Plus de devis ignorés dans les spams.',
@@ -370,14 +366,14 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
             {[
-              { Icon: Clock, color: '#DC2626', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
-              { Icon: TrendingDown, color: '#D97706', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
-              { Icon: AlertCircle, color: '#7C3AED', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
-              { Icon: MessageSquare, color: '#0891B2', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS, vous perdez des chantiers sans même le savoir. Devira envoie sur les deux canaux en un clic.' },
+              { icon: '⏳', color: '#DC2626', title: '2 à 4 heures perdues par devis', desc: 'Ouvrir Excel, retrouver les tarifs, faire le tableau, calculer la TVA, mettre en page... Sans compter les corrections à n\'en plus finir.' },
+              { icon: '🚧', color: '#D97706', title: 'Des chantiers qui partent à la concurrence', desc: 'Votre client ne répond plus. Vous avez oublié de relancer. Le chantier part chez un concurrent qui a été plus réactif.' },
+              { icon: '🗒️', color: '#7C3AED', title: 'Un rendu qui ne reflète pas votre travail', desc: 'Un devis sur Excel ou un PDF mal formaté, ça se voit immédiatement. Et ça joue directement sur la perception de votre sérieux.' },
+              { icon: '📵', color: '#0891B2', title: '40% de vos clients ne lisent pas leurs emails', desc: 'Vos devis partent dans les spams ou sont ignorés. Sans SMS, vous perdez des chantiers sans même le savoir. Devira envoie sur les deux canaux en un clic.' },
             ].map((item, i) => (
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ background: 'white', padding: '28px 28px 32px', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: `${item.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                  <item.Icon size={22} color={item.color} strokeWidth={1.8} />
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: `${item.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18, fontSize: 20 }}>
+                  {item.icon}
                 </div>
                 <h3 style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: '0 0 10px', lineHeight: 1.3 }}>{item.title}</h3>
                 <p style={{ color: '#6B7280', lineHeight: 1.65, fontSize: 14, margin: 0 }}>{item.desc}</p>
@@ -469,14 +465,14 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 36 }}>
             {[
-              { Icon: Mic, n: '01', title: 'Décrivez vos travaux', desc: 'En texte libre ou par dictée vocale. Pas besoin d\'être précis — Devira comprend le jargon du bâtiment.' },
-              { Icon: Zap, n: '02', title: 'Le devis se génère', desc: 'En moins de 30 secondes, vous avez un devis complet avec toutes les lignes, les prix et le bon formatage.' },
-              { Icon: Send, n: '03', title: 'Envoyez et suivez', desc: 'Envoyez par email ou par lien. Le client signe en ligne. Vous recevez la notification. Le chantier est à vous.' },
+              { icon: '🎙️', n: '01', title: 'Décrivez vos travaux', desc: 'En texte libre ou par dictée vocale. Pas besoin d\'être précis — Devira comprend le jargon du bâtiment.' },
+              { icon: '🔨', n: '02', title: 'Le devis se génère', desc: 'En moins de 30 secondes, vous avez un devis complet avec toutes les lignes, les prix et le bon formatage.' },
+              { icon: '🤝', n: '03', title: 'Envoyez et suivez', desc: 'Envoyez par email ou par lien. Le client signe en ligne. Vous recevez la notification. Le chantier est à vous.' },
             ].map((item, i) => (
               <div key={i} className={`lp-reveal lp-d${i + 1}`} style={{ textAlign: 'center', padding: '0 8px' }}>
-                <div style={{ position: 'relative', width: 72, height: 72, background: `${P}0A`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <div style={{ position: 'relative', width: 72, height: 72, background: `${P}0A`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>
                   <Corners />
-                  <item.Icon size={28} color={P} strokeWidth={1.6} />
+                  {item.icon}
                 </div>
                 <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: A, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 10 }}>Étape {item.n}</div>
                 <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: '0 0 10px' }}>{item.title}</h3>
@@ -496,15 +492,12 @@ export default function Landing() {
           </h2>
 
           <div className="lp-tabs" style={{ display: 'flex', gap: 0, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 44, border: '1px solid #E5E7EB' }}>
-            {TABS.map((t, i) => {
-              const Icon = t.icon
-              return (
-                <button key={i} onClick={() => setTab(i)} className="lp-tab-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 18px', borderTop: 'none', borderBottom: 'none', borderLeft: i > 0 ? '1px solid #E5E7EB' : 'none', borderRight: 'none', background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 13, fontFamily: MONO, cursor: 'pointer', transition: 'all 0.15s' }}>
-                  <Icon size={14} />
-                  {t.label}
-                </button>
-              )
-            })}
+            {TABS.map((t, i) => (
+              <button key={i} onClick={() => setTab(i)} className="lp-tab-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 18px', borderTop: 'none', borderBottom: 'none', borderLeft: i > 0 ? '1px solid #E5E7EB' : 'none', borderRight: 'none', background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 13, fontFamily: MONO, cursor: 'pointer', transition: 'all 0.15s' }}>
+                <span style={{ fontSize: 14 }}>{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
           </div>
 
           <div className="lp-reveal" style={{ position: 'relative', background: '#F9FAFB', padding: 'clamp(24px, 4vw, 44px)', border: '1px solid #E5E7EB', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 48, alignItems: 'center' }}>
@@ -535,15 +528,15 @@ export default function Landing() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 28 }}>
             {[
-              { Icon: ShieldCheck, title: 'Légalement conforme', desc: 'SIRET, TVA, mentions obligatoires — tout est inclus automatiquement dans chaque devis.' },
-              { Icon: Lock, title: 'Données sécurisées', desc: 'Hébergement européen, chiffrement SSL. Vos données et celles de vos clients ne quittent pas l\'Europe.' },
-              { Icon: Headphones, title: 'Support humain', desc: 'Une vraie personne vous répond sous 24h. Les abonnés Pro sont pris en charge en moins de 2h ouvrées.' },
-              { Icon: RotateCcw, title: 'Sans engagement', desc: 'Résiliez quand vous voulez. Aucune période de préavis, aucuns frais cachés.' },
+              { icon: '📜', title: 'Légalement conforme', desc: 'SIRET, TVA, mentions obligatoires — tout est inclus automatiquement dans chaque devis.' },
+              { icon: '🔒', title: 'Données sécurisées', desc: 'Hébergement européen, chiffrement SSL. Vos données et celles de vos clients ne quittent pas l\'Europe.' },
+              { icon: '🎧', title: 'Support humain', desc: 'Une vraie personne vous répond sous 24h. Les abonnés Pro sont pris en charge en moins de 2h ouvrées.' },
+              { icon: '🔓', title: 'Sans engagement', desc: 'Résiliez quand vous voulez. Aucune période de préavis, aucuns frais cachés.' },
             ].map((item, i) => (
               <div key={i} className="lp-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ position: 'relative', width: 44, height: 44, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', width: 44, height: 44, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19 }}>
                   <Corners color="rgba(255,255,255,0.3)" size={8} />
-                  <item.Icon size={20} color={A} strokeWidth={1.8} />
+                  {item.icon}
                 </div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'white', margin: 0 }}>{item.title}</h3>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>{item.desc}</p>

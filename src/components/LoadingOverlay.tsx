@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 
 const STEPS = [
-  { icon: '🔍', label: 'Analyse du chantier',        delay: 0 },
-  { icon: '📐', label: 'Estimation des quantités',   delay: 4000 },
-  { icon: '💰', label: 'Calcul des prix du marché',  delay: 8000 },
-  { icon: '🏗️', label: 'Structuration des postes',   delay: 13000 },
-  { icon: '📄', label: 'Mise en forme du devis',     delay: 18000 },
-  { icon: '✨', label: 'Finalisation en cours…',     delay: 24000 },
+  { icon: '📏', label: 'Analyse du chantier',        delay: 0 },
+  { icon: '🧱', label: 'Estimation des quantités',   delay: 4000 },
+  { icon: '🧮', label: 'Calcul des prix du marché',  delay: 8000 },
+  { icon: '🧰', label: 'Structuration des postes',   delay: 13000 },
+  { icon: '📝', label: 'Mise en forme du devis',     delay: 18000 },
+  { icon: '🤝', label: 'Finalisation en cours…',     delay: 24000 },
 ]
 
 export function LoadingOverlay() {
@@ -91,7 +91,7 @@ export function LoadingOverlay() {
       {/* Timer */}
       <p className="text-blue-500 text-xs mt-6 text-center" style={{ maxWidth: 300 }}>
         {elapsed < 5
-          ? '⚡ Démarrage en cours…'
+          ? '🔨 Démarrage en cours…'
           : elapsed < 15
           ? `⏱ ${elapsed}s — Ton devis est en cours de rédaction`
           : elapsed < 30

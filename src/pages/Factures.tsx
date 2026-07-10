@@ -153,12 +153,12 @@ export default function Factures() {
     a.download = `FEC_${year}_Devira.txt`
     a.click()
     URL.revokeObjectURL(url)
-    showToast(`FEC exporté — ${paid.length} facture(s) ✓`)
+    showToast(`FEC exporté — ${paid.length} facture(s)`)
   }
 
   const markPaid = async (id: string) => {
     await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
-    showToast('Facture marquée comme payée ✓')
+    showToast('Facture marquée comme payée')
     fetchInvoices()
   }
 
@@ -167,7 +167,7 @@ export default function Factures() {
     setDownloadingId(inv.id)
     try {
       await downloadInvoicePdf(inv, profile)
-      showToast('PDF téléchargé ✓')
+      showToast('PDF téléchargé')
     } catch {
       showToast('Erreur PDF — réessaie', 'error')
     }

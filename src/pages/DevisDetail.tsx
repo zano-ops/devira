@@ -146,7 +146,7 @@ export default function DevisDetail() {
       total_ht: sous_total_ht, total_ttc, discount_percent: discount,
     }).eq('id', id)
     if (error) showToast('Impossible de sauvegarder — vérifiez votre connexion', 'error')
-    else { showToast('Devis sauvegardé ✓'); setEditMode(false); fetchQuote() }
+    else { showToast('Devis sauvegardé'); setEditMode(false); fetchQuote() }
     setSaving(false)
   }
 
@@ -214,7 +214,7 @@ export default function DevisDetail() {
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
-      showToast(`SMS envoyé à ${phone} ✓`)
+      showToast(`SMS envoyé à ${phone}`)
       setShowSmsModal(false)
     } catch (err: any) {
       const msg = err?.message || ''
@@ -253,7 +253,7 @@ export default function DevisDetail() {
       const data = await res.json()
       if (data.success) {
         await supabase.from('quotes').update({ relance_count: (quote.relance_count || 0) + 1, last_relance_at: new Date().toISOString() }).eq('id', id)
-        showToast(`Relance envoyée à ${sendEmail} ✓`)
+        showToast(`Relance envoyée à ${sendEmail}`)
         fetchQuote()
       } else { showToast('Relance non envoyée — vérifiez l\'adresse email', 'error') }
     } catch { showToast('Relance non envoyée — vérifiez votre connexion', 'error') }
@@ -285,7 +285,7 @@ export default function DevisDetail() {
       total_ht: 0, total_ttc: 0, discount_percent: 0,
     }).select().single()
     if (error) { showToast('Impossible de créer l\'avenant — réessayez', 'error'); return }
-    showToast(`Avenant N°${avenantNumber} créé ✓`)
+    showToast(`Avenant N°${avenantNumber} créé`)
     setShowAvenantModal(false)
     navigate(`/devis/${data.id}`, { state: { autoEdit: true } })
   }
@@ -314,7 +314,7 @@ export default function DevisDetail() {
       }
       const newJson = { ...quote.quote_json, photos: newPhotos }
       await supabase.from('quotes').update({ quote_json: newJson }).eq('id', quote.id)
-      showToast(`Photo(s) ajoutée(s) ✓`)
+      showToast(`Photo(s) ajoutée(s)`)
       fetchQuote()
     } catch { showToast('Erreur upload photo', 'error') }
     setUploadingPhoto(false)
@@ -339,7 +339,7 @@ export default function DevisDetail() {
     const t = setInterval(() => { si = Math.min(si + 1, steps.length - 1); setPdfStep(steps[si]) }, 2500)
     try {
       const isIOS = await downloadQuotePdf(quote, profile)
-      if (!isIOS) showToast('PDF téléchargé ✓')
+      if (!isIOS) showToast('PDF téléchargé')
     }
     catch { showToast('Erreur PDF — réessaie', 'error') }
     clearInterval(t)
@@ -359,7 +359,7 @@ export default function DevisDetail() {
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `Devis-${quote.quote_number}.csv`; a.click()
-    URL.revokeObjectURL(url); showToast('Export CSV téléchargé ✓')
+    URL.revokeObjectURL(url); showToast('Export CSV téléchargé')
   }
 
   const handleCopySignLink = async () => {
@@ -419,7 +419,7 @@ export default function DevisDetail() {
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
-      showToast(`Envoyé à ${sendEmail} ✓`); setShowEmailModal(false); fetchQuote()
+      showToast(`Envoyé à ${sendEmail}`); setShowEmailModal(false); fetchQuote()
     } catch { showToast('Email non envoyé — vérifiez votre connexion', 'error') }
     setSending(false)
   }
@@ -459,7 +459,7 @@ export default function DevisDetail() {
       total_ht: quote.total_ht, total_ttc: quote.total_ttc, status: 'draft',
     }).select().single()
     if (data) {
-      showToast(asTemplate ? 'Modèle créé ✓ — à toi de remplir le client' : 'Devis dupliqué ✓')
+      showToast(asTemplate ? 'Modèle créé — à toi de remplir le client' : 'Devis dupliqué')
       navigate(`/devis/${data.id}`, { state: { autoEdit: true } })
     }
   }
@@ -485,7 +485,7 @@ export default function DevisDetail() {
       due_date: due.toISOString().split('T')[0], status: 'pending',
     }).select().single()
     if (data) {
-      showToast(isAcompte ? `Acompte ${pct}% créé ✓` : 'Facture créée ✓')
+      showToast(isAcompte ? `Acompte ${pct}% créé` : 'Facture créée')
       setShowAcompteModal(false)
       navigate('/factures')
     }

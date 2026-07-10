@@ -179,7 +179,7 @@ export default function Parametres() {
       if (updateError) throw updateError
       set('logo_url', data.url)
       await refreshProfile()
-      showToast('Logo sauvegardé ✓')
+      showToast('Logo sauvegardé')
     } catch {
       showToast('Erreur upload logo — réessayez ou contactez support@devira.fr', 'error')
     }

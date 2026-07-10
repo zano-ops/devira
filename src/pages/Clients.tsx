@@ -110,7 +110,7 @@ export default function Clients() {
     } else {
       await supabase.from('clients').insert({ ...payload, user_id: user!.id })
     }
-    showToast(editClient ? 'Client modifié ✓' : 'Client ajouté ✓')
+    showToast(editClient ? 'Client modifié' : 'Client ajouté')
     setShowForm(false)
     fetchAll()
     setSaving(false)

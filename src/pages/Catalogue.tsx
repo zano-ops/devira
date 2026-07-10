@@ -118,7 +118,7 @@ export default function Catalogue() {
 
       localStorage.removeItem(STORAGE_KEY)
       setShowMigrationBanner(false)
-      showToast(`${local.length} prestation${local.length > 1 ? 's' : ''} migrée${local.length > 1 ? 's' : ''} ✓`)
+      showToast(`${local.length} prestation${local.length > 1 ? 's' : ''} migrée${local.length > 1 ? 's' : ''}`)
       await loadItems()
     } catch {
       showToast('Migration impossible — réessayez', 'error')
@@ -167,7 +167,7 @@ export default function Catalogue() {
           ? { ...i, designation: form.designation, unite: form.unite, prix_unitaire_ht: parseFloat(form.prix_unitaire_ht) || 0, categorie: form.categorie }
           : i
       ))
-      showToast('Prestation modifiée ✓')
+      showToast('Prestation modifiée')
     } else {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { showToast('Non connecté', 'error'); return }
@@ -186,7 +186,7 @@ export default function Catalogue() {
 
       if (error) { showToast("Ajout impossible — réessayez", 'error'); return }
       setItems(prev => [...prev, data])
-      showToast('Prestation ajoutée ✓')
+      showToast('Prestation ajoutée')
     }
 
     setShowForm(false)
@@ -273,7 +273,7 @@ export default function Catalogue() {
       if (error) throw error
 
       setItems(prev => [...prev, ...(data ?? [])])
-      showToast(`${toImport.length} prestation${toImport.length > 1 ? 's' : ''} importée${toImport.length > 1 ? 's' : ''} ✓`)
+      showToast(`${toImport.length} prestation${toImport.length > 1 ? 's' : ''} importée${toImport.length > 1 ? 's' : ''}`)
       setShowImportModal(false)
       setExtractedItems([])
     } catch {
@@ -302,7 +302,7 @@ export default function Catalogue() {
 
     if (error) { showToast('Erreur', 'error'); return }
     setItems(prev => [...prev, ...(data ?? [])])
-    showToast(`${examples.length} exemples ajoutés ✓`)
+    showToast(`${examples.length} exemples ajoutés`)
   }
 
   const categories = ['Tous', ...CATEGORIES.filter(c => items.some(i => i.categorie === c))]
