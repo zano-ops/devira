@@ -296,13 +296,29 @@ export default function NouveauDevis() {
       const data = await res.json()
       if (!data.success) throw new Error(data.error || 'Erreur serveur')
 
-      // Sauvegarder le client si nouveau
-      if (clientName && !savedClients.find(c => c.name.toLowerCase() === clientName.toLowerCase())) {
+      // Sauvegarder le client si nouveau — soit depuis le formulaire optionnel,
+      // soit depuis le nom que l'IA a extrait de la description (cas le plus courant)
+      let newClientName = clientName
+      let newClientEmail = clientEmail
+      let newClientAddress = clientAddress
+      if (!newClientName) {
+        const { data: createdQuote } = await supabase
+          .from('quotes')
+          .select('client_name, client_email, client_address')
+          .eq('id', data.quote_id)
+          .single()
+        if (createdQuote?.client_name) {
+          newClientName = createdQuote.client_name
+          newClientEmail = createdQuote.client_email || ''
+          newClientAddress = createdQuote.client_address || ''
+        }
+      }
+      if (newClientName && !savedClients.find(c => c.name.toLowerCase() === newClientName.toLowerCase())) {
         await supabase.from('clients').insert({
           user_id: user.id,
-          name: clientName,
-          email: clientEmail,
-          address: clientAddress,
+          name: newClientName,
+          email: newClientEmail,
+          address: newClientAddress,
           phone: clientPhone,
         }).then(() => {})
       }
