@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Gift, XCircle, ChevronRight } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import UpgradeModal from './UpgradeModal'
+import { TRIAL_LIMIT } from '../lib/planLimits'
 
 export default function TrialBanner() {
   const { subscriptionStatus, trialQuotaUsed } = useAuth()
@@ -37,8 +38,8 @@ export default function TrialBanner() {
           color: blocked ? '#991B1B' : '#15803D',
         }}>
           {blocked
-            ? '1 devis gratuit utilisé — abonnez-vous pour continuer'
-            : 'Essai gratuit · 1 devis · Sans carte bancaire'
+            ? `${TRIAL_LIMIT} devis gratuits utilisés — abonnez-vous pour continuer`
+            : `Essai gratuit · ${TRIAL_LIMIT} devis · Sans carte bancaire`
           }
         </span>
         <div style={{

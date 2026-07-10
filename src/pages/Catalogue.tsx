@@ -29,7 +29,7 @@ function fmt(n: number) {
 export default function Catalogue() {
   const navigate = useNavigate()
   const { showToast, ToastContainer } = useToast()
-  const { isPro, user } = useAuth()
+  const { isCroissancePlus, user } = useAuth()
 
   const [items, setItems] = useState<CatalogueItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,20 +48,20 @@ export default function Catalogue() {
   const [showImportModal, setShowImportModal] = useState(false)
   const [importingSelected, setImportingSelected] = useState(false)
 
-  useEffect(() => { if (isPro && user) loadItems() }, [isPro, user?.id])
+  useEffect(() => { if (isCroissancePlus && user) loadItems() }, [isCroissancePlus, user?.id])
 
-  if (!isPro) return (
+  if (!isCroissancePlus) return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
           <Lock size={30} color="#7C3AED" />
         </div>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1E3A5F', marginBottom: 8 }}>Catalogue — Plan Pro</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1E3A5F', marginBottom: 8 }}>Catalogue — Plan Croissance</h2>
         <p style={{ color: '#6B7280', fontSize: 15, lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
-          Créez votre catalogue de prestations avec prix standards pour générer vos devis encore plus vite. Disponible uniquement en plan Pro.
+          Créez votre catalogue de prestations avec prix standards pour générer vos devis encore plus vite. Disponible à partir du plan Croissance.
         </p>
         <button onClick={() => navigate('/parametres')} style={{ background: '#E87722', color: 'white', border: 'none', padding: '14px 28px', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
-          Passer au plan Pro →
+          Passer au plan Croissance →
         </button>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#9CA3AF', fontSize: 14, cursor: 'pointer', marginTop: 16 }}>Retour</button>
       </div>

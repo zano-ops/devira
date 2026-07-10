@@ -46,6 +46,7 @@ function fmtDateFull(date: string | null) {
 
 function planBadge(status: string | null, plan: string | null) {
   if (status === 'active' && plan === 'pro') return { label: 'Pro', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' }
+  if (status === 'active' && plan === 'croissance') return { label: 'Croissance', bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' }
   if (status === 'active' && plan === 'essentiel') return { label: 'Essentiel', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' }
   if (status === 'trial') return { label: 'Trial', bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' }
   if (status === 'expired') return { label: 'Expiré', bg: '#FEF2F2', color: '#DC2626', border: '#FCA5A5' }
@@ -108,7 +109,8 @@ export default function Admin() {
 
   const mrr = active.reduce((s, u) => {
     if (u.subscription_plan === 'pro') return s + 79.99
-    if (u.subscription_plan === 'essentiel') return s + 29.99
+    if (u.subscription_plan === 'croissance') return s + 39.99
+    if (u.subscription_plan === 'essentiel') return s + 19.99
     return s
   }, 0)
 
@@ -187,7 +189,7 @@ export default function Admin() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                   <span style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>{badge.label}</span>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>{u.subscription_plan === 'pro' ? '79,99 €' : '29,99 €'}/mois</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8' }}>{u.subscription_plan === 'pro' ? '79,99 €' : u.subscription_plan === 'croissance' ? '39,99 €' : '19,99 €'}/mois</span>
                 </div>
               </div>
             )

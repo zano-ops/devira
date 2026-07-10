@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom'
 import { DeviraIcon } from '../components/DeviraLogo'
 import { useAuth } from '../context/AuthContext'
+import { TRIAL_LIMIT, ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
 import {
   Check, ChevronDown, MessageSquare, FileText, PenLine, Bell, ArrowRight,
   ShieldCheck, Lock, Headphones, RotateCcw, Clock, TrendingDown, AlertCircle,
@@ -11,7 +12,12 @@ import {
 const P = '#1E3A5F'
 const A = '#E87722'
 const MONO = "'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace"
+// TODO: STRIPE_ESSENTIEL must point to a 19,99€ Price (was 29,99€) — update the
+// Payment Link's price in the Stripe Dashboard, or swap this URL for a new link.
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
+// TODO: replace with the real Croissance Payment Link (39,99€/mois, metadata plan=croissance)
+// once created in the Stripe Dashboard — see SETUP_stripe_webhook.sql.
+const STRIPE_CROISSANCE = 'https://buy.stripe.com/REPLACE_WITH_CROISSANCE_LINK'
 const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
 
 // ── DÉCOR ──────────────────────────────────────────────────────────────────
@@ -172,19 +178,30 @@ const TABS = [
 const FAQS = [
   { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devira est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devira. La configuration prend 5 minutes.' },
   { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devira inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
-  { q: 'Est-ce que je peux tester avant de payer ?', a: 'Oui. Votre premier devis est entièrement gratuit, sans carte bancaire. Ça vous permet de voir concrètement ce que ça donne. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n\'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.' },
-  { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
+  { q: 'Est-ce que je peux tester avant de payer ?', a: `Oui. Vos ${TRIAL_LIMIT} premiers devis sont entièrement gratuits, sans carte bancaire. Ça vous permet de voir concrètement ce que ça donne. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.` },
+  { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel, Croissance ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
   { q: 'Que se passe-t-il si j\'ai un problème ?', a: 'Notre support répond sous 24h par email. Les abonnés Pro bénéficient d\'une réponse prioritaire en moins de 2h ouvrées. Nous avons aussi une base d\'aide avec des tutoriels pour chaque fonctionnalité.' },
 ]
 
 const ESSENTIEL_FEATURES = [
-  '10 devis par mois',
+  `${ESSENTIEL_LIMIT} devis par mois`,
   'Devis par voix ou texte',
   'PDF professionnel',
   'Envoi par email et par SMS',
   'Signature électronique en ligne',
+  'Support email',
+]
+
+const CROISSANCE_FEATURES = [
+  `${CROISSANCE_LIMIT} devis par mois`,
+  'Devis par voix ou texte',
+  'PDF professionnel',
+  'Envoi par email et par SMS illimité',
+  'Signature électronique en ligne',
+  'Catalogue prestations + import intelligent',
+  'Facturation intégrée',
   'Support email',
 ]
 
@@ -204,6 +221,7 @@ export default function Landing() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const essentielUrl = user ? `${STRIPE_ESSENTIEL}?client_reference_id=${user.id}` : STRIPE_ESSENTIEL
+  const croissanceUrl = user ? `${STRIPE_CROISSANCE}?client_reference_id=${user.id}` : STRIPE_CROISSANCE
   const proUrl = user ? `${STRIPE_PRO}?client_reference_id=${user.id}` : STRIPE_PRO
   const [scrolled, setScrolled] = useState(false)
   const [tab, setTab] = useState(0)
@@ -328,8 +346,8 @@ export default function Landing() {
             </a>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>1 devis gratuit · Sans carte bancaire</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 29,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>{TRIAL_LIMIT} devis gratuits · Sans carte bancaire</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 19,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             {['Depuis le chantier', 'Envoi par SMS', 'Signature en ligne', 'Devis en 30 secondes'].map((tag) => (
               <span key={tag} style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12.5, fontWeight: 600, padding: '8px 14px', background: 'rgba(255,255,255,0.1)', borderRadius: 99 }}>{tag}</span>
@@ -661,10 +679,10 @@ export default function Landing() {
             <div className="lp-reveal" style={{ background: 'white', padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
               <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Essentiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
-                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: P, letterSpacing: '-0.01em', lineHeight: 1 }}>29,99€</span>
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: P, letterSpacing: '-0.01em', lineHeight: 1 }}>19,99€</span>
                 <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois TTC</span>
               </div>
-              <p style={{ color: '#9CA3AF', fontSize: 12, margin: '0 0 12px' }}>≈ 24,99 € HT / mois</p>
+              <p style={{ color: '#9CA3AF', fontSize: 12, margin: '0 0 12px' }}>≈ 16,66 € HT / mois</p>
               <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Pour démarrer et gagner du temps dès le premier devis</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
                 {ESSENTIEL_FEATURES.map(f => (
@@ -677,7 +695,7 @@ export default function Landing() {
                 ))}
               </div>
               <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
-                Commencer — 1 devis gratuit
+                Commencer — {TRIAL_LIMIT} devis gratuits
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
                 <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
@@ -685,6 +703,37 @@ export default function Landing() {
               </div>
               <div style={{ textAlign: 'center', marginTop: 6 }}>
                 <a href={essentielUrl} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
+              </div>
+            </div>
+
+            {/* Croissance */}
+            <div className="lp-reveal" style={{ background: 'white', padding: '36px 32px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Croissance</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
+                <span style={{ fontFamily: MONO, fontSize: 38, fontWeight: 700, color: P, letterSpacing: '-0.01em', lineHeight: 1 }}>39,99€</span>
+                <span style={{ color: '#9CA3AF', fontSize: 15 }}>/mois TTC</span>
+              </div>
+              <p style={{ color: '#9CA3AF', fontSize: 12, margin: '0 0 12px' }}>≈ 33,33 € HT / mois</p>
+              <p style={{ color: '#6B7280', fontSize: 14, margin: '0 0 28px', lineHeight: 1.5 }}>Plus de volume, catalogue et facturation intégrés</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 32 }}>
+                {CROISSANCE_FEATURES.map(f => (
+                  <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 16, height: 16, background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={10} color="#7C3AED" strokeWidth={3} />
+                    </div>
+                    <span style={{ fontSize: 14, color: '#374151' }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: '2px solid #7C3AED', color: '#7C3AED', padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+                Commencer — {TRIAL_LIMIT} devis gratuits
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
+                <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
+                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 6 }}>
+                <a href={croissanceUrl} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
 
@@ -710,7 +759,7 @@ export default function Landing() {
                 ))}
               </div>
               <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
-                Commencer — 1 devis gratuit
+                Commencer — {TRIAL_LIMIT} devis gratuits
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
                 <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
@@ -763,7 +812,7 @@ export default function Landing() {
             Arrêtez de perdre des heures<br />sur vos devis. <span style={{ color: A }}>Commencez aujourd'hui.</span>
           </h2>
           <p className="lp-reveal" style={{ color: 'rgba(255,255,255,0.62)', fontSize: 17, margin: '0 0 28px' }}>
-            1 devis complet offert, sans carte bancaire. Abonnement à partir de 29,99 €/mois.
+            {TRIAL_LIMIT} devis complets offerts, sans carte bancaire. Abonnement à partir de 19,99 €/mois.
           </p>
           <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 10, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement

@@ -14,8 +14,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const CORS = { 'Content-Type': 'application/json' }
-const ESSENTIEL_CENTS = 2981  // 29,81 € TTC
-const PRO_CENTS = 7948         // 79,48 € TTC
+const ESSENTIEL_CENTS = 1999   // 19,99 € TTC
+const CROISSANCE_CENTS = 3999  // 39,99 € TTC
+const PRO_CENTS = 7999         // 79,99 € TTC
 
 async function verifyStripeSignature(
   payload: string, sigHeader: string, secret: string
@@ -38,10 +39,11 @@ async function verifyStripeSignature(
   return diff === 0
 }
 
-function planFromSession(session: { metadata?: { plan?: string }; amount_total?: number }): 'essentiel' | 'pro' | null {
+function planFromSession(session: { metadata?: { plan?: string }; amount_total?: number }): 'essentiel' | 'croissance' | 'pro' | null {
   const meta = session.metadata?.plan
-  if (meta === 'essentiel' || meta === 'pro') return meta
+  if (meta === 'essentiel' || meta === 'croissance' || meta === 'pro') return meta
   if (session.amount_total === ESSENTIEL_CENTS) return 'essentiel'
+  if (session.amount_total === CROISSANCE_CENTS) return 'croissance'
   if (session.amount_total === PRO_CENTS) return 'pro'
   return null
 }

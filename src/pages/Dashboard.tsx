@@ -9,6 +9,7 @@ import { IosPwaInstallBanner } from '../components/IosPwaInstallBanner'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 import TrialBanner from '../components/TrialBanner'
 import UpgradeModal from '../components/UpgradeModal'
+import { ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
 import { Zap, Search, AlertTriangle, Clock, FileText, MessageCircle, TrendingUp, Plus, ArrowUpRight } from 'lucide-react'
 
 function fmt(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' }
@@ -497,11 +498,7 @@ function PlanUsageCard() {
   if (subscriptionStatus !== 'active') return null
 
   const plan = profile?.subscription_plan
-  const LIMIT = 10
   const used = quotesThisMonth
-  const remaining = Math.max(0, LIMIT - used)
-  const pct = Math.min(100, Math.round((used / LIMIT) * 100))
-  const barColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981'
 
   if (plan === 'pro' || plan === 'equipe') {
     return (
@@ -518,22 +515,30 @@ function PlanUsageCard() {
     )
   }
 
-  // Plan Essentiel (ou plan null mais actif)
+  // Plan Croissance ou Essentiel (ou plan null mais actif)
+  const isCroissance = plan === 'croissance'
+  const LIMIT = isCroissance ? CROISSANCE_LIMIT : ESSENTIEL_LIMIT
+  const planLabel = isCroissance ? 'Croissance' : 'Essentiel'
+  const upgradeLabel = isCroissance ? 'Passer à Pro' : 'Passer à Croissance'
+  const remaining = Math.max(0, LIMIT - used)
+  const pct = Math.min(100, Math.round((used / LIMIT) * 100))
+  const barColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981'
+
   return (
     <>
       <div style={{ margin: '4px 20px 8px', padding: '12px 14px', background: pct >= 90 ? '#FEF2F2' : 'white', border: `1.5px solid ${pct >= 90 ? '#FECACA' : '#E2E8F0'}`, borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', background: '#EEF2FF', padding: '2px 9px', borderRadius: 99 }}>Essentiel</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', background: '#EEF2FF', padding: '2px 9px', borderRadius: 99 }}>{planLabel}</span>
             <span style={{ fontSize: 12, color: pct >= 90 ? '#DC2626' : '#64748B', fontWeight: pct >= 90 ? 600 : 400 }}>
-              {remaining > 0 ? `${remaining} devis restants` : 'Limite du mois atteinte (10)'}
+              {remaining > 0 ? `${remaining} devis restants` : `Limite du mois atteinte (${LIMIT})`}
             </span>
           </div>
           <button
             onClick={() => setShowUpgrade(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 700, color: '#E87722', background: '#FFF7ED', border: '1px solid #FED7AA', padding: '3px 9px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
           >
-            Passer à Pro
+            {upgradeLabel}
             <ArrowUpRight size={10} strokeWidth={2.5} />
           </button>
         </div>
@@ -544,7 +549,7 @@ function PlanUsageCard() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 10, color: '#94A3B8' }}>{used} utilisés</span>
-          <span style={{ fontSize: 10, color: '#94A3B8' }}>10 / mois</span>
+          <span style={{ fontSize: 10, color: '#94A3B8' }}>{LIMIT} / mois</span>
         </div>
       </div>
       {showUpgrade && <UpgradeModal reason="manual" onClose={() => setShowUpgrade(false)} />}

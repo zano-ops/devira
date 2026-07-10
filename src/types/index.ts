@@ -24,7 +24,7 @@ export interface Profile {
   // Abonnement
   subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled'
   trial_ends_at?: string
-  subscription_plan?: 'essentiel' | 'pro' | 'equipe' | null
+  subscription_plan?: 'essentiel' | 'croissance' | 'pro' | 'equipe' | null
   quotes_this_month?: number
   quotes_reset_at?: string
   // Lifecycle emails

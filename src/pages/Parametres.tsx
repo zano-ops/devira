@@ -510,7 +510,7 @@ export default function Parametres() {
               const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
               const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86400000)) : 0
 
-              const planLabel = plan === 'pro' ? 'Pro' : plan === 'essentiel' ? 'Essentiel' : 'Essai gratuit'
+              const planLabel = plan === 'pro' ? 'Pro' : plan === 'croissance' ? 'Croissance' : plan === 'essentiel' ? 'Essentiel' : 'Essai gratuit'
               const planColor = status === 'active' ? '#1E3A5F' : status === 'trial' ? '#D97706' : '#6B7280'
               const planBg = status === 'active' ? 'rgba(30,58,95,0.08)' : status === 'trial' ? '#FFFBEB' : '#F3F4F6'
               const badgeColor = status === 'active' ? '#1E3A5F' : status === 'trial' ? '#92400E' : '#6B7280'
@@ -523,7 +523,7 @@ export default function Parametres() {
                     <div>
                       <p style={{ fontSize: 16, fontWeight: 800, color: planColor, margin: '0 0 2px' }}>{planLabel}</p>
                       <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>
-                        {status === 'active' && (plan === 'pro' ? '79,99 €/mois' : plan === 'essentiel' ? '29,99 €/mois' : '')}
+                        {status === 'active' && (plan === 'pro' ? '79,99 €/mois' : plan === 'croissance' ? '39,99 €/mois' : plan === 'essentiel' ? '19,99 €/mois' : '')}
                         {status === 'trial' && (trialEndsAt ? `Essai jusqu'au ${trialEndsAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` : 'Essai gratuit')}
                         {(status === 'expired' || status === 'cancelled') && 'Abonnement terminé'}
                       </p>

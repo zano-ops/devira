@@ -4,6 +4,7 @@ import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { Profile } from '../types'
 import { analytics } from '../lib/analytics'
+import { TRIAL_LIMIT, ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
 
 interface AuthContextType {
   user: User | null
@@ -18,6 +19,7 @@ interface AuthContextType {
   quotesThisMonth: number
   trialQuotaUsed: boolean
   isPro: boolean
+  isCroissancePlus: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -33,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   quotesThisMonth: 0,
   trialQuotaUsed: false,
   isPro: false,
+  isCroissancePlus: false,
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -89,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         quotesThisMonth: 0,
         trialQuotaUsed: false,
         isPro: false,
+        isCroissancePlus: false,
       }
     }
 
@@ -106,20 +110,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isTrialExpired = subscriptionStatus === 'expired'
 
-    const ESSENTIEL_LIMIT = 10
-    const TRIAL_LIMIT = 1
     const isEssentiel = profile.subscription_plan === 'essentiel'
+    const isCroissance = profile.subscription_plan === 'croissance'
     const isTrial = subscriptionStatus === 'trial'
     const trialQuotaUsed = isTrial && quotesThisMonth >= TRIAL_LIMIT
 
     const canCreateQuote =
       !isTrialExpired &&
       !trialQuotaUsed &&
-      !(isEssentiel && quotesThisMonth >= ESSENTIEL_LIMIT)
+      !(isEssentiel && quotesThisMonth >= ESSENTIEL_LIMIT) &&
+      !(isCroissance && quotesThisMonth >= CROISSANCE_LIMIT)
 
     const isPro = status === 'active' && profile.subscription_plan === 'pro'
+    const isCroissancePlus = status === 'active' && (isCroissance || profile.subscription_plan === 'pro')
 
-    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth, trialQuotaUsed, isPro }
+    return { trialDaysLeft, subscriptionStatus, isTrialExpired, canCreateQuote, quotesThisMonth, trialQuotaUsed, isPro, isCroissancePlus }
   }, [profile])
 
   return (

@@ -1,16 +1,33 @@
-﻿import { Check, ShieldCheck } from 'lucide-react'
+import { Check, ShieldCheck } from 'lucide-react'
 import { DeviraIcon } from './DeviraLogo'
 import { useAuth } from '../context/AuthContext'
+import { ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
 
+// TODO: STRIPE_ESSENTIEL must point to a 19,99€ Price (was 29,99€) — update the
+// Payment Link's price in the Stripe Dashboard, or swap this URL for a new link.
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
+// TODO: replace with the real Croissance Payment Link (39,99€/mois, metadata plan=croissance)
+// once created in the Stripe Dashboard — see SETUP_stripe_webhook.sql.
+const STRIPE_CROISSANCE = 'https://buy.stripe.com/REPLACE_WITH_CROISSANCE_LINK'
 const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
 
 const ESSENTIEL_FEATURES = [
-  '10 devis par mois',
+  `${ESSENTIEL_LIMIT} devis par mois`,
   'Devis par voix ou texte',
   'PDF professionnel',
   'Envoi par email et SMS',
   'Signature électronique en ligne',
+  'Support email',
+]
+
+const CROISSANCE_FEATURES = [
+  `${CROISSANCE_LIMIT} devis par mois`,
+  'Devis par voix ou texte',
+  'PDF professionnel',
+  'Envoi par email et SMS illimité',
+  'Signature électronique en ligne',
+  'Catalogue prestations + import intelligent',
+  'Facturation intégrée',
   'Support email',
 ]
 
@@ -33,18 +50,19 @@ interface Props {
 export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
   const { user } = useAuth()
   const essentielUrl = user ? `${STRIPE_ESSENTIEL}?client_reference_id=${user.id}` : STRIPE_ESSENTIEL
+  const croissanceUrl = user ? `${STRIPE_CROISSANCE}?client_reference_id=${user.id}` : STRIPE_CROISSANCE
   const proUrl = user ? `${STRIPE_PRO}?client_reference_id=${user.id}` : STRIPE_PRO
 
   const title =
     reason === 'trial_expired' ? 'Votre essai est terminé'
     : reason === 'limit_reached' ? 'Limite atteinte'
-    : reason === 'trial_limit_reached' ? 'Devis d\'essai utilisé'
+    : reason === 'trial_limit_reached' ? 'Devis d\'essai utilisés'
     : 'Choisissez votre plan'
 
   const subtitle =
     reason === 'trial_expired' ? 'Continuez à créer des devis en quelques secondes.'
-    : reason === 'limit_reached' ? 'Vous avez atteint vos 10 devis Essentiel ce mois-ci.'
-    : reason === 'trial_limit_reached' ? 'Votre devis gratuit a été utilisé. Choisissez un plan pour continuer à créer des devis.'
+    : reason === 'limit_reached' ? `Vous avez atteint votre limite de devis ce mois-ci.`
+    : reason === 'trial_limit_reached' ? 'Vos devis d\'essai ont été utilisés. Choisissez un plan pour continuer à créer des devis.'
     : 'Activez votre abonnement pour continuer.'
 
   return (
@@ -89,9 +107,9 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Pour démarrer</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>29,99 €</p>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#1E3A5F', margin: 0, letterSpacing: '-0.03em' }}>19,99 €</p>
                 <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 1px' }}>TTC / mois</p>
-                <p style={{ fontSize: 10, color: '#CBD5E1', margin: 0 }}>≈ 24,99 € HT</p>
+                <p style={{ fontSize: 10, color: '#CBD5E1', margin: 0 }}>≈ 16,66 € HT</p>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>
@@ -110,7 +128,40 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
                 fontWeight: 700, fontSize: 14, textDecoration: 'none',
               }}
             >
-              Choisir Essentiel — 29,99 €/mois
+              Choisir Essentiel — 19,99 €/mois
+            </a>
+          </div>
+
+          {/* Croissance */}
+          <div style={{ border: '1.5px solid #7C3AED', borderRadius: 16, padding: 18, background: '#FAF5FF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', margin: '0 0 2px' }}>Croissance</p>
+                <p style={{ fontSize: 12, color: '#94A3B8', margin: 0 }}>Plus de volume, moins de manuel</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontWeight: 900, fontSize: 22, color: '#7C3AED', margin: 0, letterSpacing: '-0.03em' }}>39,99 €</p>
+                <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 1px' }}>TTC / mois</p>
+                <p style={{ fontSize: 10, color: '#CBD5E1', margin: 0 }}>≈ 33,33 € HT</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 16 }}>
+              {CROISSANCE_FEATURES.map(f => (
+                <div key={f} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <Check size={13} color="#7C3AED" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: '#374151' }}>{f}</span>
+                </div>
+              ))}
+            </div>
+            <a
+              href={croissanceUrl}
+              style={{
+                display: 'block', textAlign: 'center', padding: '12px 0',
+                border: '1.5px solid #7C3AED', borderRadius: 12, color: '#7C3AED',
+                fontWeight: 700, fontSize: 14, textDecoration: 'none',
+              }}
+            >
+              Choisir Croissance — 39,99 €/mois
             </a>
           </div>
 

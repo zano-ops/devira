@@ -38,7 +38,7 @@ function welcomeEmailHtml(firstName: string) {
     </div>
     <div style="background:#f9f9f9;padding:28px 32px;border:1px solid #e5e5e5;border-top:none;border-radius:0 0 12px 12px">
       <p>Bonjour ${firstName},</p>
-      <p>Votre compte est prêt. Vous avez <strong>1 devis gratuit</strong> disponible — sans carte bancaire.</p>
+      <p>Votre compte est prêt. Vous avez <strong>10 devis gratuits</strong> disponibles — sans carte bancaire.</p>
       <p>Regardez Devira en action :</p>
       <div style="text-align:center;margin:20px 0">
         <a href="${DEMO_VIDEO_URL}" style="display:inline-block">
@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
     const daysLeft = Math.ceil((new Date(u.trial_ends_at).getTime() - now.getTime()) / 86400000)
     if (daysLeft > 2 || daysLeft < 0) continue
     const firstName = u.owner_name?.split(' ')[0] || 'vous'
-    const hasUsedTrial = (u.quotes_this_month || 0) >= 1
+    const hasUsedTrial = (u.quotes_this_month || 0) >= 10 // mirrors TRIAL_LIMIT in src/lib/planLimits.ts
     const ok = await sendBrevoEmail(BREVO_API_KEY, u.email,
       'Votre essai Devira expire dans 2 jours',
       `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
           <p>Bonjour ${firstName},</p>
           ${hasUsedTrial
             ? `<p>Vous avez déjà testé Devira et vu ce que l'IA génère. Pour continuer à créer des devis sans limite, choisissez votre abonnement.</p>`
-            : `<p>Votre essai gratuit (1 devis) n'a pas encore été utilisé et il expire dans 2 jours. Profitez-en avant qu'il soit trop tard.</p>`
+            : `<p>Votre essai gratuit (10 devis) n'a pas encore été utilisé et il expire dans 2 jours. Profitez-en avant qu'il soit trop tard.</p>`
           }
           <div style="text-align:center;margin:28px 0">
             <a href="https://devira.fr/parametres" style="background:#E87722;color:white;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">
@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
             </a>
           </div>
           <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;margin:16px 0">
-            <p style="margin:0;color:#15803D;font-size:13px">✓ Satisfait ou remboursé 14 jours · Annulation à tout moment · À partir de 29,99€/mois TTC</p>
+            <p style="margin:0;color:#15803D;font-size:13px">✓ Satisfait ou remboursé 14 jours · Annulation à tout moment · À partir de 19,99€/mois TTC</p>
           </div>
           <p>Mathias — Devira</p>
         </div>

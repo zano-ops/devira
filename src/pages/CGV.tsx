@@ -55,14 +55,15 @@ export default function CGV() {
         </Section>
 
         <Section title="Article 3 — Accès au Service et devis d'essai">
-          <p>Devira permet la création d'<strong>un devis gratuit</strong> dès l'inscription, sans carte bancaire requise. Ce devis d'essai vous permet d'évaluer concrètement les fonctionnalités de génération IA. Au-delà de ce premier devis, la poursuite de l'utilisation du Service est conditionnée à la souscription d'un abonnement payant.</p>
+          <p>Devira permet la création de <strong>10 devis gratuits</strong> dès l'inscription, sans carte bancaire requise. Ces devis d'essai vous permettent d'évaluer concrètement les fonctionnalités de génération IA. Au-delà de ces 10 devis, la poursuite de l'utilisation du Service est conditionnée à la souscription d'un abonnement payant.</p>
           <p style={{ marginTop: 10 }}>Pour accéder au Service, vous devez créer un compte en fournissant une adresse email valide et un mot de passe. Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée depuis votre compte.</p>
         </Section>
 
         <Section title="Article 4 — Abonnements et tarifs">
           <p>Les offres disponibles sont les suivantes :</p>
           <ul style={{ marginTop: 10, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <li><strong>Essentiel — 29,99 € TTC/mois</strong> : 10 devis par mois, devis par voix ou texte, PDF professionnel, envoi par email, signature électronique en ligne, support email.</li>
+            <li><strong>Essentiel — 19,99 € TTC/mois</strong> : 20 devis par mois, devis par voix ou texte, PDF professionnel, envoi par email et SMS, signature électronique en ligne, support email.</li>
+            <li><strong>Croissance — 39,99 € TTC/mois</strong> : 50 devis par mois, envoi par email et SMS illimité, catalogue de prestations avec import intelligent, facturation intégrée, support email.</li>
             <li><strong>Pro — 79,99 € TTC/mois</strong> : devis illimités, relances automatiques (J+7, J+14, J+21), catalogue de prestations avec import intelligent, facturation intégrée, photos chantier dans les PDF, export comptable (FEC), support prioritaire &lt; 24h.</li>
           </ul>
           <p style={{ marginTop: 12 }}>Les prix sont indiqués hors taxes. La TVA applicable est celle en vigueur à la date de facturation. Devira se réserve le droit de modifier ses tarifs avec un préavis de 30 jours. Les abonnements en cours ne sont pas affectés jusqu'à leur prochaine échéance.</p>
