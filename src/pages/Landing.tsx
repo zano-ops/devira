@@ -12,13 +12,9 @@ import {
 const P = '#1E3A5F'
 const A = '#E87722'
 const MONO = "'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace"
-// TODO: STRIPE_ESSENTIEL must point to a 19,99€ Price (was 29,99€) — update the
-// Payment Link's price in the Stripe Dashboard, or swap this URL for a new link.
-const STRIPE_ESSENTIEL = 'https://buy.stripe.com/4gMfZg2I8gtC1GLbzY4Ni03'
-// TODO: replace with the real Croissance Payment Link (39,99€/mois, metadata plan=croissance)
-// once created in the Stripe Dashboard — see SETUP_stripe_webhook.sql.
-const STRIPE_CROISSANCE = 'https://buy.stripe.com/REPLACE_WITH_CROISSANCE_LINK'
-const STRIPE_PRO = 'https://buy.stripe.com/8x2fZg3Mc7X62KP5bA4Ni02'
+const STRIPE_ESSENTIEL = 'https://buy.stripe.com/bJeaEWdmM5OY5X1bzY4Ni04'
+const STRIPE_CROISSANCE = 'https://buy.stripe.com/7sY4gyfuU4KU3OT5bA4Ni05'
+const STRIPE_PRO = 'https://buy.stripe.com/8x2aEWeqQ6T2adheMa4Ni06'
 
 // ── DÉCOR ──────────────────────────────────────────────────────────────────
 // Anciens repères d'angle "plan technique" retirés (trop "outil/IA") : composant
