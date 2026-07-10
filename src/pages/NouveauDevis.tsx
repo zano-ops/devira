@@ -42,7 +42,6 @@ export default function NouveauDevis() {
   const [description, setDescription] = useState('')
   const [micState, setMicState] = useState<MicState>('idle')
   const [generating, setGenerating] = useState(false)
-  const [charCount, setCharCount] = useState(0)
 
   // Client step
   const [clientName, setClientName] = useState('')
@@ -68,10 +67,10 @@ export default function NouveauDevis() {
   const baseTextRef = useRef('')
 
   const canGenerate = description.length >= 10
+  const charCount = description.length
 
-  // Auto-resize textarea
+  // Auto-resize textarea (DOM-only side effect, no state update)
   useEffect(() => {
-    setCharCount(description.length)
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 300) + 'px'
