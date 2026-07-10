@@ -21,6 +21,19 @@ function truncateToWidth(doc: jsPDFType, text: string, maxWidth: number): string
   return t + '…'
 }
 
+// Colonne de pied de page : tient sur 2 lignes avant de tronquer, pour éviter de couper un texte long (ex. SIRET + assurance décennale) en plein mot.
+function renderFooterCol(doc: jsPDFType, text: string, x: number, maxWidth: number, footerY: number, align: 'left' | 'center' | 'right') {
+  if (!text) return
+  if (doc.getTextWidth(text) <= maxWidth) {
+    doc.text(text, x, footerY + 5, { align })
+    return
+  }
+  const wrapped = doc.splitTextToSize(text, maxWidth) as string[]
+  const line2 = wrapped.length > 2 ? truncateToWidth(doc, wrapped.slice(1).join(' '), maxWidth) : wrapped[1]
+  doc.text(wrapped[0], x, footerY + 4, { align })
+  doc.text(line2, x, footerY + 7.5, { align })
+}
+
 const BLUE = '#1E3A5F'
 const ML = 14
 const MR = 14
@@ -487,9 +500,9 @@ async function buildDoc(quote: Quote, profile: Profile): Promise<jsPDFType> {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor('#777777')
-    doc.text(truncateToWidth(doc, f1.trim(), footerZoneW - 4), ML, footerY + 5)
-    if (f2) doc.text(truncateToWidth(doc, f2, footerZoneW - 8), W / 2, footerY + 5, { align: 'center' })
-    doc.text(truncateToWidth(doc, tvaLabel, footerZoneW - 4), W - MR, footerY + 5, { align: 'right' })
+    renderFooterCol(doc, f1.trim(), ML, footerZoneW - 4, footerY, 'left')
+    renderFooterCol(doc, f2, W / 2, footerZoneW - 8, footerY, 'center')
+    renderFooterCol(doc, tvaLabel, W - MR, footerZoneW - 4, footerY, 'right')
   }
 
   return doc
@@ -720,9 +733,9 @@ export async function downloadInvoicePdf(invoice: Invoice, profile: Profile): Pr
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor('#777777')
-    doc.text(truncateToWidth(doc, invoiceF1, invoiceFooterZoneW - 4), ML, footerY + 5)
-    if (invoiceF2) doc.text(truncateToWidth(doc, invoiceF2, invoiceFooterZoneW - 8), W / 2, footerY + 5, { align: 'center' })
-    doc.text(truncateToWidth(doc, 'Genere avec Devira', invoiceFooterZoneW - 4), W - MR, footerY + 5, { align: 'right' })
+    renderFooterCol(doc, invoiceF1, ML, invoiceFooterZoneW - 4, footerY, 'left')
+    renderFooterCol(doc, invoiceF2, W / 2, invoiceFooterZoneW - 8, footerY, 'center')
+    renderFooterCol(doc, 'Genere avec Devira', W - MR, invoiceFooterZoneW - 4, footerY, 'right')
   }
 
   doc.save(`Facture-${invoice.invoice_number}.pdf`)
