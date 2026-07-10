@@ -36,7 +36,7 @@ export function QuotePreview({ quote, profile }: Props) {
   return (
     <div id="quote-preview" style={{
       fontFamily: "Arial, sans-serif", fontSize: '11.5px', color: '#1a1a1a',
-      background: '#fff', padding: '32px 36px', lineHeight: '1.55', maxWidth: '794px'
+      background: '#fff', padding: '32px 36px', lineHeight: '1.55', width: '794px', maxWidth: '794px'
     }}>
 
       {/* ===== EN-TÊTE ===== */}

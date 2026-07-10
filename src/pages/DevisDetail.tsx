@@ -791,6 +791,7 @@ export default function DevisDetail() {
             </button>
           </div>
 
+          <p className="sm:hidden text-center text-xs font-semibold text-gray-400 mx-4 mt-2">← Faites glisser pour voir le devis en entier →</p>
           <div className="mx-4 my-4 bg-white rounded-2xl border border-gray-100 overflow-x-auto" style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <QuotePreview quote={quote} profile={profile} />
           </div>
