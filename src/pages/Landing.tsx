@@ -253,7 +253,15 @@ export default function Landing() {
         .lp-pdf-pages { flex-direction: column; align-items: center; }
       }
       .lp-page h1, .lp-page h2 { font-family: 'Fraunces', Georgia, serif; }
-      .lp-underline { position: relative; white-space: nowrap; }
+      @media (max-width: 600px) {
+        .lp-scroll-hint { display: block !important; }
+        .lp-compare-table th, .lp-compare-table td { padding-left: 12px !important; padding-right: 12px !important; }
+        .lp-tabs { display: grid !important; grid-template-columns: 1fr 1fr; }
+        .lp-tab-btn { border-left: none !important; border-top: 1px solid #E5E7EB !important; }
+        .lp-tab-btn:nth-child(1), .lp-tab-btn:nth-child(2) { border-top: none !important; }
+        .lp-tab-btn:nth-child(even) { border-left: 1px solid #E5E7EB !important; }
+      }
+      .lp-underline { position: relative; white-space: nowrap; display: inline-block; }
       .lp-underline svg { position: absolute; left: -2%; right: -2%; bottom: -0.14em; width: 104%; height: 0.3em; }
     `
     document.head.appendChild(style)
@@ -473,11 +481,11 @@ export default function Landing() {
             Tout ce qu'il vous faut, rien de superflu
           </h2>
 
-          <div style={{ display: 'flex', gap: 0, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 44, border: '1px solid #E5E7EB' }}>
+          <div className="lp-tabs" style={{ display: 'flex', gap: 0, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 44, border: '1px solid #E5E7EB' }}>
             {TABS.map((t, i) => {
               const Icon = t.icon
               return (
-                <button key={i} onClick={() => setTab(i)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', borderTop: 'none', borderBottom: 'none', borderLeft: i > 0 ? '1px solid #E5E7EB' : 'none', borderRight: 'none', background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 13, fontFamily: MONO, cursor: 'pointer', transition: 'all 0.15s' }}>
+                <button key={i} onClick={() => setTab(i)} className="lp-tab-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 18px', borderTop: 'none', borderBottom: 'none', borderLeft: i > 0 ? '1px solid #E5E7EB' : 'none', borderRight: 'none', background: tab === i ? P : 'white', color: tab === i ? 'white' : '#374151', fontWeight: 600, fontSize: 13, fontFamily: MONO, cursor: 'pointer', transition: 'all 0.15s' }}>
                   <Icon size={14} />
                   {t.label}
                 </button>
@@ -553,9 +561,12 @@ export default function Landing() {
             Les logiciels BTP coûtent cher et restent compliqués. Avec Devira, votre devis est prêt en moins de 30 secondes.
           </p>
 
+          <p className="lp-scroll-hint" style={{ display: 'none', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5, fontWeight: 600, margin: '0 0 8px' }}>
+            ← Faites glisser pour comparer →
+          </p>
           <div className="lp-reveal" style={{ background: 'white', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 8px 36px rgba(0,0,0,0.08)', marginBottom: 36 }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
+              <table className="lp-compare-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #F3F4F6' }}>
                     <th style={{ padding: '20px 24px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#6B7280', width: '36%' }}></th>
@@ -624,8 +635,8 @@ export default function Landing() {
                 { n: '200h', label: 'récupérées\npar an' },
                 { n: '9 000€', label: 'de valeur\ncréée/an' },
               ].map((stat, i) => (
-                <div key={i} style={{ textAlign: 'center', padding: '0 24px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-                  <div style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: A, lineHeight: 1 }}>{stat.n}</div>
+                <div key={i} style={{ textAlign: 'center', padding: '0 clamp(10px, 4vw, 24px)', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 'clamp(17px, 5vw, 28px)', fontWeight: 700, color: A, lineHeight: 1, whiteSpace: 'nowrap' }}>{stat.n}</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginTop: 6, whiteSpace: 'pre-line', lineHeight: 1.4 }}>{stat.label}</div>
                 </div>
               ))}
