@@ -174,7 +174,7 @@ const TABS = [
 const FAQS = [
   { q: 'Est-ce que je dois être fort en informatique ?', a: 'Pas du tout. Devira est conçu pour les artisans, pas les ingénieurs. Si vous savez envoyer un SMS, vous saurez utiliser Devira. La configuration prend 5 minutes.' },
   { q: 'Mes devis sont-ils conformes légalement ?', a: 'Oui. Chaque devis Devira inclut automatiquement toutes les mentions obligatoires : TVA, SIRET, validité, conditions de paiement et signature. Vous êtes en règle.' },
-  { q: 'Est-ce que je peux tester avant de payer ?', a: `Oui. Vos ${TRIAL_LIMIT} premiers devis sont entièrement gratuits, sans carte bancaire. Ça vous permet de voir concrètement ce que ça donne. Ensuite, vous choisissez un abonnement si ça vous convient — et si vous n'êtes pas satisfait dans les 14 jours suivant votre premier paiement, on vous rembourse intégralement.` },
+  { q: 'Est-ce que je peux tester avant de payer ?', a: `Oui. Vos ${TRIAL_LIMIT} premiers devis sont entièrement gratuits, sans carte bancaire. Ça vous permet de voir concrètement ce que ça donne. Ensuite, vous choisissez un abonnement si ça vous convient.` },
   { q: 'Comment fonctionne l\'abonnement ?', a: 'Vous choisissez votre plan (Essentiel, Croissance ou Pro) et payez par carte via Stripe. Vous accédez immédiatement à toutes les fonctionnalités. Vous pouvez annuler à tout moment depuis votre espace client, sans frais ni préavis.' },
   { q: 'Est-ce que je garde mes données si j\'arrête ?', a: 'Bien sûr. Vos devis restent accessibles en lecture pendant 12 mois après résiliation. Vous pouvez tout exporter en PDF avant de partir.' },
   { q: 'Combien de temps prend la configuration initiale ?', a: 'Entre 5 et 10 minutes. Vous saisissez votre logo, vos coordonnées, votre SIRET, vos taux de TVA et votre catalogue de prestations. C\'est tout.' },
@@ -343,7 +343,7 @@ export default function Landing() {
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, margin: '0 0 6px', fontWeight: 600 }}>{TRIAL_LIMIT} devis gratuits · Sans carte bancaire</p>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 19,99 €/mois · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 28px' }}>À partir de 19,99 €/mois · Annulation à tout moment</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             {['Depuis le chantier', 'Envoi par SMS', 'Signature en ligne', 'Devis en 30 secondes'].map((tag) => (
               <span key={tag} style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12.5, fontWeight: 600, padding: '8px 14px', background: 'rgba(255,255,255,0.1)', borderRadius: 99 }}>{tag}</span>
@@ -533,17 +533,6 @@ export default function Landing() {
           <h2 className="lp-reveal" style={{ textAlign: 'center', fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 800, color: 'white', letterSpacing: '-0.02em', margin: '0 0 52px', lineHeight: 1.2 }}>
             Ce sur quoi vous pouvez compter
           </h2>
-          <div className="lp-reveal" style={{ position: 'relative', background: 'rgba(255,255,255,0.06)', padding: '24px 32px', border: `1px solid ${A}55`, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <Corners color={A} />
-            <div style={{ width: 52, height: 52, background: A, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <RotateCcw size={24} color="white" strokeWidth={2} />
-            </div>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white', margin: '0 0 6px' }}>Satisfait ou remboursé 14 jours</h3>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, margin: 0 }}>Pas convaincu dans les 14 premiers jours ? Envoyez un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> — nous vous remboursons intégralement, sans question.</p>
-            </div>
-          </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 28 }}>
             {[
               { Icon: ShieldCheck, title: 'Légalement conforme', desc: 'SIRET, TVA, mentions obligatoires — tout est inclus automatiquement dans chaque devis.' },
@@ -693,11 +682,7 @@ export default function Landing() {
               <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: `2px solid ${P}`, color: P, padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                 Commencer — {TRIAL_LIMIT} devis gratuits
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-                <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
-              </div>
-              <div style={{ textAlign: 'center', marginTop: 6 }}>
+              <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <a href={essentielUrl} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
@@ -724,11 +709,7 @@ export default function Landing() {
               <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: 'transparent', border: '2px solid #7C3AED', color: '#7C3AED', padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                 Commencer — {TRIAL_LIMIT} devis gratuits
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-                <ShieldCheck size={13} color="#16A34A" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: '#6B7280' }}>Satisfait ou remboursé 14 jours</span>
-              </div>
-              <div style={{ textAlign: 'center', marginTop: 6 }}>
+              <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <a href={croissanceUrl} style={{ fontSize: 11, color: '#9CA3AF', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
@@ -757,18 +738,14 @@ export default function Landing() {
               <button onClick={() => goto('/signup')} style={{ display: 'block', width: '100%', background: A, border: 'none', color: 'white', padding: 14, borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 22px rgba(232,119,34,0.55)', transition: 'all 0.2s' }}>
                 Commencer — {TRIAL_LIMIT} devis gratuits
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 10 }}>
-                <ShieldCheck size={13} color="rgba(255,255,255,0.65)" strokeWidth={2} />
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Satisfait ou remboursé 14 jours</span>
-              </div>
-              <div style={{ textAlign: 'center', marginTop: 6 }}>
+              <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <a href={proUrl} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textDecoration: 'underline' }}>Souscrire directement sans essai →</a>
               </div>
             </div>
           </div>
 
           <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 14, marginTop: 28 }}>
-            Satisfait ou remboursé 14 jours · Paiement sécurisé par Stripe · Annulation à tout moment
+            Paiement sécurisé par Stripe · Annulation à tout moment
           </p>
         </div>
       </section>
@@ -813,7 +790,7 @@ export default function Landing() {
           <button onClick={() => goto('/signup')} style={{ display: 'inline-block', background: A, border: 'none', color: 'white', padding: '18px 48px', borderRadius: 10, fontSize: 18, fontWeight: 800, cursor: 'pointer', boxShadow: '0 12px 44px rgba(232,119,34,0.52)', transition: 'transform 0.15s' }}>
             Démarrer gratuitement
           </button>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Satisfait ou remboursé 14 jours · Annulation à tout moment</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: 16 }}>Paiement sécurisé par Stripe · Annulation à tout moment</p>
         </div>
       </section>
 

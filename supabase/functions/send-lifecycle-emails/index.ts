@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
             </a>
           </div>
           <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;margin:16px 0">
-            <p style="margin:0;color:#15803D;font-size:13px">✓ Satisfait ou remboursé 14 jours · Annulation à tout moment · À partir de 19,99€/mois TTC</p>
+            <p style="margin:0;color:#15803D;font-size:13px">✓ Annulation à tout moment · À partir de 19,99€/mois TTC</p>
           </div>
           <p>Mathias — Devira</p>
         </div>

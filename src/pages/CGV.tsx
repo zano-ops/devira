@@ -74,45 +74,40 @@ export default function CGV() {
           <p style={{ marginTop: 10 }}>L'abonnement est renouvelé automatiquement à chaque échéance mensuelle. En cas d'échec de paiement, un email de notification vous sera envoyé. Sans régularisation sous 7 jours, l'accès au Service pourra être suspendu. Vos données restent conservées pendant cette période.</p>
         </Section>
 
-        <Section title="Article 6 — Politique de remboursement">
-          <p>Devira offre une <strong>garantie satisfait ou remboursé de 14 jours</strong> à compter du premier prélèvement. Pour en bénéficier, envoyez simplement un email à <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a> en indiquant votre demande de remboursement. Le remboursement sera effectué sous 5 à 10 jours ouvrés sur votre moyen de paiement d'origine.</p>
-          <p style={{ marginTop: 10 }}>Au-delà de cette période de 14 jours, aucun remboursement partiel ou proratisé ne pourra être accordé pour la période d'abonnement en cours.</p>
-        </Section>
-
-        <Section title="Article 7 — Résiliation">
+        <Section title="Article 6 — Résiliation">
           <p>Vous pouvez résilier votre abonnement à tout moment depuis votre espace Paramètres ou en contactant notre support. La résiliation prend effet à la fin de la période de facturation en cours ; aucun prélèvement supplémentaire ne sera effectué.</p>
           <p style={{ marginTop: 10 }}>Après résiliation, vos devis et données restent accessibles en lecture seule pendant <strong>12 mois</strong>. Vous pouvez exporter vos devis en PDF à tout moment pendant cette période. Au-delà, les données sont supprimées de nos serveurs.</p>
         </Section>
 
-        <Section title="Article 8 — Propriété intellectuelle">
+        <Section title="Article 7 — Propriété intellectuelle">
           <p>La plateforme Devira, son interface, son code source, ses algorithmes et son contenu sont la propriété exclusive de Devira et sont protégés par les lois françaises et internationales sur la propriété intellectuelle.</p>
           <p style={{ marginTop: 10 }}>Vous êtes autorisé à utiliser le Service uniquement dans le cadre de votre activité professionnelle personnelle. Vous ne pouvez pas reproduire, modifier, distribuer, vendre ou exploiter commercialement tout ou partie du Service sans autorisation écrite préalable.</p>
           <p style={{ marginTop: 10 }}>Vous conservez l'entière propriété de vos données : devis, clients, catalogue de prestations, logos et tout contenu que vous créez via le Service. En utilisant le Service, vous accordez à Devira une licence limitée d'utilisation de ces données dans le seul but de vous fournir le Service.</p>
         </Section>
 
-        <Section title="Article 9 — Disponibilité et maintenance">
+        <Section title="Article 8 — Disponibilité et maintenance">
           <p>Devira s'engage à maintenir le Service disponible <strong>99 % du temps</strong> sur une base mensuelle. Des interruptions de maintenance programmée peuvent avoir lieu, de préférence en dehors des heures ouvrées. En cas d'interruption imprévue significative, nous vous en informerons dans les meilleurs délais.</p>
         </Section>
 
-        <Section title="Article 10 — Limitation de responsabilité">
+        <Section title="Article 9 — Limitation de responsabilité">
           <p>Devira est un outil d'aide à la création de devis. Les devis générés via l'IA sont fournis à titre indicatif et doivent être vérifiés par l'utilisateur avant tout envoi à un client. Devira ne peut être tenu responsable des erreurs dans le contenu des devis, des litiges commerciaux entre l'utilisateur et ses clients, ou de toute perte de chiffre d'affaires liée à l'utilisation du Service.</p>
           <p style={{ marginTop: 10 }}>Notre responsabilité est en tout état de cause limitée au montant des sommes effectivement payées par l'utilisateur au cours des 12 derniers mois précédant le fait générateur.</p>
         </Section>
 
-        <Section title="Article 11 — Données personnelles">
+        <Section title="Article 10 — Données personnelles">
           <p>Le traitement de vos données personnelles est régi par notre <button onClick={() => navigate('/confidentialite')} style={{ background: 'none', border: 'none', color: A, fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: 15, textDecoration: 'underline' }}>Politique de Confidentialité</button>, accessible à tout moment sur le Site. Devira s'engage à traiter vos données conformément au Règlement Général sur la Protection des Données (RGPD).</p>
         </Section>
 
-        <Section title="Article 12 — Droit applicable et litiges">
+        <Section title="Article 11 — Droit applicable et litiges">
           <p>Les présentes CGV/CGU sont soumises au <strong>droit français</strong>. En cas de litige, et après tentative de résolution amiable, les tribunaux du ressort du siège social de Devira seront seuls compétents.</p>
           <p style={{ marginTop: 10 }}>Conformément à l'article L.612-1 du Code de la consommation, en cas de litige non résolu amiablement, vous pouvez recourir gratuitement à un médiateur de la consommation.</p>
         </Section>
 
-        <Section title="Article 13 — Modifications des CGV">
+        <Section title="Article 12 — Modifications des CGV">
           <p>Devira se réserve le droit de modifier les présentes CGV/CGU à tout moment. Vous serez informé de toute modification significative par email avec un préavis de 30 jours. La poursuite de l'utilisation du Service après ce délai vaut acceptation des nouvelles conditions.</p>
         </Section>
 
-        <Section title="Article 14 — Contact">
+        <Section title="Article 13 — Contact">
           <p>Pour toute question relative aux présentes CGV/CGU :</p>
           <p style={{ marginTop: 8 }}>Email : <a href="mailto:support@devira.fr" style={{ color: A, textDecoration: 'none', fontWeight: 600 }}>support@devira.fr</a></p>
         </Section>

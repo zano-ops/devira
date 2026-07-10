@@ -206,7 +206,7 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
 
         <div style={{ padding: '0 20px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <ShieldCheck size={13} color="#10B981" strokeWidth={2} />
-          <span style={{ fontSize: 12, color: '#64748B' }}>Satisfait ou remboursé 14 jours · Annulation à tout moment</span>
+          <span style={{ fontSize: 12, color: '#64748B' }}>Annulation à tout moment</span>
         </div>
 
         {onClose && (

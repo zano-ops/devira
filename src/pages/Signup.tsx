@@ -82,7 +82,6 @@ export default function Signup() {
         <div className="mt-4 flex gap-3 flex-wrap justify-center">
           <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">{TRIAL_LIMIT} devis gratuits</span>
           <span className="bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full">Sans carte bancaire</span>
-          <span className="bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full">Remboursé 14 jours</span>
         </div>
       </div>
 
