@@ -209,5 +209,11 @@ button:active {
   to   { transform: translateY(0); }
 }
 
+@keyframes devira-loading-slide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(380%); }
+}
+.devira-loading-bar { animation: devira-loading-slide 1.1s ease-in-out infinite; }
+
 .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }

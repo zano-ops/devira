@@ -26,10 +26,35 @@ const Admin = lazy(() => import('./pages/Admin'))
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#1E3A5F' }}>
-      <div className="flex flex-col items-center gap-4">
-        <span className="text-5xl">📋</span>
-        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #1E3A5F 0%, #142943 100%)' }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+          maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+        }}
+      />
+      <div className="flex flex-col items-center gap-6 relative">
+        <span
+          style={{
+            fontFamily: "'Fraunces', Georgia, serif",
+            fontWeight: 600,
+            fontSize: 36,
+            color: 'white',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          devira
+        </span>
+        <div style={{ width: 96, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
+          <div className="devira-loading-bar" style={{ height: '100%', width: '35%', borderRadius: 2, background: '#E87722' }} />
+        </div>
       </div>
     </div>
   )

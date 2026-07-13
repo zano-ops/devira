@@ -247,7 +247,7 @@ export default function Parametres() {
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
 
       {/* Header */}
-      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16 }}>
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingBottom: 16, paddingTop: 'env(safe-area-inset-top)' }}>
         <div style={{ padding: '14px 20px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

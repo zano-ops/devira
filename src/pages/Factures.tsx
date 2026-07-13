@@ -189,7 +189,7 @@ export default function Factures() {
       <ToastContainer />
 
       {/* Header */}
-      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9' }}>
+      <div style={{ background: 'white', borderBottom: '1px solid #F1F5F9', paddingTop: 'env(safe-area-inset-top)' }}>
         <TrialBanner />
         <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
