@@ -1,7 +1,10 @@
+import { useEffect, useRef, useState } from 'react'
 import { Check, ShieldCheck } from 'lucide-react'
 import { DeviraIcon } from './DeviraLogo'
 import { useAuth } from '../context/AuthContext'
 import { ESSENTIEL_LIMIT, CROISSANCE_LIMIT } from '../lib/planLimits'
+
+const DISMISS_THRESHOLD = 110
 
 const STRIPE_ESSENTIEL = 'https://buy.stripe.com/bJeaEWdmM5OY5X1bzY4Ni04'
 const STRIPE_CROISSANCE = 'https://buy.stripe.com/7sY4gyfuU4KU3OT5bA4Ni05'
@@ -49,6 +52,62 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
   const croissanceUrl = user ? `${STRIPE_CROISSANCE}?client_reference_id=${user.id}` : STRIPE_CROISSANCE
   const proUrl = user ? `${STRIPE_PRO}?client_reference_id=${user.id}` : STRIPE_PRO
 
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const startY = useRef(0)
+  const dragActive = useRef(false)
+  const dragDistance = useRef(0)
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+
+  useEffect(() => {
+    const el = sheetRef.current
+    if (!el) return
+
+    const onTouchStart = (e: TouchEvent) => {
+      startY.current = e.touches[0].clientY
+      dragActive.current = el.scrollTop <= 0
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0].clientY
+      if (!dragActive.current) {
+        if (el.scrollTop <= 0 && y > startY.current) dragActive.current = true
+        else return
+      }
+      const delta = Math.max(0, y - startY.current)
+      dragDistance.current = delta
+      if (delta > 0) {
+        e.preventDefault()
+        setIsDragging(true)
+        setDragY(delta)
+      }
+    }
+
+    const onTouchEnd = () => {
+      if (dragDistance.current > DISMISS_THRESHOLD) {
+        setIsClosing(true)
+        setTimeout(() => onClose?.(), 220)
+      } else {
+        setDragY(0)
+      }
+      setIsDragging(false)
+      dragActive.current = false
+      dragDistance.current = 0
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd)
+    el.addEventListener('touchcancel', onTouchEnd)
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+      el.removeEventListener('touchcancel', onTouchEnd)
+    }
+  }, [onClose])
+
   const title =
     reason === 'trial_expired' ? 'Votre essai est terminé'
     : reason === 'limit_reached' ? 'Limite atteinte'
@@ -61,11 +120,14 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
     : reason === 'trial_limit_reached' ? 'Vos devis d\'essai ont été utilisés. Choisissez un plan pour continuer à créer des devis.'
     : 'Activez votre abonnement pour continuer.'
 
+  const backdropOpacity = Math.max(0, 0.65 * (1 - dragY / 300))
+
   return (
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(15,23,42,0.65)',
+        background: `rgba(15,23,42,${isClosing ? 0 : backdropOpacity})`,
+        transition: isDragging ? 'none' : 'background 0.22s ease',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         display: 'flex', alignItems: 'flex-end',
@@ -73,12 +135,17 @@ export default function UpgradeModal({ onClose, reason = 'manual' }: Props) {
       }}
       onClick={e => e.target === e.currentTarget && onClose?.()}
     >
-      <div style={{
-        background: 'white',
-        borderRadius: '24px 24px 0 0',
-        width: '100%', maxHeight: '92vh', overflowY: 'auto',
-        animation: 'slideUpModal 0.3s cubic-bezier(0.32,0.72,0,1)',
-      }}>
+      <div
+        ref={sheetRef}
+        className="devira-sheet-enter"
+        style={{
+          background: 'white',
+          borderRadius: '24px 24px 0 0',
+          width: '100%', maxHeight: '92vh', overflowY: 'auto',
+          transform: `translateY(${isClosing ? '100%' : `${dragY}px`})`,
+          transition: isDragging ? 'none' : 'transform 0.28s cubic-bezier(0.32,0.72,0,1)',
+        }}
+      >
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E2E8F0' }} />

@@ -208,6 +208,7 @@ button:active {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
 }
+.devira-sheet-enter { animation: slideUpModal 0.3s cubic-bezier(0.32,0.72,0,1); }
 
 @keyframes devira-loading-slide {
   0% { transform: translateX(-120%); }
